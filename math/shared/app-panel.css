@@ -4,8 +4,7 @@
 .app-panel {
     position: fixed;
     left: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 20%;
     width: 60px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -195,6 +194,9 @@
     margin-bottom: 1rem;
     min-height: 40px;
     cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
 }
 
 .calc-display:focus {
@@ -336,11 +338,11 @@
 /* Animations */
 @keyframes slideInLeft {
     from {
-        transform: translateX(-100%) translateY(-50%);
+        left: -100px;
         opacity: 0;
     }
     to {
-        transform: translateX(0) translateY(-50%);
+        left: 2rem;
         opacity: 1;
     }
 }
