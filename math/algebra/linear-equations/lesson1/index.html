@@ -95,6 +95,30 @@
             animation: slideDown 1s ease-out;
         }
 
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .restart-btn {
+            background: transparent;
+            border: 2px solid var(--warning);
+            color: var(--warning);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .restart-btn:hover {
+            background: var(--warning);
+            color: var(--primary);
+        }
+
         .logo {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
@@ -573,6 +597,12 @@
                 gap: 1.5rem;
             }
 
+            .header-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+
             .breadcrumb {
                 display: none;
             }
@@ -591,9 +621,12 @@
     <div class="container">
         <header>
             <a href="/math/algebra/linear-equations" class="logo">Lesson 1: One-Step Equations</a>
-            <nav class="breadcrumb">
-                <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 1</span>
-            </nav>
+            <div class="header-controls">
+                <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
+                <nav class="breadcrumb">
+                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 1</span>
+                </nav>
+            </div>
         </header>
 
         <div class="main-content">
@@ -959,6 +992,9 @@
             const feedbackTitle = document.getElementById('feedbackTitle');
             const feedbackContent = document.getElementById('feedbackContent');
 
+            // Show coin effect
+            createCoinEffect(isCorrect);
+
             if (isCorrect) {
                 feedbackSection.className = 'feedback-section show feedback-correct';
                 feedbackIcon.textContent = '🎉';
@@ -1115,6 +1151,39 @@
             }
         }
 
+        // Restart the entire lesson
+        function restartLesson() {
+            if (confirm('Are you sure you want to restart this lesson? All progress will be reset.')) {
+                // Reset all lesson state
+                problemCount = 0;
+                attempts = 0;
+                problemAnswered = false;
+                
+                // Reset progress tracking if available
+                if (progressTracker) {
+                    try {
+                        progressTracker.currentScore = 0;
+                        progressTracker.streak = 0;
+                        progressTracker.questionCount = 0;
+                        progressTracker.correctAnswers = 0;
+                        progressTracker.incorrectAnswers = 0;
+                        progressTracker.scoreHistory = [];
+                        progressTracker.updateScoreDisplay();
+                    } catch (error) {
+                        console.error('Error resetting progress:', error);
+                    }
+                }
+                
+                // Load first problem
+                loadProblem();
+                
+                // Show confirmation
+                setTimeout(() => {
+                    alert('Lesson restarted! Good luck! 🎯');
+                }, 100);
+            }
+        }
+
         // Format time in minutes:seconds
         function formatTime(milliseconds) {
             const seconds = Math.floor(milliseconds / 1000);
@@ -1170,6 +1239,89 @@
             document.body.appendChild(sparkle);
             
             setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        // Create coin effects for correct/incorrect answers
+        function createCoinEffect(isCorrect) {
+            const submitBtn = document.getElementById('submitBtn');
+            const rect = submitBtn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const numCoins = isCorrect ? 8 : 4;
+            const coinColor = isCorrect ? '#50fa7b' : '#ff5555';
+            const coinSymbol = isCorrect ? '🪙' : '💔';
+            
+            for (let i = 0; i < numCoins; i++) {
+                setTimeout(() => {
+                    createCoin(centerX, centerY, coinColor, coinSymbol, isCorrect);
+                }, i * 50);
+            }
+        }
+
+        function createCoin(startX, startY, color, symbol, isCorrect) {
+            const coin = document.createElement('div');
+            
+            // Random direction and distance
+            const angle = (Math.PI * 2 * Math.random());
+            const distance = 80 + Math.random() * 40;
+            const endX = startX + Math.cos(angle) * distance;
+            const endY = startY + Math.sin(angle) * distance - 30; // Slight upward bias
+            
+            coin.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                font-size: 1.2rem;
+                pointer-events: none;
+                z-index: 2000;
+                animation: ${isCorrect ? 'coinSuccess' : 'coinFail'} 1s ease-out forwards;
+                --endX: ${endX}px;
+                --endY: ${endY}px;
+            `;
+            
+            coin.textContent = symbol;
+            
+            // Add coin animation styles if not exists
+            if (!document.querySelector('style[data-coin-animation]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-coin-animation', 'true');
+                style.textContent = `
+                    @keyframes coinSuccess {
+                        0% { 
+                            transform: scale(0) rotate(0deg); 
+                            opacity: 1;
+                        }
+                        20% { 
+                            transform: scale(1.2) rotate(90deg); 
+                            opacity: 1;
+                        }
+                        100% { 
+                            transform: scale(0.8) rotate(360deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); 
+                            opacity: 0;
+                        }
+                    }
+                    @keyframes coinFail {
+                        0% { 
+                            transform: scale(0) rotate(0deg); 
+                            opacity: 1;
+                        }
+                        20% { 
+                            transform: scale(1) rotate(-30deg); 
+                            opacity: 1;
+                        }
+                        100% { 
+                            transform: scale(0.5) rotate(-180deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); 
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(coin);
+            
+            setTimeout(() => coin.remove(), 1000);
         }
 
         // Initialize first problem when page loads
