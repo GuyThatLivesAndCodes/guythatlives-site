@@ -1,0 +1,378 @@
+/* App Panel System - Shared across all lessons */
+
+/* App Panel Container */
+.app-panel {
+    position: fixed;
+    left: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 60px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    z-index: 1500;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    animation: slideInLeft 1s ease-out 1s both;
+}
+
+.app-panel.expanded {
+    width: 320px;
+}
+
+.app-panel-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.app-panel.expanded .app-panel-header {
+    opacity: 1;
+}
+
+.panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.app-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.app-panel.expanded .app-grid {
+    align-items: stretch;
+}
+
+/* App Icons */
+.app-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.app-icon:hover {
+    border-color: var(--accent);
+    background: rgba(100, 255, 218, 0.1);
+    transform: scale(1.05);
+}
+
+.app-icon.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--primary);
+}
+
+.app-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.app-icon:hover::before {
+    left: 100%;
+}
+
+/* Expanded App Display */
+.app-display {
+    display: none;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.app-panel.expanded .app-display {
+    display: block;
+}
+
+.app-content {
+    display: none;
+}
+
+.app-content.active {
+    display: block;
+    animation: fadeInScale 0.3s ease-out;
+}
+
+/* App Headers */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.app-title {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 0.9rem;
+    margin: 0;
+    flex: 1;
+}
+
+.app-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-close:hover {
+    color: var(--error);
+    background: rgba(255, 85, 85, 0.1);
+}
+
+/* Drag Handle */
+.drag-handle {
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 10px;
+    background: var(--border);
+    border-radius: 5px;
+    cursor: move;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.app-panel:hover .drag-handle {
+    opacity: 0.5;
+}
+
+.drag-handle:hover {
+    opacity: 1;
+}
+
+/* Calculator App Styles */
+.calculator-app {
+    width: 100%;
+}
+
+.calc-display {
+    width: 100%;
+    background: var(--primary);
+    border: 2px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    text-align: right;
+    margin-bottom: 1rem;
+    min-height: 40px;
+    cursor: text;
+}
+
+.calc-display:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+}
+
+.calc-btn {
+    background: var(--primary);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calc-btn:hover {
+    background: var(--secondary);
+    border-color: var(--accent);
+}
+
+.calc-btn.operator {
+    background: rgba(100, 255, 218, 0.1);
+    color: var(--accent);
+}
+
+.calc-btn.operator:hover {
+    background: rgba(100, 255, 218, 0.2);
+}
+
+.calc-btn.equals {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.calc-btn.equals:hover {
+    background: var(--success);
+}
+
+.calc-btn.clear {
+    background: rgba(255, 85, 85, 0.1);
+    color: var(--error);
+}
+
+.calc-btn.clear:hover {
+    background: rgba(255, 85, 85, 0.2);
+}
+
+/* Notes App Styles */
+.notes-app {
+    width: 100%;
+}
+
+.notes-textarea {
+    width: 100%;
+    height: 200px;
+    background: var(--primary);
+    border: 2px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    padding: 1rem;
+    border-radius: 8px;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+}
+
+.notes-meta {
+    margin-top: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+/* Timer App Styles */
+.timer-app {
+    width: 100%;
+    text-align: center;
+}
+
+.timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 1rem 0;
+    background: var(--primary);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.timer-controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.timer-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.timer-btn:hover {
+    border-color: var(--accent);
+    background: rgba(100, 255, 218, 0.1);
+}
+
+.timer-btn.active {
+    background: var(--accent);
+    color: var(--primary);
+}
+
+/* Animations */
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%) translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) translateY(-50%);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .app-panel {
+        left: 1rem;
+        width: 50px;
+    }
+    
+    .app-panel.expanded {
+        width: 280px;
+    }
+    
+    .calc-grid {
+        gap: 0.3rem;
+    }
+    
+    .calc-btn {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
