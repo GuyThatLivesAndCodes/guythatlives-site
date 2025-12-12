@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Learning Platform • guythatlives.net</title>
+    <meta name="description" content="Interactive math courses with mistake-based learning. Learn by understanding where you went wrong.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Same animated background */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+        }
+
+        .hero-description {
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 2rem 0;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1s both;
+        }
+
+        .stat-item {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .courses-section {
+            padding: 4rem 0;
+            opacity: 0;
+            animation: slideUp 1s ease-out 0.6s both;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .course-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out calc(var(--delay) * 0.1s) both;
+        }
+
+        .course-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(100, 255, 218, 0.1);
+        }
+
+        .course-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .course-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .course-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .course-icon {
+            font-size: 2.5rem;
+            width: 60px;
+            height: 60px;
+            background: rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        .course-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .course-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-left: auto;
+        }
+
+        .status-available {
+            background: rgba(80, 250, 123, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(80, 250, 123, 0.3);
+        }
+
+        .status-coming-soon {
+            background: rgba(241, 250, 140, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(241, 250, 140, 0.3);
+        }
+
+        .course-description {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .course-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .course-features li {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .course-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+        }
+
+        .course-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .course-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .course-action:hover {
+            color: var(--primary);
+        }
+
+        .course-action:hover::before {
+            left: 0;
+        }
+
+        .course-action:disabled {
+            border-color: var(--border);
+            color: var(--text-dim);
+            cursor: not-allowed;
+        }
+
+        .course-action:disabled:hover {
+            color: var(--text-dim);
+        }
+
+        .course-action:disabled::before {
+            display: none;
+        }
+
+        .philosophy-section {
+            margin-top: 6rem;
+            padding: 3rem;
+            background: rgba(100, 255, 218, 0.02);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 16px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 1.2s both;
+        }
+
+        .philosophy-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .philosophy-text {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .courses-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stats-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .philosophy-section {
+                margin-top: 3rem;
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/" class="logo">math.guythatlives.net</a>
+            <nav class="breadcrumb">
+                <a href="https://guythatlives.net">home</a> / <span>mathematics</span>
+            </nav>
+        </header>
+
+        <section class="hero-section">
+            <h1 class="hero-title">Learn Math Through<br>Understanding Mistakes</h1>
+            <p class="hero-subtitle">// Revolutionary mistake-based learning</p>
+            <p class="hero-description">
+                Stop getting stuck on "wrong answer, try again." Our platform shows you common mistakes alongside your own, 
+                helping you identify patterns and truly understand where thinking goes astray.
+            </p>
+            
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">mistake patterns</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">∞</span>
+                    <span class="stat-label">practice problems</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">0</span>
+                    <span class="stat-label">judgment</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="courses-section">
+            <h2 class="section-title">Available Courses</h2>
+            <p class="section-subtitle">Choose your mathematical journey</p>
+
+            <div class="courses-grid">
+                <!-- Algebra Course -->
+                <div class="course-card" style="--delay: 1">
+                    <div class="course-header">
+                        <div class="course-icon">📊</div>
+                        <h3 class="course-title">Algebra</h3>
+                        <span class="course-status status-available">AVAILABLE</span>
+                    </div>
+                    <p class="course-description">
+                        Master algebraic thinking through mistake analysis. Learn to solve equations, work with variables, 
+                        and understand functions by seeing where others commonly go wrong.
+                    </p>
+                    <ul class="course-features">
+                        <li>Linear equations & inequalities</li>
+                        <li>Quadratic functions & graphing</li>
+                        <li>Systems of equations</li>
+                        <li>Polynomial operations</li>
+                        <li>Rational expressions</li>
+                    </ul>
+                    <a href="algebra/" class="course-action">
+                        <span>🚀</span>
+                        Start Learning
+                    </a>
+                </div>
+
+                <!-- Geometry Course -->
+                <div class="course-card" style="--delay: 2">
+                    <div class="course-header">
+                        <div class="course-icon">📐</div>
+                        <h3 class="course-title">Geometry</h3>
+                        <span class="course-status status-coming-soon">COMING SOON</span>
+                    </div>
+                    <p class="course-description">
+                        Visualize geometric concepts and proofs. Understand spatial reasoning by analyzing common 
+                        misconceptions in angle relationships, area calculations, and theorem applications.
+                    </p>
+                    <ul class="course-features">
+                        <li>Angles & parallel lines</li>
+                        <li>Triangle properties & proofs</li>
+                        <li>Area & volume calculations</li>
+                        <li>Coordinate geometry</li>
+                        <li>Trigonometric ratios</li>
+                    </ul>
+                    <button class="course-action" disabled>
+                        <span>⏳</span>
+                        Coming Soon
+                    </button>
+                </div>
+
+                <!-- Pre-Calculus Course -->
+                <div class="course-card" style="--delay: 3">
+                    <div class="course-header">
+                        <div class="course-icon">📈</div>
+                        <h3 class="course-title">Pre-Calculus</h3>
+                        <span class="course-status status-coming-soon">COMING SOON</span>
+                    </div>
+                    <p class="course-description">
+                        Bridge algebra and calculus with advanced functions. Explore limits, logarithms, and trigonometry 
+                        while understanding the conceptual pitfalls that trip up students.
+                    </p>
+                    <ul class="course-features">
+                        <li>Advanced functions</li>
+                        <li>Trigonometric identities</li>
+                        <li>Logarithmic & exponential</li>
+                        <li>Sequences & series</li>
+                        <li>Introduction to limits</li>
+                    </ul>
+                    <button class="course-action" disabled>
+                        <span>⏳</span>
+                        Coming Soon
+                    </button>
+                </div>
+
+                <!-- Statistics Course -->
+                <div class="course-card" style="--delay: 4">
+                    <div class="course-header">
+                        <div class="course-icon">📊</div>
+                        <h3 class="course-title">Statistics</h3>
+                        <span class="course-status status-coming-soon">COMING SOON</span>
+                    </div>
+                    <p class="course-description">
+                        Learn to interpret data and probability through common statistical fallacies. Understand 
+                        correlation vs causation, sampling bias, and proper data visualization.
+                    </p>
+                    <ul class="course-features">
+                        <li>Descriptive statistics</li>
+                        <li>Probability distributions</li>
+                        <li>Hypothesis testing</li>
+                        <li>Regression analysis</li>
+                        <li>Data interpretation</li>
+                    </ul>
+                    <button class="course-action" disabled>
+                        <span>⏳</span>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="philosophy-section">
+            <h3 class="philosophy-title">// Learning Philosophy</h3>
+            <p class="philosophy-text">
+                "The best way to learn is not to be told you're wrong, but to understand <em>why</em> you're wrong. 
+                By examining the landscape of common mistakes, students develop metacognition—the ability to think about their own thinking."
+            </p>
+        </section>
+    </div>
+
+    <script>
+        // Same sparkle effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: sparkleAnimation 1s ease-out forwards;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkleAnimation {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+            `;
+            
+            if (!document.querySelector('style[data-sparkle]')) {
+                style.setAttribute('data-sparkle', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        // Course card hover effects
+        document.querySelectorAll('.course-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.setProperty('--glow', '0 0 20px rgba(100, 255, 218, 0.3)');
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.setProperty('--glow', 'none');
+            });
+        });
+
+        // Smooth scroll for any links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
