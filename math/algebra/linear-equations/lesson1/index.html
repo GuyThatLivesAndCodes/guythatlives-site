@@ -13,6 +13,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
+    <!-- Progress tracking system -->
+    <link rel="stylesheet" href="../progress-ui.css">
+    <script src="../progress-tracker.js"></script>
+    
     <style>
         :root {
             --primary: #0a0e27;
@@ -618,6 +622,61 @@
         </div>
     </div>
 
+    <!-- Score Panel -->
+    <div class="score-panel">
+        <div class="score-header">
+            <span class="score-icon">🎯</span>
+            <h3 class="score-title">// lesson score</h3>
+        </div>
+        <div class="score-display">
+            <span class="current-score" id="currentScore">0</span>
+            <span class="target-score">/ 100</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-stats">
+            <div class="stat-item">
+                <span class="stat-value" id="currentStreak">0</span>
+                <span class="stat-label">streak</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="questionCount">0</span>
+                <span class="stat-label">questions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Complete Modal -->
+    <div class="lesson-complete-modal" id="lessonCompleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">🏆</div>
+                <h2 class="modal-title">Lesson Complete!</h2>
+                <p class="modal-subtitle">You've mastered one-step equations!</p>
+            </div>
+            <div class="modal-stats">
+                <div class="final-score" id="finalScore">100</div>
+                <p>Excellent work on Lesson 1!</p>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-value" id="finalAccuracy">100%</span>
+                        <span class="stat-label">accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="finalTime">5:30</span>
+                        <span class="stat-label">time</span>
+                    </div>
+                </div>
+            </div>
+            <div id="achievementsContainer"></div>
+            <div class="modal-actions">
+                <a href="../" class="modal-btn">← Course Menu</a>
+                <a href="../lesson2/" class="modal-btn primary">Next Lesson →</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Calculator Panel -->
     <button class="calculator-toggle" id="calculatorToggle">🧮</button>
     <div class="calculator-panel" id="calculatorPanel">
@@ -743,13 +802,22 @@
         let problemCount = 0;
         let userAnswer = null;
         let isCorrect = false;
+        let questionStartTime = Date.now();
+        let attempts = 0;
+
+        // Initialize progress tracking
+        const progressTracker = new ProgressTracker();
+        progressTracker.initializeLesson('algebra_linear_equations', 'lesson1');
 
         // Generate and load a new problem
         function loadProblem() {
             currentProblem = generateRandomProblem();
             problemCount++;
+            questionStartTime = Date.now();
+            attempts = 0;
             
             document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
+            document.getElementById('questionCount').textContent = problemCount;
             
             // Render equation with KaTeX
             katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
@@ -770,6 +838,7 @@
             const input = document.getElementById('answerInput').value.trim();
             if (!input) return;
             
+            attempts++;
             userAnswer = parseFloat(input.replace(/x\s*=\s*/, '').replace(/[^-\d.]/g, ''));
             
             if (isNaN(userAnswer)) {
@@ -778,7 +847,19 @@
             }
             
             isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
+            
+            // Calculate score change
+            const timeSpent = Date.now() - questionStartTime;
+            const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
+            
             showFeedback();
+            
+            // Check if lesson is complete
+            if (progressTracker.currentScore >= 100) {
+                setTimeout(() => {
+                    showLessonComplete();
+                }, 2000);
+            }
         }
 
         // Show feedback with mistake analysis
@@ -860,6 +941,45 @@
         // Load next problem
         function nextProblem() {
             loadProblem();
+        }
+
+        // Show lesson completion modal
+        function showLessonComplete() {
+            const modal = document.getElementById('lessonCompleteModal');
+            const lessonData = progressTracker.completeLessonAttempt();
+            
+            // Update modal content
+            document.getElementById('finalScore').textContent = lessonData.score;
+            document.getElementById('finalAccuracy').textContent = 
+                Math.round(lessonData.accuracy * 100) + '%';
+            document.getElementById('finalTime').textContent = 
+                formatTime(lessonData.timeSpent);
+            
+            // Show achievements
+            const achievements = progressTracker.getAchievements();
+            const achievementsContainer = document.getElementById('achievementsContainer');
+            
+            if (achievements.length > 0) {
+                achievementsContainer.innerHTML = achievements.map(achievement => `
+                    <div class="achievement">
+                        <span class="achievement-icon">${achievement.icon}</span>
+                        <div class="achievement-text">
+                            <div class="achievement-title">${achievement.title}</div>
+                            <div class="achievement-description">${achievement.description}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            modal.classList.add('show');
+        }
+
+        // Format time in minutes:seconds
+        function formatTime(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         }
 
         // Event listeners
