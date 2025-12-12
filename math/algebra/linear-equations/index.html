@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linear Equations • GuyThatLives Network</title>
-    <meta name="description" content="Learn linear equations through mistake-based learning. Practice with real-time feedback.">
+    <title>Linear Equations Course • GuyThatLives Network</title>
+    <meta name="description" content="Master linear equations step-by-step with focused mini-lessons and mistake-based learning.">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- KaTeX for math rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
     <style>
         :root {
@@ -72,7 +68,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
             position: relative;
@@ -83,21 +79,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 0 2rem;
+            padding: 2rem 0;
             animation: slideDown 1s ease-out;
         }
 
         .logo {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--accent);
             text-decoration: none;
         }
 
         .breadcrumb {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: var(--text-dim);
         }
 
@@ -111,111 +107,202 @@
             color: var(--accent);
         }
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
+        .hero-section {
+            text-align: center;
+            padding: 1rem 0 3rem;
             animation: slideUp 1s ease-out 0.3s both;
         }
 
-        .problem-section {
+        .hero-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .progress-overview {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+
+        .progress-stat {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .progress-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .lessons-section {
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .lesson-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            height: fit-content;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out calc(var(--delay) * 0.1s) both;
         }
 
-        .problem-header {
+        .lesson-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(100, 255, 218, 0.1);
+        }
+
+        .lesson-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .lesson-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .lesson-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
-        .problem-number {
+        .lesson-number {
             background: var(--accent);
             color: var(--primary);
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .problem-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-
-        .problem-statement {
-            background: rgba(100, 255, 218, 0.05);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            min-width: 40px;
             text-align: center;
         }
 
-        .equation-display {
-            font-size: 2rem;
-            font-weight: 500;
-            margin: 1rem 0;
-            color: var(--accent);
+        .lesson-info {
+            flex: 1;
         }
 
-        .solve-instruction {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-        }
-
-        .input-section {
-            margin-bottom: 2rem;
-        }
-
-        .input-label {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        .math-input {
-            width: 100%;
-            background: var(--primary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
+        .lesson-title {
             font-size: 1.2rem;
-            padding: 1rem;
-            border-radius: 8px;
-            transition: border-color 0.3s ease;
+            font-weight: 600;
+            margin: 0 0 0.3rem 0;
         }
 
-        .math-input:focus {
-            outline: none;
-            border-color: var(--accent);
+        .lesson-focus {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
         }
 
-        .submit-btn {
-            width: 100%;
+        .lesson-description {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-concepts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-concepts span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            background: rgba(100, 255, 218, 0.05);
+            color: var(--text-dim);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .lesson-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
             background: transparent;
             border: 2px solid var(--accent);
             color: var(--accent);
+            text-decoration: none;
+            border-radius: 6px;
             font-family: 'JetBrains Mono', monospace;
             font-weight: 500;
-            font-size: 1rem;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            cursor: pointer;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
-        .submit-btn::before {
+        .lesson-action::before {
             content: '';
             position: absolute;
             top: 0;
@@ -227,309 +314,26 @@
             z-index: -1;
         }
 
-        .submit-btn:hover {
+        .lesson-action:hover {
             color: var(--primary);
         }
 
-        .submit-btn:hover::before {
+        .lesson-action:hover::before {
             left: 0;
         }
 
-        .feedback-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
+        .lesson-action.coming-soon {
+            border-color: var(--border);
+            color: var(--text-dim);
+            cursor: not-allowed;
         }
 
-        .feedback-section.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feedback-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .feedback-icon {
-            font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .feedback-correct .feedback-icon {
-            background: rgba(80, 250, 123, 0.2);
-            color: var(--success);
-        }
-
-        .feedback-incorrect .feedback-icon {
-            background: rgba(255, 85, 85, 0.2);
-            color: var(--error);
-        }
-
-        .feedback-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .mistake-analysis {
-            background: rgba(255, 85, 85, 0.05);
-            border: 1px solid rgba(255, 85, 85, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .mistake-title {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--error);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .mistake-options {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .mistake-option {
-            background: var(--primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .mistake-option:hover {
-            border-color: var(--accent);
-            background: rgba(100, 255, 218, 0.05);
-        }
-
-        .mistake-option.selected {
-            border-color: var(--error);
-            background: rgba(255, 85, 85, 0.1);
-        }
-
-        .mistake-option.correct-choice {
-            border-color: var(--success);
-            background: rgba(80, 250, 123, 0.1);
-        }
-
-        .mistake-explanation {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+        .lesson-action.coming-soon:hover {
             color: var(--text-dim);
         }
 
-        .solution-steps {
-            background: rgba(80, 250, 123, 0.05);
-            border: 1px solid rgba(80, 250, 123, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .solution-title {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--success);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .solution-step {
-            margin: 0.8rem 0;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(80, 250, 123, 0.1);
-        }
-
-        .solution-step:last-child {
-            border-bottom: none;
-        }
-
-        .step-number {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--success);
-            font-size: 0.8rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .step-content {
-            font-size: 1rem;
-        }
-
-        .next-problem-btn {
-            width: 100%;
-            background: var(--success);
-            border: none;
-            color: var(--primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 500;
-            font-size: 1rem;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1.5rem;
-        }
-
-        .next-problem-btn:hover {
-            background: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        /* Calculator Panel Styles */
-        .calculator-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: var(--accent);
-            color: var(--primary);
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.3);
-        }
-
-        .calculator-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(100, 255, 218, 0.5);
-        }
-
-        .calculator-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 2rem;
-            width: 280px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transform: translateY(100%) scale(0.8);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 999;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .calculator-panel.open {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-
-        .calculator-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .calculator-title {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent);
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        .calculator-close {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .calculator-close:hover {
-            color: var(--error);
-        }
-
-        .calculator-display {
-            width: 100%;
-            background: var(--primary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.2rem;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: right;
-            margin-bottom: 1rem;
-            min-height: 50px;
-            cursor: text;
-        }
-
-        .calculator-display:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
-        }
-
-        .calculator-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-        }
-
-        .calc-btn {
-            background: var(--primary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            padding: 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .calc-btn:hover {
-            background: var(--secondary);
-            border-color: var(--accent);
-        }
-
-        .calc-btn.operator {
-            background: rgba(100, 255, 218, 0.1);
-            color: var(--accent);
-        }
-
-        .calc-btn.operator:hover {
-            background: rgba(100, 255, 218, 0.2);
-        }
-
-        .calc-btn.equals {
-            background: var(--accent);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .calc-btn.equals:hover {
-            background: var(--success);
-        }
-
-        .calc-btn.clear {
-            background: rgba(255, 85, 85, 0.1);
-            color: var(--error);
-        }
-
-        .calc-btn.clear:hover {
-            background: rgba(255, 85, 85, 0.2);
+        .lesson-action.coming-soon::before {
+            display: none;
         }
 
         @keyframes slideDown {
@@ -554,23 +358,40 @@
             }
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         /* Mobile responsiveness */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
             }
 
-            .main-content {
+            .lessons-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 1rem;
+            }
+
+            .progress-overview {
+                flex-direction: column;
+                gap: 1rem;
             }
 
             .breadcrumb {
                 display: none;
-            }
-
-            .equation-display {
-                font-size: 1.5rem;
             }
         }
     </style>
@@ -582,365 +403,170 @@
 
     <div class="container">
         <header>
-            <a href="/math/algebra" class="logo">linear equations</a>
+            <a href="/math/algebra" class="logo">GuyThatLives Network / Linear Equations</a>
             <nav class="breadcrumb">
                 <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <span>linear equations</span>
             </nav>
         </header>
 
-        <div class="main-content">
-            <div class="problem-section">
-                <div class="problem-header">
-                    <div class="problem-number" id="problemNumber">Problem 1</div>
-                    <h1 class="problem-title">Solve for x</h1>
-                </div>
+        <section class="hero-section">
+            <h1 class="hero-title">Linear Equations Mastery</h1>
+            <p class="hero-subtitle">// Step-by-step progression with targeted learning</p>
+            <p class="hero-description">
+                Master linear equations through focused mini-lessons. Each lesson targets specific mistake patterns 
+                and builds understanding progressively.
+            </p>
 
-                <div class="problem-statement">
-                    <div class="equation-display" id="equationDisplay">2x + 3 = 11</div>
-                    <p class="solve-instruction">Find the value of x that makes this equation true</p>
+            <div class="progress-overview">
+                <div class="progress-stat">
+                    <span class="progress-number">5</span>
+                    <span class="progress-label">lessons</span>
                 </div>
-
-                <div class="input-section">
-                    <label class="input-label" for="answerInput">Your answer:</label>
-                    <input type="text" id="answerInput" class="math-input" placeholder="x = ..." autocomplete="off">
+                <div class="progress-stat">
+                    <span class="progress-number">15-20</span>
+                    <span class="progress-label">min each</span>
                 </div>
-
-                <button class="submit-btn" id="submitBtn">Check Answer</button>
+                <div class="progress-stat">
+                    <span class="progress-number">∞</span>
+                    <span class="progress-label">practice</span>
+                </div>
             </div>
+        </section>
 
-            <div class="feedback-section" id="feedbackSection">
-                <div class="feedback-header">
-                    <div class="feedback-icon" id="feedbackIcon">🤔</div>
-                    <h2 class="feedback-title" id="feedbackTitle">Submit your answer to see feedback</h2>
+        <section class="lessons-section">
+            <h2 class="section-title">Course Progression</h2>
+            <p class="section-subtitle">Master each concept before moving to the next</p>
+
+            <div class="lessons-grid">
+                <!-- Lesson 1 -->
+                <div class="lesson-card" style="--delay: 1">
+                    <div class="lesson-header">
+                        <div class="lesson-number">01</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">One-Step Equations</h3>
+                            <p class="lesson-focus">Focus: Addition & Subtraction</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Start with the basics. Learn to isolate x using addition and subtraction. 
+                        Understand the most common sign errors and "move across equals" mistakes.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>x + 5 = 12</span>
+                        <span>x - 3 = 8</span>
+                        <span>sign errors</span>
+                        <span>inverse operations</span>
+                    </div>
+                    <a href="lesson1/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 1
+                    </a>
                 </div>
-                <div id="feedbackContent"></div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Calculator Panel -->
-    <button class="calculator-toggle" id="calculatorToggle">🧮</button>
-    <div class="calculator-panel" id="calculatorPanel">
-        <div class="calculator-header">
-            <h3 class="calculator-title">// calculator</h3>
-            <button class="calculator-close" onclick="toggleCalculator()">×</button>
-        </div>
-        <input type="text" class="calculator-display" id="calculatorDisplay" tabindex="0">
-        <div class="calculator-grid">
-            <button class="calc-btn clear" onclick="clearCalculator()">C</button>
-            <button class="calc-btn clear" onclick="clearEntry()">CE</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('/')">/</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('*')">×</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('7')">7</button>
-            <button class="calc-btn" onclick="appendToCalculator('8')">8</button>
-            <button class="calc-btn" onclick="appendToCalculator('9')">9</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('-')">-</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('4')">4</button>
-            <button class="calc-btn" onclick="appendToCalculator('5')">5</button>
-            <button class="calc-btn" onclick="appendToCalculator('6')">6</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('+')">+</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('1')">1</button>
-            <button class="calc-btn" onclick="appendToCalculator('2')">2</button>
-            <button class="calc-btn" onclick="appendToCalculator('3')">3</button>
-            <button class="calc-btn equals" onclick="calculateResult()" rowspan="2">=</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('0')" style="grid-column: span 2;">0</button>
-            <button class="calc-btn" onclick="appendToCalculator('.')">.</button>
-        </div>
+                <!-- Lesson 2 -->
+                <div class="lesson-card" style="--delay: 2">
+                    <div class="lesson-header">
+                        <div class="lesson-number">02</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Multiplication & Division</h3>
+                            <p class="lesson-focus">Focus: Coefficients & Division</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Tackle equations with coefficients. Learn when to multiply vs divide, and 
+                        avoid common mistakes with fractions and negative coefficients.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>3x = 15</span>
+                        <span>x/4 = 7</span>
+                        <span>fraction errors</span>
+                        <span>coefficient confusion</span>
+                    </div>
+                    <a href="lesson2/" class="lesson-action coming-soon">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Lesson 3 -->
+                <div class="lesson-card" style="--delay: 3">
+                    <div class="lesson-header">
+                        <div class="lesson-number">03</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Two-Step Equations</h3>
+                            <p class="lesson-focus">Focus: Order of Operations</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Combine addition/subtraction with multiplication/division. Master the 
+                        correct order and avoid "divide first" mistakes.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>2x + 3 = 11</span>
+                        <span>4x - 7 = 9</span>
+                        <span>order mistakes</span>
+                        <span>PEMDAS application</span>
+                    </div>
+                    <a href="lesson3/" class="lesson-action coming-soon">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Lesson 4 -->
+                <div class="lesson-card" style="--delay: 4">
+                    <div class="lesson-header">
+                        <div class="lesson-number">04</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Distribution Basics</h3>
+                            <p class="lesson-focus">Focus: Distributing Numbers</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Learn to distribute coefficients correctly. Understand partial distribution 
+                        errors and sign mistakes when expanding expressions.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>3(x + 4) = 21</span>
+                        <span>-2(x - 5) = 8</span>
+                        <span>distribution errors</span>
+                        <span>negative distribution</span>
+                    </div>
+                    <a href="lesson4/" class="lesson-action coming-soon">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Lesson 5 -->
+                <div class="lesson-card" style="--delay: 5">
+                    <div class="lesson-header">
+                        <div class="lesson-number">05</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Multi-Step Mastery</h3>
+                            <p class="lesson-focus">Focus: Complex Equations</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Put it all together! Solve complex equations with multiple steps, 
+                        variables on both sides, and nested operations.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>2(x + 3) - 4 = 3x + 1</span>
+                        <span>like terms</span>
+                        <span>variables both sides</span>
+                        <span>complex distribution</span>
+                    </div>
+                    <a href="lesson5/" class="lesson-action coming-soon">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
-        // Procedural problem generation
-        function generateRandomProblem() {
-            const problemTypes = [
-                'simple_addition',
-                'simple_subtraction', 
-                'multiplication_division',
-                'distribution_basic'
-            ];
-            
-            const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
-            
-            switch(type) {
-                case 'simple_addition':
-                    return generateAdditionProblem();
-                case 'simple_subtraction':
-                    return generateSubtractionProblem();
-                case 'multiplication_division':
-                    return generateMultiplicationProblem();
-                case 'distribution_basic':
-                    return generateDistributionProblem();
-                default:
-                    return generateAdditionProblem();
-            }
-        }
-
-        function generateAdditionProblem() {
-            const a = Math.floor(Math.random() * 5) + 2; // coefficient (2-6)
-            const b = Math.floor(Math.random() * 15) + 3; // constant (3-17)
-            const x = Math.floor(Math.random() * 10) + 1; // solution (1-10)
-            const result = a * x + b;
-            
-            return {
-                equation: `${a}x + ${b} = ${result}`,
-                solution: x,
-                steps: [
-                    { step: `Subtract ${b} from both sides`, equation: `${a}x = ${result - b}` },
-                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
-                ],
-                mistakes: [
-                    {
-                        type: "sign_error",
-                        description: `Added ${b} instead of subtracting`,
-                        work: `${a}x + ${b} + ${b} = ${result} + ${b} → ${a}x = ${result + b} → x = ${(result + b) / a}`
-                    },
-                    {
-                        type: "order_error", 
-                        description: `Divided by ${a} before isolating ${a}x`,
-                        work: `x + ${b/a} = ${result/a} → x = ${result/a - b/a}`
-                    },
-                    {
-                        type: "both_sides_error",
-                        description: "Didn't apply operation to both sides",
-                        work: `${a}x = ${result} - ${b} → x = ${(result - b) / a}`
-                    }
-                ]
-            };
-        }
-
-        function generateSubtractionProblem() {
-            const a = Math.floor(Math.random() * 5) + 2;
-            const b = Math.floor(Math.random() * 15) + 5; 
-            const x = Math.floor(Math.random() * 10) + 1;
-            const result = a * x - b;
-            
-            return {
-                equation: `${a}x - ${b} = ${result}`,
-                solution: x,
-                steps: [
-                    { step: `Add ${b} to both sides`, equation: `${a}x = ${result + b}` },
-                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
-                ],
-                mistakes: [
-                    {
-                        type: "sign_error",
-                        description: `Subtracted ${b} instead of adding`,
-                        work: `${a}x - ${b} - ${b} = ${result} - ${b} → ${a}x = ${result - b} → x = ${(result - b) / a}`
-                    },
-                    {
-                        type: "order_error",
-                        description: `Divided by ${a} before isolating ${a}x`, 
-                        work: `x - ${b/a} = ${result/a} → x = ${result/a + b/a}`
-                    },
-                    {
-                        type: "both_sides_error",
-                        description: "Didn't apply operation to both sides",
-                        work: `${a}x = ${result} + ${b} → x = ${(result + b) / a}`
-                    }
-                ]
-            };
-        }
-
-        function generateMultiplicationProblem() {
-            const a = Math.floor(Math.random() * 4) + 2;
-            const b = Math.floor(Math.random() * 8) + 2;
-            const x = Math.floor(Math.random() * 8) + 1;
-            const result = a * x * b;
-            
-            return {
-                equation: `${a * b}x = ${result}`,
-                solution: x,
-                steps: [
-                    { step: `Divide both sides by ${a * b}`, equation: `x = ${x}` }
-                ],
-                mistakes: [
-                    {
-                        type: "wrong_division",
-                        description: `Divided by ${a} instead of ${a * b}`,
-                        work: `x = ${result}/${a} = ${result/a}`
-                    },
-                    {
-                        type: "multiplication_error",
-                        description: `Multiplied instead of dividing`,
-                        work: `x = ${result} × ${a * b} = ${result * a * b}`
-                    },
-                    {
-                        type: "partial_division",
-                        description: `Only divided by part of the coefficient`,
-                        work: `${b}x = ${result}/${a} → x = ${result/(a*b)}`
-                    }
-                ]
-            };
-        }
-
-        function generateDistributionProblem() {
-            const a = Math.floor(Math.random() * 4) + 2;
-            const b = Math.floor(Math.random() * 5) + 1;
-            const x = Math.floor(Math.random() * 8) + 1;
-            const result = a * (x + b);
-            
-            return {
-                equation: `${a}(x + ${b}) = ${result}`,
-                solution: x,
-                steps: [
-                    { step: `Distribute ${a} to both terms`, equation: `${a}x + ${a * b} = ${result}` },
-                    { step: `Subtract ${a * b} from both sides`, equation: `${a}x = ${result - a * b}` },
-                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
-                ],
-                mistakes: [
-                    {
-                        type: "distribution_error",
-                        description: `Only distributed to first term`,
-                        work: `${a}x + ${b} = ${result} → ${a}x = ${result - b} → x = ${(result - b) / a}`
-                    },
-                    {
-                        type: "division_first",
-                        description: `Divided by ${a} before distributing`,
-                        work: `x + ${b} = ${result/a} → x = ${result/a - b}`
-                    },
-                    {
-                        type: "sign_error",
-                        description: `Made sign error during distribution`,
-                        work: `${a}x - ${a * b} = ${result} → ${a}x = ${result + a * b} → x = ${(result + a * b) / a}`
-                    }
-                ]
-            };
-        }
-
-        let currentProblem = null;
-        let problemCount = 0;
-        let userAnswer = null;
-        let isCorrect = false;
-
-        // Generate and load a new problem
-        function loadProblem() {
-            currentProblem = generateRandomProblem();
-            problemCount++;
-            
-            document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
-            
-            // Render equation with KaTeX
-            katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
-                displayMode: true,
-                throwOnError: false
-            });
-
-            // Reset UI
-            document.getElementById('answerInput').value = '';
-            document.getElementById('feedbackSection').classList.remove('show', 'feedback-correct', 'feedback-incorrect');
-            document.getElementById('feedbackIcon').textContent = '🤔';
-            document.getElementById('feedbackTitle').textContent = 'Submit your answer to see feedback';
-            document.getElementById('feedbackContent').innerHTML = '';
-        }
-
-        // Check the user's answer
-        function checkAnswer() {
-            const input = document.getElementById('answerInput').value.trim();
-            if (!input) return;
-            
-            userAnswer = parseFloat(input.replace(/x\s*=\s*/, '').replace(/[^-\d.]/g, ''));
-            
-            if (isNaN(userAnswer)) {
-                alert('Please enter a valid number');
-                return;
-            }
-            
-            isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
-            showFeedback();
-        }
-
-        // Show feedback with mistake analysis
-        function showFeedback() {
-            const feedbackSection = document.getElementById('feedbackSection');
-            const feedbackIcon = document.getElementById('feedbackIcon');
-            const feedbackTitle = document.getElementById('feedbackTitle');
-            const feedbackContent = document.getElementById('feedbackContent');
-
-            if (isCorrect) {
-                feedbackSection.className = 'feedback-section show feedback-correct';
-                feedbackIcon.textContent = '🎉';
-                feedbackTitle.textContent = 'Excellent! You got it right!';
-                
-                feedbackContent.innerHTML = `
-                    <div class="solution-steps">
-                        <div class="solution-title">// Correct Solution Steps</div>
-                        ${currentProblem.steps.map((step, i) => `
-                            <div class="solution-step">
-                                <div class="step-number">Step ${i + 1}:</div>
-                                <div class="step-content">${step.step}: ${step.equation}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
-                `;
-            } else {
-                feedbackSection.className = 'feedback-section show feedback-incorrect';
-                feedbackIcon.textContent = '🤯';
-                feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
-                
-                feedbackContent.innerHTML = `
-                    <div class="mistake-analysis">
-                        <div class="mistake-title">// Which mistake pattern matches your thinking?</div>
-                        <div class="mistake-options">
-                            ${currentProblem.mistakes.map((mistake, i) => `
-                                <div class="mistake-option" onclick="selectMistake(${i})">
-                                    <strong>${mistake.description}</strong>
-                                    <div class="mistake-explanation">${mistake.work}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        // Select a mistake pattern
-        function selectMistake(mistakeIndex) {
-            const options = document.querySelectorAll('.mistake-option');
-            
-            options.forEach((option, i) => {
-                option.classList.remove('selected', 'correct-choice');
-                if (i === mistakeIndex) {
-                    option.classList.add('selected');
-                }
-            });
-
-            // Show explanation and correct solution
-            setTimeout(() => {
-                options[mistakeIndex].classList.add('correct-choice');
-                
-                const feedbackContent = document.getElementById('feedbackContent');
-                feedbackContent.innerHTML += `
-                    <div class="solution-steps">
-                        <div class="solution-title">// Correct Solution Steps</div>
-                        ${currentProblem.steps.map((step, i) => `
-                            <div class="solution-step">
-                                <div class="step-number">Step ${i + 1}:</div>
-                                <div class="step-content">${step.step}: ${step.equation}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
-                `;
-            }, 1000);
-        }
-
-        // Load next problem
-        function nextProblem() {
-            loadProblem();
-        }
-
-        // Event listeners
-        document.getElementById('submitBtn').addEventListener('click', checkAnswer);
-        document.getElementById('answerInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
-        });
-
         // Same sparkle effect
         document.addEventListener('mousemove', (e) => {
             if (Math.random() > 0.98) {
@@ -981,112 +607,6 @@
             
             setTimeout(() => sparkle.remove(), 1000);
         }
-
-        // Initialize first problem when page loads
-        window.addEventListener('load', function() {
-            loadProblem();
-        });
-
-        // Calculator functionality
-        let calculatorOpen = false;
-        let currentCalculation = '';
-        
-        function toggleCalculator() {
-            calculatorOpen = !calculatorOpen;
-            const panel = document.getElementById('calculatorPanel');
-            const toggle = document.getElementById('calculatorToggle');
-            
-            if (calculatorOpen) {
-                panel.classList.add('open');
-                toggle.textContent = '×';
-                toggle.style.transform = 'rotate(180deg)';
-            } else {
-                panel.classList.remove('open');
-                toggle.textContent = '🧮';
-                toggle.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        function appendToCalculator(value) {
-            const display = document.getElementById('calculatorDisplay');
-            
-            // Handle operators - replace if last character was also an operator
-            if (['+', '-', '*', '/'].includes(value)) {
-                if (['+', '-', '*', '/'].includes(currentCalculation.slice(-1))) {
-                    currentCalculation = currentCalculation.slice(0, -1) + value;
-                } else {
-                    currentCalculation += value;
-                }
-            } else {
-                currentCalculation += value;
-            }
-            
-            display.value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function clearCalculator() {
-            currentCalculation = '';
-            document.getElementById('calculatorDisplay').value = '';
-        }
-
-        function clearEntry() {
-            currentCalculation = currentCalculation.slice(0, -1);
-            document.getElementById('calculatorDisplay').value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function calculateResult() {
-            try {
-                // Replace display symbols with calculation symbols
-                const calculation = currentCalculation.replace(/×/g, '*');
-                const result = eval(calculation);
-                
-                if (isNaN(result) || !isFinite(result)) {
-                    document.getElementById('calculatorDisplay').value = 'Error';
-                    currentCalculation = '';
-                } else {
-                    document.getElementById('calculatorDisplay').value = result;
-                    currentCalculation = result.toString();
-                }
-            } catch (error) {
-                document.getElementById('calculatorDisplay').value = 'Error';
-                currentCalculation = '';
-            }
-        }
-
-        // Add event listener for calculator toggle
-        document.getElementById('calculatorToggle').addEventListener('click', toggleCalculator);
-
-        // Prevent direct typing in calculator display, only allow programmatic updates
-        document.getElementById('calculatorDisplay').addEventListener('input', function(e) {
-            // Reset to current calculation if user tries to type directly
-            this.value = currentCalculation.replace(/\*/g, '×');
-        });
-
-        // Allow clicking to focus calculator for keyboard input
-        document.getElementById('calculatorDisplay').addEventListener('click', function() {
-            this.focus();
-        });
-
-        // Keyboard support for calculator
-        document.getElementById('calculatorDisplay').addEventListener('keydown', function(e) {
-            const key = e.key;
-            if ('0123456789.'.includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (['+', '-', '*', '/'].includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (key === 'Enter' || key === '=') {
-                e.preventDefault();
-                calculateResult();
-            } else if (key === 'Escape' || key === 'c' || key === 'C') {
-                e.preventDefault();
-                clearCalculator();
-            } else if (key === 'Backspace') {
-                e.preventDefault();
-                clearEntry();
-            }
-        });
     </script>
 </body>
 </html>
