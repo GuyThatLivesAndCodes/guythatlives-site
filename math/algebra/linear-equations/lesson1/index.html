@@ -14,8 +14,12 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
     <!-- Progress tracking system (comment out if files not available) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="../progress-ui.css">
+    <script src="../progress-tracker.js"></script>
+	
+    <!-- App Panel System -->
+    <link rel="stylesheet" href="../app-panel.css">
+    <script src="../app-panel.js"></script>
     
     <style>
         :root {
@@ -677,39 +681,7 @@
         </div>
     </div>
 
-    <!-- Calculator Panel -->
-    <button class="calculator-toggle" id="calculatorToggle">🧮</button>
-    <div class="calculator-panel" id="calculatorPanel">
-        <div class="calculator-header">
-            <h3 class="calculator-title">// calculator</h3>
-            <button class="calculator-close" onclick="toggleCalculator()">×</button>
-        </div>
-        <input type="text" class="calculator-display" id="calculatorDisplay" tabindex="0">
-        <div class="calculator-grid">
-            <button class="calc-btn clear" onclick="clearCalculator()">C</button>
-            <button class="calc-btn clear" onclick="clearEntry()">CE</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('/')">/</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('*')">×</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('7')">7</button>
-            <button class="calc-btn" onclick="appendToCalculator('8')">8</button>
-            <button class="calc-btn" onclick="appendToCalculator('9')">9</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('-')">-</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('4')">4</button>
-            <button class="calc-btn" onclick="appendToCalculator('5')">5</button>
-            <button class="calc-btn" onclick="appendToCalculator('6')">6</button>
-            <button class="calc-btn operator" onclick="appendToCalculator('+')">+</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('1')">1</button>
-            <button class="calc-btn" onclick="appendToCalculator('2')">2</button>
-            <button class="calc-btn" onclick="appendToCalculator('3')">3</button>
-            <button class="calc-btn equals" onclick="calculateResult()" rowspan="2">=</button>
-            
-            <button class="calc-btn" onclick="appendToCalculator('0')" style="grid-column: span 2;">0</button>
-            <button class="calc-btn" onclick="appendToCalculator('.')">.</button>
-        </div>
-    </div>
+    <!-- App Panel will be inserted by JavaScript -->
 
     <script>
         // Procedural problem generation - LESSON 1: ADDITION/SUBTRACTION ONLY
@@ -1206,106 +1178,6 @@
             loadProblem();
         });
 
-        // Calculator functionality
-        let calculatorOpen = false;
-        let currentCalculation = '';
-        
-        function toggleCalculator() {
-            calculatorOpen = !calculatorOpen;
-            const panel = document.getElementById('calculatorPanel');
-            const toggle = document.getElementById('calculatorToggle');
-            
-            if (calculatorOpen) {
-                panel.classList.add('open');
-                toggle.textContent = '×';
-                toggle.style.transform = 'rotate(180deg)';
-            } else {
-                panel.classList.remove('open');
-                toggle.textContent = '🧮';
-                toggle.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        function appendToCalculator(value) {
-            const display = document.getElementById('calculatorDisplay');
-            
-            // Handle operators - replace if last character was also an operator
-            if (['+', '-', '*', '/'].includes(value)) {
-                if (['+', '-', '*', '/'].includes(currentCalculation.slice(-1))) {
-                    currentCalculation = currentCalculation.slice(0, -1) + value;
-                } else {
-                    currentCalculation += value;
-                }
-            } else {
-                currentCalculation += value;
-            }
-            
-            display.value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function clearCalculator() {
-            currentCalculation = '';
-            document.getElementById('calculatorDisplay').value = '';
-        }
-
-        function clearEntry() {
-            currentCalculation = currentCalculation.slice(0, -1);
-            document.getElementById('calculatorDisplay').value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function calculateResult() {
-            try {
-                // Replace display symbols with calculation symbols
-                const calculation = currentCalculation.replace(/×/g, '*');
-                const result = eval(calculation);
-                
-                if (isNaN(result) || !isFinite(result)) {
-                    document.getElementById('calculatorDisplay').value = 'Error';
-                    currentCalculation = '';
-                } else {
-                    document.getElementById('calculatorDisplay').value = result;
-                    currentCalculation = result.toString();
-                }
-            } catch (error) {
-                document.getElementById('calculatorDisplay').value = 'Error';
-                currentCalculation = '';
-            }
-        }
-
-        // Add event listener for calculator toggle
-        document.getElementById('calculatorToggle').addEventListener('click', toggleCalculator);
-
-        // Prevent direct typing in calculator display, only allow programmatic updates
-        document.getElementById('calculatorDisplay').addEventListener('input', function(e) {
-            // Reset to current calculation if user tries to type directly
-            this.value = currentCalculation.replace(/\*/g, '×');
-        });
-
-        // Allow clicking to focus calculator for keyboard input
-        document.getElementById('calculatorDisplay').addEventListener('click', function() {
-            this.focus();
-        });
-
-        // Keyboard support for calculator
-        document.getElementById('calculatorDisplay').addEventListener('keydown', function(e) {
-            const key = e.key;
-            if ('0123456789.'.includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (['+', '-', '*', '/'].includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (key === 'Enter' || key === '=') {
-                e.preventDefault();
-                calculateResult();
-            } else if (key === 'Escape' || key === 'c' || key === 'C') {
-                e.preventDefault();
-                clearCalculator();
-            } else if (key === 'Backspace') {
-                e.preventDefault();
-                clearEntry();
-            }
-        });
     </script>
 </body>
 </html>
