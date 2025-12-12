@@ -472,11 +472,13 @@
             text-align: right;
             margin-bottom: 1rem;
             min-height: 50px;
+            cursor: text;
         }
 
         .calculator-display:focus {
             outline: none;
             border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
         }
 
         .calculator-grid {
@@ -623,7 +625,7 @@
             <h3 class="calculator-title">// calculator</h3>
             <button class="calculator-close" onclick="toggleCalculator()">×</button>
         </div>
-        <input type="text" class="calculator-display" id="calculatorDisplay" readonly>
+        <input type="text" class="calculator-display" id="calculatorDisplay" tabindex="0">
         <div class="calculator-grid">
             <button class="calc-btn clear" onclick="clearCalculator()">C</button>
             <button class="calc-btn clear" onclick="clearEntry()">CE</button>
@@ -1054,22 +1056,35 @@
         // Add event listener for calculator toggle
         document.getElementById('calculatorToggle').addEventListener('click', toggleCalculator);
 
+        // Prevent direct typing in calculator display, only allow programmatic updates
+        document.getElementById('calculatorDisplay').addEventListener('input', function(e) {
+            // Reset to current calculation if user tries to type directly
+            this.value = currentCalculation.replace(/\*/g, '×');
+        });
+
+        // Allow clicking to focus calculator for keyboard input
+        document.getElementById('calculatorDisplay').addEventListener('click', function() {
+            this.focus();
+        });
+
         // Keyboard support for calculator
-        document.addEventListener('keydown', function(e) {
-            if (calculatorOpen) {
-                const key = e.key;
-                if ('0123456789.'.includes(key)) {
-                    appendToCalculator(key);
-                } else if (['+', '-', '*', '/'].includes(key)) {
-                    appendToCalculator(key);
-                } else if (key === 'Enter' || key === '=') {
-                    e.preventDefault();
-                    calculateResult();
-                } else if (key === 'Escape' || key === 'c' || key === 'C') {
-                    clearCalculator();
-                } else if (key === 'Backspace') {
-                    clearEntry();
-                }
+        document.getElementById('calculatorDisplay').addEventListener('keydown', function(e) {
+            const key = e.key;
+            if ('0123456789.'.includes(key)) {
+                e.preventDefault();
+                appendToCalculator(key);
+            } else if (['+', '-', '*', '/'].includes(key)) {
+                e.preventDefault();
+                appendToCalculator(key);
+            } else if (key === 'Enter' || key === '=') {
+                e.preventDefault();
+                calculateResult();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                e.preventDefault();
+                clearCalculator();
+            } else if (key === 'Backspace') {
+                e.preventDefault();
+                clearEntry();
             }
         });
     </script>
