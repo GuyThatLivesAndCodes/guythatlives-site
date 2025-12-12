@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algebra Course • GuyThatLives Network</title>
+    <meta name="description" content="Master algebra through mistake-based learning. Choose from different topics and skill levels.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Same animated background */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 2rem 0 4rem;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .topics-section {
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .topic-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out calc(var(--delay) * 0.1s) both;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 15px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .topic-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .topic-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .topic-icon {
+            font-size: 1.8rem;
+            width: 50px;
+            height: 50px;
+            background: rgba(100, 255, 218, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        .topic-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .topic-difficulty {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        .difficulty-beginner {
+            background: rgba(80, 250, 123, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(80, 250, 123, 0.3);
+        }
+
+        .difficulty-intermediate {
+            background: rgba(241, 250, 140, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(241, 250, 140, 0.3);
+        }
+
+        .difficulty-advanced {
+            background: rgba(255, 85, 85, 0.2);
+            color: var(--error);
+            border: 1px solid rgba(255, 85, 85, 0.3);
+        }
+
+        .topic-description {
+            color: var(--text-dim);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .topic-concepts {
+            list-style: none;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .topic-concepts li {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            background: rgba(100, 255, 218, 0.05);
+            color: var(--text-dim);
+            padding: 0.3rem 0.8rem;
+            border-radius: 16px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .topic-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .topic-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .topic-action:hover {
+            color: var(--primary);
+        }
+
+        .topic-action:hover::before {
+            left: 0;
+        }
+
+        .learning-path {
+            background: rgba(100, 255, 218, 0.02);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .learning-path h3 {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .learning-path p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .path-suggestion {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .topics-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .learning-path {
+                padding: 1.5rem;
+            }
+
+            .topic-concepts {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/math" class="logo">guythatlives.net/algebra</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <span>algebra</span>
+            </nav>
+        </header>
+
+        <section class="hero-section">
+            <h1 class="hero-title">Algebra Mastery</h1>
+            <p class="hero-subtitle">// Learn through understanding mistakes</p>
+            <p class="hero-description">
+                Choose your algebra journey. Each topic focuses on common misconceptions and mistake patterns 
+                to build true understanding, not just memorized procedures.
+            </p>
+        </section>
+
+        <section class="topics-section">
+            <h2 class="section-title">Choose Your Topic</h2>
+            <p class="section-subtitle">Start with fundamentals or jump to specific concepts</p>
+
+            <div class="topics-grid">
+                <!-- Linear Equations -->
+                <div class="topic-card" style="--delay: 1">
+                    <div class="topic-header">
+                        <div class="topic-icon">📏</div>
+                        <h3 class="topic-title">Linear Equations</h3>
+                        <span class="topic-difficulty difficulty-beginner">BEGINNER</span>
+                    </div>
+                    <p class="topic-description">
+                        Master the foundation of algebra. Learn to solve equations step-by-step while understanding 
+                        common sign errors, order of operations mistakes, and distribution pitfalls.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>one-step equations</li>
+                        <li>multi-step solving</li>
+                        <li>distribution</li>
+                        <li>like terms</li>
+                    </ul>
+                    <a href="linear-equations/" class="topic-action">
+                        <span>🎯</span>
+                        Start Learning
+                    </a>
+                </div>
+
+                <!-- Quadratic Functions -->
+                <div class="topic-card" style="--delay: 2">
+                    <div class="topic-header">
+                        <div class="topic-icon">📈</div>
+                        <h3 class="topic-title">Quadratic Functions</h3>
+                        <span class="topic-difficulty difficulty-intermediate">INTERMEDIATE</span>
+                    </div>
+                    <p class="topic-description">
+                        Explore parabolas, factoring, and the quadratic formula. Understand why students mix up 
+                        vertex form vs standard form and common factoring errors.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>graphing parabolas</li>
+                        <li>factoring methods</li>
+                        <li>quadratic formula</li>
+                        <li>vertex form</li>
+                    </ul>
+                    <a href="quadratics/" class="topic-action">
+                        <span>🎯</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Systems of Equations -->
+                <div class="topic-card" style="--delay: 3">
+                    <div class="topic-header">
+                        <div class="topic-icon">🔗</div>
+                        <h3 class="topic-title">Systems of Equations</h3>
+                        <span class="topic-difficulty difficulty-intermediate">INTERMEDIATE</span>
+                    </div>
+                    <p class="topic-description">
+                        Solve multiple equations simultaneously. Learn substitution and elimination while avoiding 
+                        common algebraic manipulation errors and solution checking mistakes.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>substitution method</li>
+                        <li>elimination method</li>
+                        <li>graphical solutions</li>
+                        <li>inconsistent systems</li>
+                    </ul>
+                    <a href="systems/" class="topic-action">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Inequalities -->
+                <div class="topic-card" style="--delay: 4">
+                    <div class="topic-header">
+                        <div class="topic-icon">⚖️</div>
+                        <h3 class="topic-title">Inequalities</h3>
+                        <span class="topic-difficulty difficulty-beginner">BEGINNER</span>
+                    </div>
+                    <p class="topic-description">
+                        Understand when to flip inequality signs and how to graph solution sets. Learn from 
+                        common sign confusion and graphing direction mistakes.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>inequality signs</li>
+                        <li>solving inequalities</li>
+                        <li>compound inequalities</li>
+                        <li>number line graphs</li>
+                    </ul>
+                    <a href="inequalities/" class="topic-action">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Polynomials -->
+                <div class="topic-card" style="--delay: 5">
+                    <div class="topic-header">
+                        <div class="topic-icon">🔢</div>
+                        <h3 class="topic-title">Polynomials</h3>
+                        <span class="topic-difficulty difficulty-advanced">ADVANCED</span>
+                    </div>
+                    <p class="topic-description">
+                        Master polynomial operations, factoring techniques, and long division. Understand 
+                        why students struggle with FOIL patterns and degree calculations.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>polynomial operations</li>
+                        <li>factoring patterns</li>
+                        <li>polynomial division</li>
+                        <li>remainder theorem</li>
+                    </ul>
+                    <a href="polynomials/" class="topic-action">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Rational Expressions -->
+                <div class="topic-card" style="--delay: 6">
+                    <div class="topic-header">
+                        <div class="topic-icon">🔄</div>
+                        <h3 class="topic-title">Rational Expressions</h3>
+                        <span class="topic-difficulty difficulty-advanced">ADVANCED</span>
+                    </div>
+                    <p class="topic-description">
+                        Work with fractions containing variables. Learn proper simplification, common denominators, 
+                        and why cross-multiplication doesn't always work.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>simplifying rationals</li>
+                        <li>operations with rationals</li>
+                        <li>solving rational equations</li>
+                        <li>domain restrictions</li>
+                    </ul>
+                    <a href="rationals/" class="topic-action">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+            </div>
+
+            <div class="learning-path">
+                <h3>// Suggested Learning Path</h3>
+                <p>
+                    New to algebra? Start with <strong>Linear Equations</strong>, then move to <strong>Inequalities</strong>. 
+                    Once comfortable, tackle <strong>Quadratic Functions</strong> and <strong>Systems of Equations</strong>. 
+                    Finish with <strong>Polynomials</strong> and <strong>Rational Expressions</strong> for advanced mastery.
+                </p>
+                <div class="path-suggestion">
+                    <span>💡</span>
+                    Recommended: Linear → Inequalities → Quadratics → Systems → Polynomials → Rationals
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Same sparkle effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: sparkleAnimation 1s ease-out forwards;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkleAnimation {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+            `;
+            
+            if (!document.querySelector('style[data-sparkle]')) {
+                style.setAttribute('data-sparkle', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        // Topic card interaction effects
+        document.querySelectorAll('.topic-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                const difficulty = card.querySelector('.topic-difficulty');
+                difficulty.style.transform = 'scale(1.1)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                const difficulty = card.querySelector('.topic-difficulty');
+                difficulty.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
