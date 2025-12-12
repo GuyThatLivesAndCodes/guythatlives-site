@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Equations • GuyThatLives Network</title>
+    <meta name="description" content="Learn linear equations through mistake-based learning. Practice with real-time feedback.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Same animated background */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 2rem;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .problem-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .problem-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .problem-number {
+            background: var(--accent);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .problem-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .problem-statement {
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .equation-display {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 1rem 0;
+            color: var(--accent);
+        }
+
+        .solve-instruction {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .math-input {
+            width: 100%;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .math-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .submit-btn:hover {
+            color: var(--primary);
+        }
+
+        .submit-btn:hover::before {
+            left: 0;
+        }
+
+        .feedback-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .feedback-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback-correct .feedback-icon {
+            background: rgba(80, 250, 123, 0.2);
+            color: var(--success);
+        }
+
+        .feedback-incorrect .feedback-icon {
+            background: rgba(255, 85, 85, 0.2);
+            color: var(--error);
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .mistake-analysis {
+            background: rgba(255, 85, 85, 0.05);
+            border: 1px solid rgba(255, 85, 85, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .mistake-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .mistake-options {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .mistake-option {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mistake-option:hover {
+            border-color: var(--accent);
+            background: rgba(100, 255, 218, 0.05);
+        }
+
+        .mistake-option.selected {
+            border-color: var(--error);
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .mistake-option.correct-choice {
+            border-color: var(--success);
+            background: rgba(80, 250, 123, 0.1);
+        }
+
+        .mistake-explanation {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .solution-steps {
+            background: rgba(80, 250, 123, 0.05);
+            border: 1px solid rgba(80, 250, 123, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .solution-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .solution-step {
+            margin: 0.8rem 0;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(80, 250, 123, 0.1);
+        }
+
+        .solution-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .step-content {
+            font-size: 1rem;
+        }
+
+        .next-problem-btn {
+            width: 100%;
+            background: var(--success);
+            border: none;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .next-problem-btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .equation-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/math/algebra" class="logo">linear equations</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <span>linear equations</span>
+            </nav>
+        </header>
+
+        <div class="main-content">
+            <div class="problem-section">
+                <div class="problem-header">
+                    <div class="problem-number" id="problemNumber">Problem 1</div>
+                    <h1 class="problem-title">Solve for x</h1>
+                </div>
+
+                <div class="problem-statement">
+                    <div class="equation-display" id="equationDisplay">2x + 3 = 11</div>
+                    <p class="solve-instruction">Find the value of x that makes this equation true</p>
+                </div>
+
+                <div class="input-section">
+                    <label class="input-label" for="answerInput">Your answer:</label>
+                    <input type="text" id="answerInput" class="math-input" placeholder="x = ..." autocomplete="off">
+                </div>
+
+                <button class="submit-btn" id="submitBtn">Check Answer</button>
+            </div>
+
+            <div class="feedback-section" id="feedbackSection">
+                <div class="feedback-header">
+                    <div class="feedback-icon" id="feedbackIcon">🤔</div>
+                    <h2 class="feedback-title" id="feedbackTitle">Submit your answer to see feedback</h2>
+                </div>
+                <div id="feedbackContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Procedural problem generation
+        function generateRandomProblem() {
+            const problemTypes = [
+                'simple_addition',
+                'simple_subtraction', 
+                'multiplication_division',
+                'distribution_basic'
+            ];
+            
+            const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
+            
+            switch(type) {
+                case 'simple_addition':
+                    return generateAdditionProblem();
+                case 'simple_subtraction':
+                    return generateSubtractionProblem();
+                case 'multiplication_division':
+                    return generateMultiplicationProblem();
+                case 'distribution_basic':
+                    return generateDistributionProblem();
+                default:
+                    return generateAdditionProblem();
+            }
+        }
+
+        function generateAdditionProblem() {
+            const a = Math.floor(Math.random() * 5) + 2; // coefficient (2-6)
+            const b = Math.floor(Math.random() * 15) + 3; // constant (3-17)
+            const x = Math.floor(Math.random() * 10) + 1; // solution (1-10)
+            const result = a * x + b;
+            
+            return {
+                equation: `${a}x + ${b} = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Subtract ${b} from both sides`, equation: `${a}x = ${result - b}` },
+                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
+                ],
+                mistakes: [
+                    {
+                        type: "sign_error",
+                        description: `Added ${b} instead of subtracting`,
+                        work: `${a}x + ${b} + ${b} = ${result} + ${b} → ${a}x = ${result + b} → x = ${(result + b) / a}`
+                    },
+                    {
+                        type: "order_error", 
+                        description: `Divided by ${a} before isolating ${a}x`,
+                        work: `x + ${b/a} = ${result/a} → x = ${result/a - b/a}`
+                    },
+                    {
+                        type: "both_sides_error",
+                        description: "Didn't apply operation to both sides",
+                        work: `${a}x = ${result} - ${b} → x = ${(result - b) / a}`
+                    }
+                ]
+            };
+        }
+
+        function generateSubtractionProblem() {
+            const a = Math.floor(Math.random() * 5) + 2;
+            const b = Math.floor(Math.random() * 15) + 5; 
+            const x = Math.floor(Math.random() * 10) + 1;
+            const result = a * x - b;
+            
+            return {
+                equation: `${a}x - ${b} = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Add ${b} to both sides`, equation: `${a}x = ${result + b}` },
+                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
+                ],
+                mistakes: [
+                    {
+                        type: "sign_error",
+                        description: `Subtracted ${b} instead of adding`,
+                        work: `${a}x - ${b} - ${b} = ${result} - ${b} → ${a}x = ${result - b} → x = ${(result - b) / a}`
+                    },
+                    {
+                        type: "order_error",
+                        description: `Divided by ${a} before isolating ${a}x`, 
+                        work: `x - ${b/a} = ${result/a} → x = ${result/a + b/a}`
+                    },
+                    {
+                        type: "both_sides_error",
+                        description: "Didn't apply operation to both sides",
+                        work: `${a}x = ${result} + ${b} → x = ${(result + b) / a}`
+                    }
+                ]
+            };
+        }
+
+        function generateMultiplicationProblem() {
+            const a = Math.floor(Math.random() * 4) + 2;
+            const b = Math.floor(Math.random() * 8) + 2;
+            const x = Math.floor(Math.random() * 8) + 1;
+            const result = a * x * b;
+            
+            return {
+                equation: `${a * b}x = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Divide both sides by ${a * b}`, equation: `x = ${x}` }
+                ],
+                mistakes: [
+                    {
+                        type: "wrong_division",
+                        description: `Divided by ${a} instead of ${a * b}`,
+                        work: `x = ${result}/${a} = ${result/a}`
+                    },
+                    {
+                        type: "multiplication_error",
+                        description: `Multiplied instead of dividing`,
+                        work: `x = ${result} × ${a * b} = ${result * a * b}`
+                    },
+                    {
+                        type: "partial_division",
+                        description: `Only divided by part of the coefficient`,
+                        work: `${b}x = ${result}/${a} → x = ${result/(a*b)}`
+                    }
+                ]
+            };
+        }
+
+        function generateDistributionProblem() {
+            const a = Math.floor(Math.random() * 4) + 2;
+            const b = Math.floor(Math.random() * 5) + 1;
+            const x = Math.floor(Math.random() * 8) + 1;
+            const result = a * (x + b);
+            
+            return {
+                equation: `${a}(x + ${b}) = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Distribute ${a} to both terms`, equation: `${a}x + ${a * b} = ${result}` },
+                    { step: `Subtract ${a * b} from both sides`, equation: `${a}x = ${result - a * b}` },
+                    { step: `Divide both sides by ${a}`, equation: `x = ${x}` }
+                ],
+                mistakes: [
+                    {
+                        type: "distribution_error",
+                        description: `Only distributed to first term`,
+                        work: `${a}x + ${b} = ${result} → ${a}x = ${result - b} → x = ${(result - b) / a}`
+                    },
+                    {
+                        type: "division_first",
+                        description: `Divided by ${a} before distributing`,
+                        work: `x + ${b} = ${result/a} → x = ${result/a - b}`
+                    },
+                    {
+                        type: "sign_error",
+                        description: `Made sign error during distribution`,
+                        work: `${a}x - ${a * b} = ${result} → ${a}x = ${result + a * b} → x = ${(result + a * b) / a}`
+                    }
+                ]
+            };
+        }
+
+        let currentProblem = null;
+        let problemCount = 0;
+        let userAnswer = null;
+        let isCorrect = false;
+
+        // Generate and load a new problem
+        function loadProblem() {
+            currentProblem = generateRandomProblem();
+            problemCount++;
+            
+            document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
+            
+            // Render equation with KaTeX
+            katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
+                displayMode: true,
+                throwOnError: false
+            });
+
+            // Reset UI
+            document.getElementById('answerInput').value = '';
+            document.getElementById('feedbackSection').classList.remove('show', 'feedback-correct', 'feedback-incorrect');
+            document.getElementById('feedbackIcon').textContent = '🤔';
+            document.getElementById('feedbackTitle').textContent = 'Submit your answer to see feedback';
+            document.getElementById('feedbackContent').innerHTML = '';
+        }
+
+        // Check the user's answer
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            if (!input) return;
+            
+            userAnswer = parseFloat(input.replace(/x\s*=\s*/, '').replace(/[^-\d.]/g, ''));
+            
+            if (isNaN(userAnswer)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
+            showFeedback();
+        }
+
+        // Show feedback with mistake analysis
+        function showFeedback() {
+            const feedbackSection = document.getElementById('feedbackSection');
+            const feedbackIcon = document.getElementById('feedbackIcon');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackContent = document.getElementById('feedbackContent');
+
+            if (isCorrect) {
+                feedbackSection.className = 'feedback-section show feedback-correct';
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'Excellent! You got it right!';
+                
+                feedbackContent.innerHTML = `
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
+                `;
+            } else {
+                feedbackSection.className = 'feedback-section show feedback-incorrect';
+                feedbackIcon.textContent = '🤯';
+                feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
+                
+                feedbackContent.innerHTML = `
+                    <div class="mistake-analysis">
+                        <div class="mistake-title">// Which mistake pattern matches your thinking?</div>
+                        <div class="mistake-options">
+                            ${currentProblem.mistakes.map((mistake, i) => `
+                                <div class="mistake-option" onclick="selectMistake(${i})">
+                                    <strong>${mistake.description}</strong>
+                                    <div class="mistake-explanation">${mistake.work}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Select a mistake pattern
+        function selectMistake(mistakeIndex) {
+            const options = document.querySelectorAll('.mistake-option');
+            
+            options.forEach((option, i) => {
+                option.classList.remove('selected', 'correct-choice');
+                if (i === mistakeIndex) {
+                    option.classList.add('selected');
+                }
+            });
+
+            // Show explanation and correct solution
+            setTimeout(() => {
+                options[mistakeIndex].classList.add('correct-choice');
+                
+                const feedbackContent = document.getElementById('feedbackContent');
+                feedbackContent.innerHTML += `
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
+                `;
+            }, 1000);
+        }
+
+        // Load next problem
+        function nextProblem() {
+            loadProblem();
+        }
+
+        // Event listeners
+        document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+        document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Same sparkle effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: sparkleAnimation 1s ease-out forwards;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkleAnimation {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+            `;
+            
+            if (!document.querySelector('style[data-sparkle]')) {
+                style.setAttribute('data-sparkle', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        // Initialize first problem when page loads
+        window.addEventListener('load', function() {
+            loadProblem();
+        });
+    </script>
+</body>
+</html>
