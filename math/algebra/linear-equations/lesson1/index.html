@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 1: One-Step Equations • GuyThatLives Network</title>
+    <meta name="description" content="Master one-step linear equations with addition and subtraction through mistake-based learning.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Same animated background */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 2rem;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .problem-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .problem-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .problem-number {
+            background: var(--accent);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .problem-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .problem-statement {
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .equation-display {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 1rem 0;
+            color: var(--accent);
+        }
+
+        .solve-instruction {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .math-input {
+            width: 100%;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .math-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .submit-btn:hover {
+            color: var(--primary);
+        }
+
+        .submit-btn:hover::before {
+            left: 0;
+        }
+
+        .feedback-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .feedback-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback-correct .feedback-icon {
+            background: rgba(80, 250, 123, 0.2);
+            color: var(--success);
+        }
+
+        .feedback-incorrect .feedback-icon {
+            background: rgba(255, 85, 85, 0.2);
+            color: var(--error);
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .mistake-analysis {
+            background: rgba(255, 85, 85, 0.05);
+            border: 1px solid rgba(255, 85, 85, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .mistake-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .mistake-options {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .mistake-option {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mistake-option:hover {
+            border-color: var(--accent);
+            background: rgba(100, 255, 218, 0.05);
+        }
+
+        .mistake-option.selected {
+            border-color: var(--error);
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .mistake-option.correct-choice {
+            border-color: var(--success);
+            background: rgba(80, 250, 123, 0.1);
+        }
+
+        .mistake-explanation {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .solution-steps {
+            background: rgba(80, 250, 123, 0.05);
+            border: 1px solid rgba(80, 250, 123, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .solution-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .solution-step {
+            margin: 0.8rem 0;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(80, 250, 123, 0.1);
+        }
+
+        .solution-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .step-content {
+            font-size: 1rem;
+        }
+
+        .next-problem-btn {
+            width: 100%;
+            background: var(--success);
+            border: none;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .next-problem-btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Calculator Panel Styles */
+        .calculator-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(100, 255, 218, 0.3);
+        }
+
+        .calculator-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(100, 255, 218, 0.5);
+        }
+
+        .calculator-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 2rem;
+            width: 280px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transform: translateY(100%) scale(0.8);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .calculator-panel.open {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .calculator-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .calculator-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .calculator-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .calculator-close:hover {
+            color: var(--error);
+        }
+
+        .calculator-display {
+            width: 100%;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: right;
+            margin-bottom: 1rem;
+            min-height: 50px;
+            cursor: text;
+        }
+
+        .calculator-display:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calc-btn {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calc-btn:hover {
+            background: var(--secondary);
+            border-color: var(--accent);
+        }
+
+        .calc-btn.operator {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent);
+        }
+
+        .calc-btn.operator:hover {
+            background: rgba(100, 255, 218, 0.2);
+        }
+
+        .calc-btn.equals {
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .calc-btn.equals:hover {
+            background: var(--success);
+        }
+
+        .calc-btn.clear {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--error);
+        }
+
+        .calc-btn.clear:hover {
+            background: rgba(255, 85, 85, 0.2);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .equation-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/math/algebra/linear-equations" class="logo">Lesson 1: One-Step Equations</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 1</span>
+            </nav>
+        </header>
+
+        <div class="main-content">
+            <div class="problem-section">
+                <div class="problem-header">
+                    <div class="problem-number" id="problemNumber">Problem 1</div>
+                    <h1 class="problem-title">Solve for x (Lesson 1)</h1>
+                </div>
+
+                <div class="problem-statement">
+                    <div class="equation-display" id="equationDisplay">2x + 3 = 11</div>
+                    <p class="solve-instruction">Find the value of x that makes this equation true</p>
+                </div>
+
+                <div class="input-section">
+                    <label class="input-label" for="answerInput">Your answer:</label>
+                    <input type="text" id="answerInput" class="math-input" placeholder="x = ..." autocomplete="off">
+                </div>
+
+                <button class="submit-btn" id="submitBtn">Check Answer</button>
+            </div>
+
+            <div class="feedback-section" id="feedbackSection">
+                <div class="feedback-header">
+                    <div class="feedback-icon" id="feedbackIcon">🤔</div>
+                    <h2 class="feedback-title" id="feedbackTitle">Submit your answer to see feedback</h2>
+                </div>
+                <div id="feedbackContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculator Panel -->
+    <button class="calculator-toggle" id="calculatorToggle">🧮</button>
+    <div class="calculator-panel" id="calculatorPanel">
+        <div class="calculator-header">
+            <h3 class="calculator-title">// calculator</h3>
+            <button class="calculator-close" onclick="toggleCalculator()">×</button>
+        </div>
+        <input type="text" class="calculator-display" id="calculatorDisplay" tabindex="0">
+        <div class="calculator-grid">
+            <button class="calc-btn clear" onclick="clearCalculator()">C</button>
+            <button class="calc-btn clear" onclick="clearEntry()">CE</button>
+            <button class="calc-btn operator" onclick="appendToCalculator('/')">/</button>
+            <button class="calc-btn operator" onclick="appendToCalculator('*')">×</button>
+            
+            <button class="calc-btn" onclick="appendToCalculator('7')">7</button>
+            <button class="calc-btn" onclick="appendToCalculator('8')">8</button>
+            <button class="calc-btn" onclick="appendToCalculator('9')">9</button>
+            <button class="calc-btn operator" onclick="appendToCalculator('-')">-</button>
+            
+            <button class="calc-btn" onclick="appendToCalculator('4')">4</button>
+            <button class="calc-btn" onclick="appendToCalculator('5')">5</button>
+            <button class="calc-btn" onclick="appendToCalculator('6')">6</button>
+            <button class="calc-btn operator" onclick="appendToCalculator('+')">+</button>
+            
+            <button class="calc-btn" onclick="appendToCalculator('1')">1</button>
+            <button class="calc-btn" onclick="appendToCalculator('2')">2</button>
+            <button class="calc-btn" onclick="appendToCalculator('3')">3</button>
+            <button class="calc-btn equals" onclick="calculateResult()" rowspan="2">=</button>
+            
+            <button class="calc-btn" onclick="appendToCalculator('0')" style="grid-column: span 2;">0</button>
+            <button class="calc-btn" onclick="appendToCalculator('.')">.</button>
+        </div>
+    </div>
+
+    <script>
+        // Procedural problem generation - LESSON 1: ADDITION/SUBTRACTION ONLY
+        function generateRandomProblem() {
+            const problemTypes = [
+                'addition_basic',
+                'subtraction_basic'
+            ];
+            
+            const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
+            
+            switch(type) {
+                case 'addition_basic':
+                    return generateAdditionProblem();
+                case 'subtraction_basic':
+                    return generateSubtractionProblem();
+                default:
+                    return generateAdditionProblem();
+            }
+        }
+
+        function generateAdditionProblem() {
+            const b = Math.floor(Math.random() * 20) + 3; // constant (3-22)
+            const x = Math.floor(Math.random() * 15) + 1; // solution (1-15)
+            const result = x + b;
+            
+            return {
+                equation: `x + ${b} = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Subtract ${b} from both sides`, equation: `x = ${result - b}` }
+                ],
+                mistakes: [
+                    {
+                        type: "sign_error",
+                        description: `Added ${b} instead of subtracting`,
+                        work: `x + ${b} + ${b} = ${result} + ${b} → x = ${result + b}`
+                    },
+                    {
+                        type: "one_side_only",
+                        description: "Only subtracted from one side",
+                        work: `x + ${b} - ${b} = ${result} → x = ${result}`
+                    },
+                    {
+                        type: "wrong_operation",
+                        description: `Multiplied by ${b} instead of subtracting`,
+                        work: `x = ${result} × ${b} = ${result * b}`
+                    }
+                ]
+            };
+        }
+
+        function generateSubtractionProblem() {
+            const b = Math.floor(Math.random() * 15) + 2; 
+            const x = Math.floor(Math.random() * 20) + 1;
+            const result = x - b;
+            
+            // Make sure result is positive
+            if (result <= 0) {
+                return generateAdditionProblem(); // fallback to addition
+            }
+            
+            return {
+                equation: `x - ${b} = ${result}`,
+                solution: x,
+                steps: [
+                    { step: `Add ${b} to both sides`, equation: `x = ${result + b}` }
+                ],
+                mistakes: [
+                    {
+                        type: "sign_error",
+                        description: `Subtracted ${b} instead of adding`,
+                        work: `x - ${b} - ${b} = ${result} - ${b} → x = ${result - b}`
+                    },
+                    {
+                        type: "one_side_only",
+                        description: "Only added to one side",
+                        work: `x - ${b} + ${b} = ${result} → x = ${result}`
+                    },
+                    {
+                        type: "wrong_direction",
+                        description: "Moved the number but forgot to change sign",
+                        work: `x = ${result} - ${b} = ${result - b}`
+                    }
+                ]
+            };
+        }
+
+        let currentProblem = null;
+        let problemCount = 0;
+        let userAnswer = null;
+        let isCorrect = false;
+
+        // Generate and load a new problem
+        function loadProblem() {
+            currentProblem = generateRandomProblem();
+            problemCount++;
+            
+            document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
+            
+            // Render equation with KaTeX
+            katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
+                displayMode: true,
+                throwOnError: false
+            });
+
+            // Reset UI
+            document.getElementById('answerInput').value = '';
+            document.getElementById('feedbackSection').classList.remove('show', 'feedback-correct', 'feedback-incorrect');
+            document.getElementById('feedbackIcon').textContent = '🤔';
+            document.getElementById('feedbackTitle').textContent = 'Submit your answer to see feedback';
+            document.getElementById('feedbackContent').innerHTML = '';
+        }
+
+        // Check the user's answer
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            if (!input) return;
+            
+            userAnswer = parseFloat(input.replace(/x\s*=\s*/, '').replace(/[^-\d.]/g, ''));
+            
+            if (isNaN(userAnswer)) {
+                alert('Please enter a valid number');
+                return;
+            }
+            
+            isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
+            showFeedback();
+        }
+
+        // Show feedback with mistake analysis
+        function showFeedback() {
+            const feedbackSection = document.getElementById('feedbackSection');
+            const feedbackIcon = document.getElementById('feedbackIcon');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackContent = document.getElementById('feedbackContent');
+
+            if (isCorrect) {
+                feedbackSection.className = 'feedback-section show feedback-correct';
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'Excellent! You got it right!';
+                
+                feedbackContent.innerHTML = `
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
+                `;
+            } else {
+                feedbackSection.className = 'feedback-section show feedback-incorrect';
+                feedbackIcon.textContent = '🤯';
+                feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
+                
+                feedbackContent.innerHTML = `
+                    <div class="mistake-analysis">
+                        <div class="mistake-title">// Which mistake pattern matches your thinking?</div>
+                        <div class="mistake-options">
+                            ${currentProblem.mistakes.map((mistake, i) => `
+                                <div class="mistake-option" onclick="selectMistake(${i})">
+                                    <strong>${mistake.description}</strong>
+                                    <div class="mistake-explanation">${mistake.work}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Select a mistake pattern
+        function selectMistake(mistakeIndex) {
+            const options = document.querySelectorAll('.mistake-option');
+            
+            options.forEach((option, i) => {
+                option.classList.remove('selected', 'correct-choice');
+                if (i === mistakeIndex) {
+                    option.classList.add('selected');
+                }
+            });
+
+            // Show explanation and correct solution
+            setTimeout(() => {
+                options[mistakeIndex].classList.add('correct-choice');
+                
+                const feedbackContent = document.getElementById('feedbackContent');
+                feedbackContent.innerHTML += `
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
+                `;
+            }, 1000);
+        }
+
+        // Load next problem
+        function nextProblem() {
+            loadProblem();
+        }
+
+        // Event listeners
+        document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+        document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Same sparkle effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: sparkleAnimation 1s ease-out forwards;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkleAnimation {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+            `;
+            
+            if (!document.querySelector('style[data-sparkle]')) {
+                style.setAttribute('data-sparkle', 'true');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        // Initialize first problem when page loads
+        window.addEventListener('load', function() {
+            loadProblem();
+        });
+
+        // Calculator functionality
+        let calculatorOpen = false;
+        let currentCalculation = '';
+        
+        function toggleCalculator() {
+            calculatorOpen = !calculatorOpen;
+            const panel = document.getElementById('calculatorPanel');
+            const toggle = document.getElementById('calculatorToggle');
+            
+            if (calculatorOpen) {
+                panel.classList.add('open');
+                toggle.textContent = '×';
+                toggle.style.transform = 'rotate(180deg)';
+            } else {
+                panel.classList.remove('open');
+                toggle.textContent = '🧮';
+                toggle.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function appendToCalculator(value) {
+            const display = document.getElementById('calculatorDisplay');
+            
+            // Handle operators - replace if last character was also an operator
+            if (['+', '-', '*', '/'].includes(value)) {
+                if (['+', '-', '*', '/'].includes(currentCalculation.slice(-1))) {
+                    currentCalculation = currentCalculation.slice(0, -1) + value;
+                } else {
+                    currentCalculation += value;
+                }
+            } else {
+                currentCalculation += value;
+            }
+            
+            display.value = currentCalculation.replace(/\*/g, '×');
+        }
+
+        function clearCalculator() {
+            currentCalculation = '';
+            document.getElementById('calculatorDisplay').value = '';
+        }
+
+        function clearEntry() {
+            currentCalculation = currentCalculation.slice(0, -1);
+            document.getElementById('calculatorDisplay').value = currentCalculation.replace(/\*/g, '×');
+        }
+
+        function calculateResult() {
+            try {
+                // Replace display symbols with calculation symbols
+                const calculation = currentCalculation.replace(/×/g, '*');
+                const result = eval(calculation);
+                
+                if (isNaN(result) || !isFinite(result)) {
+                    document.getElementById('calculatorDisplay').value = 'Error';
+                    currentCalculation = '';
+                } else {
+                    document.getElementById('calculatorDisplay').value = result;
+                    currentCalculation = result.toString();
+                }
+            } catch (error) {
+                document.getElementById('calculatorDisplay').value = 'Error';
+                currentCalculation = '';
+            }
+        }
+
+        // Add event listener for calculator toggle
+        document.getElementById('calculatorToggle').addEventListener('click', toggleCalculator);
+
+        // Prevent direct typing in calculator display, only allow programmatic updates
+        document.getElementById('calculatorDisplay').addEventListener('input', function(e) {
+            // Reset to current calculation if user tries to type directly
+            this.value = currentCalculation.replace(/\*/g, '×');
+        });
+
+        // Allow clicking to focus calculator for keyboard input
+        document.getElementById('calculatorDisplay').addEventListener('click', function() {
+            this.focus();
+        });
+
+        // Keyboard support for calculator
+        document.getElementById('calculatorDisplay').addEventListener('keydown', function(e) {
+            const key = e.key;
+            if ('0123456789.'.includes(key)) {
+                e.preventDefault();
+                appendToCalculator(key);
+            } else if (['+', '-', '*', '/'].includes(key)) {
+                e.preventDefault();
+                appendToCalculator(key);
+            } else if (key === 'Enter' || key === '=') {
+                e.preventDefault();
+                calculateResult();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                e.preventDefault();
+                clearCalculator();
+            } else if (key === 'Backspace') {
+                e.preventDefault();
+                clearEntry();
+            }
+        });
+    </script>
+</body>
+</html>
