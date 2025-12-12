@@ -13,9 +13,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
-    <!-- Progress tracking system -->
-    <link rel="stylesheet" href="../progress-ui.css">
-    <script src="../progress-tracker.js"></script>
+    <!-- Progress tracking system (comment out if files not available) -->
+    <!-- <link rel="stylesheet" href="../progress-ui.css"> -->
+    <!-- <script src="../progress-tracker.js"></script> -->
     
     <style>
         :root {
@@ -622,8 +622,8 @@
         </div>
     </div>
 
-    <!-- Score Panel -->
-    <div class="score-panel">
+    <!-- Score Panel (hidden if no progress tracking) -->
+    <div class="score-panel" id="scorePanel" style="display: none;">
         <div class="score-header">
             <span class="score-icon">🎯</span>
             <h3 class="score-title">// lesson score</h3>
@@ -647,8 +647,8 @@
         </div>
     </div>
 
-    <!-- Lesson Complete Modal -->
-    <div class="lesson-complete-modal" id="lessonCompleteModal">
+    <!-- Lesson Complete Modal (hidden if no progress tracking) -->
+    <div class="lesson-complete-modal" id="lessonCompleteModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-icon">🏆</div>
@@ -805,9 +805,28 @@
         let questionStartTime = Date.now();
         let attempts = 0;
 
-        // Initialize progress tracking
-        const progressTracker = new ProgressTracker();
-        progressTracker.initializeLesson('algebra_linear_equations', 'lesson1');
+        // Initialize progress tracking with error handling
+        let progressTracker = null;
+        
+        function initializeProgressTracking() {
+            try {
+                if (typeof ProgressTracker !== 'undefined') {
+                    progressTracker = new ProgressTracker();
+                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson1');
+                    
+                    // Show progress UI elements
+                    document.getElementById('scorePanel').style.display = 'block';
+                    document.getElementById('lessonCompleteModal').style.display = 'block';
+                    
+                    console.log('Progress tracking initialized');
+                } else {
+                    console.log('Progress tracking not available - running in basic mode');
+                }
+            } catch (error) {
+                console.error('Failed to initialize progress tracking:', error);
+                progressTracker = null;
+            }
+        }
 
         // Generate and load a new problem
         function loadProblem() {
@@ -848,18 +867,27 @@
             
             isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
             
-            // Calculate score change
-            const timeSpent = Date.now() - questionStartTime;
-            const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
+            // Update progress tracking if available
+            if (progressTracker) {
+                try {
+                    const timeSpent = Date.now() - questionStartTime;
+                    const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
+                    
+                    // Check if lesson is complete
+                    if (progressTracker.currentScore >= 100) {
+                        setTimeout(() => {
+                            showLessonComplete();
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.error('Progress tracking error:', error);
+                }
+            } else {
+                // Update basic question count if no progress tracking
+                document.getElementById('questionCount').textContent = problemCount;
+            }
             
             showFeedback();
-            
-            // Check if lesson is complete
-            if (progressTracker.currentScore >= 100) {
-                setTimeout(() => {
-                    showLessonComplete();
-                }, 2000);
-            }
         }
 
         // Show feedback with mistake analysis
@@ -945,33 +973,42 @@
 
         // Show lesson completion modal
         function showLessonComplete() {
-            const modal = document.getElementById('lessonCompleteModal');
-            const lessonData = progressTracker.completeLessonAttempt();
-            
-            // Update modal content
-            document.getElementById('finalScore').textContent = lessonData.score;
-            document.getElementById('finalAccuracy').textContent = 
-                Math.round(lessonData.accuracy * 100) + '%';
-            document.getElementById('finalTime').textContent = 
-                formatTime(lessonData.timeSpent);
-            
-            // Show achievements
-            const achievements = progressTracker.getAchievements();
-            const achievementsContainer = document.getElementById('achievementsContainer');
-            
-            if (achievements.length > 0) {
-                achievementsContainer.innerHTML = achievements.map(achievement => `
-                    <div class="achievement">
-                        <span class="achievement-icon">${achievement.icon}</span>
-                        <div class="achievement-text">
-                            <div class="achievement-title">${achievement.title}</div>
-                            <div class="achievement-description">${achievement.description}</div>
-                        </div>
-                    </div>
-                `).join('');
+            if (!progressTracker) {
+                console.log('Lesson would be complete with progress tracking');
+                return;
             }
             
-            modal.classList.add('show');
+            try {
+                const modal = document.getElementById('lessonCompleteModal');
+                const lessonData = progressTracker.completeLessonAttempt();
+                
+                // Update modal content
+                document.getElementById('finalScore').textContent = lessonData.score;
+                document.getElementById('finalAccuracy').textContent = 
+                    Math.round(lessonData.accuracy * 100) + '%';
+                document.getElementById('finalTime').textContent = 
+                    formatTime(lessonData.timeSpent);
+                
+                // Show achievements
+                const achievements = progressTracker.getAchievements();
+                const achievementsContainer = document.getElementById('achievementsContainer');
+                
+                if (achievements.length > 0) {
+                    achievementsContainer.innerHTML = achievements.map(achievement => `
+                        <div class="achievement">
+                            <span class="achievement-icon">${achievement.icon}</span>
+                            <div class="achievement-text">
+                                <div class="achievement-title">${achievement.title}</div>
+                                <div class="achievement-description">${achievement.description}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                modal.classList.add('show');
+            } catch (error) {
+                console.error('Error showing lesson completion:', error);
+            }
         }
 
         // Format time in minutes:seconds
@@ -1033,6 +1070,7 @@
 
         // Initialize first problem when page loads
         window.addEventListener('load', function() {
+            initializeProgressTracking();
             loadProblem();
         });
 
