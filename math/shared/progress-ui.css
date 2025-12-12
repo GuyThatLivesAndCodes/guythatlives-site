@@ -15,6 +15,17 @@
     animation: slideDown 1s ease-out 0.5s both;
 }
 
+@media (max-width: 768px) {
+    .score-panel {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        right: 1rem;
+        min-width: auto;
+        max-width: none;
+    }
+}
+
 .score-header {
     display: flex;
     align-items: center;
@@ -119,11 +130,14 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 2rem;
-    max-width: 400px;
+    max-width: 500px;
     width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
     text-align: center;
     transform: scale(0.8);
     transition: transform 0.3s ease;
+    position: relative;
 }
 
 .lesson-complete-modal.show .modal-content {
@@ -204,6 +218,29 @@
 .achievement-description {
     font-size: 0.8rem;
     color: var(--text-dim);
+}
+
+.detected-mistake {
+    background: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    text-align: left;
+}
+
+.detected-mistake h4 {
+    color: var(--error);
+    margin-bottom: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+}
+
+.detected-mistake .mistake-explanation {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
 }
 
 .modal-actions {
@@ -319,13 +356,6 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-    .score-panel {
-        position: relative;
-        top: auto;
-        right: auto;
-        margin-bottom: 2rem;
-    }
-
     .modal-actions {
         flex-direction: column;
     }
