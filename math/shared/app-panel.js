@@ -85,10 +85,13 @@ class AppPanel {
     startDrag(e) {
         this.isDragging = true;
         const rect = this.element.getBoundingClientRect();
+        
+        // Calculate offset from top-left corner (not center)
         this.dragOffset.x = e.clientX - rect.left;
         this.dragOffset.y = e.clientY - rect.top;
         
         this.element.style.transition = 'none';
+        this.element.style.transform = 'none'; // Remove transform while dragging
         document.body.style.cursor = 'move';
         e.preventDefault();
     }
@@ -96,19 +99,22 @@ class AppPanel {
     drag(e) {
         if (!this.isDragging) return;
         
+        // Calculate new position based on corner, not center
         const x = e.clientX - this.dragOffset.x;
         const y = e.clientY - this.dragOffset.y;
         
-        // Constrain to viewport
-        const maxX = window.innerWidth - this.element.offsetWidth;
-        const maxY = window.innerHeight - this.element.offsetHeight;
+        // Constrain to viewport with padding to prevent completely off-screen
+        const padding = 50; // Minimum visible area
+        const maxX = window.innerWidth - padding;
+        const maxY = window.innerHeight - padding;
+        const minX = -(this.element.offsetWidth - padding);
+        const minY = 0;
         
-        const constrainedX = Math.max(0, Math.min(x, maxX));
-        const constrainedY = Math.max(0, Math.min(y, maxY));
+        const constrainedX = Math.max(minX, Math.min(x, maxX));
+        const constrainedY = Math.max(minY, Math.min(y, maxY));
         
         this.element.style.left = constrainedX + 'px';
         this.element.style.top = constrainedY + 'px';
-        this.element.style.transform = 'none';
     }
 
     stopDrag() {
@@ -118,11 +124,12 @@ class AppPanel {
         this.element.style.transition = '';
         document.body.style.cursor = '';
         
-        // Convert back to relative units
+        // Convert back to relative units and restore transform
         const rect = this.element.getBoundingClientRect();
         this.position.x = (rect.left / window.innerWidth) * 100;
         this.position.y = (rect.top / window.innerHeight) * 100;
         
+        // Only update positioning, don't change transform
         this.element.style.left = `${this.position.x}%`;
         this.element.style.top = `${this.position.y}%`;
     }
@@ -233,7 +240,7 @@ class AppPanel {
             icon: '🧮',
             content: `
                 <div class="calculator-app">
-                    <input type="text" class="calc-display" id="calcDisplay" readonly>
+                    <input type="text" class="calc-display" id="calcDisplay" placeholder="0">
                     <div class="calc-grid">
                         <button class="calc-btn clear" onclick="calculator.clear()">C</button>
                         <button class="calc-btn clear" onclick="calculator.clearEntry()">CE</button>
@@ -264,6 +271,10 @@ class AppPanel {
                 // Initialize calculator when opened
                 if (typeof calculator !== 'undefined') {
                     calculator.reset();
+                    // Small delay to ensure DOM is ready
+                    setTimeout(() => {
+                        calculator.initInputListeners();
+                    }, 100);
                 }
             }
         });
@@ -327,6 +338,8 @@ const calculator = {
     
     append(value) {
         const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
         if (['+', '-', '*', '/'].includes(value)) {
             if (['+', '-', '*', '/'].includes(this.current.slice(-1))) {
                 this.current = this.current.slice(0, -1) + value;
@@ -337,37 +350,84 @@ const calculator = {
             this.current += value;
         }
         display.value = this.current.replace(/\*/g, '×');
+        this.syncFromInput();
     },
     
     clear() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
         this.current = '';
-        document.getElementById('calcDisplay').value = '';
+        display.value = '';
     },
     
     clearEntry() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
         this.current = this.current.slice(0, -1);
-        document.getElementById('calcDisplay').value = this.current.replace(/\*/g, '×');
+        display.value = this.current.replace(/\*/g, '×');
     },
     
     calculate() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
         try {
+            // Sync from input first in case user typed manually
+            this.syncFromInput();
+            
             const calculation = this.current.replace(/×/g, '*');
             const result = eval(calculation);
             if (isNaN(result) || !isFinite(result)) {
-                document.getElementById('calcDisplay').value = 'Error';
+                display.value = 'Error';
                 this.current = '';
             } else {
-                document.getElementById('calcDisplay').value = result;
+                display.value = result;
                 this.current = result.toString();
             }
         } catch (error) {
-            document.getElementById('calcDisplay').value = 'Error';
+            display.value = 'Error';
             this.current = '';
+        }
+    },
+    
+    // Sync calculator state with manual input
+    syncFromInput() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
+        const inputValue = display.value.replace(/×/g, '*');
+        // Only update if it's a valid expression
+        if (/^[0-9+\-*/.() ]*$/.test(inputValue)) {
+            this.current = inputValue;
         }
     },
     
     reset() {
         this.clear();
+    },
+    
+    // Initialize input listeners
+    initInputListeners() {
+        const display = document.getElementById('calcDisplay');
+        if (!display) return;
+        
+        // Allow manual typing
+        display.addEventListener('input', () => {
+            this.syncFromInput();
+        });
+        
+        // Handle keyboard shortcuts
+        display.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.calculate();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.clear();
+            }
+        });
     }
 };
 
