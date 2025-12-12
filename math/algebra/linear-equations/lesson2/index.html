@@ -421,149 +421,6 @@
             transform: translateY(-2px);
         }
 
-        /* Calculator Panel Styles - Same as Lesson 1 */
-        .calculator-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: var(--warning);
-            color: var(--primary);
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(241, 250, 140, 0.3);
-        }
-
-        .calculator-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(241, 250, 140, 0.5);
-        }
-
-        .calculator-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 2rem;
-            width: 280px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transform: translateY(100%) scale(0.8);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 999;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .calculator-panel.open {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
-
-        .calculator-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-
-        .calculator-title {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--warning);
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        .calculator-close {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .calculator-close:hover {
-            color: var(--error);
-        }
-
-        .calculator-display {
-            width: 100%;
-            background: var(--primary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.2rem;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: right;
-            margin-bottom: 1rem;
-            min-height: 50px;
-            cursor: text;
-        }
-
-        .calculator-display:focus {
-            outline: none;
-            border-color: var(--warning);
-            box-shadow: 0 0 0 2px rgba(241, 250, 140, 0.2);
-        }
-
-        .calculator-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-        }
-
-        .calc-btn {
-            background: var(--primary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            padding: 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .calc-btn:hover {
-            background: var(--secondary);
-            border-color: var(--warning);
-        }
-
-        .calc-btn.operator {
-            background: rgba(241, 250, 140, 0.1);
-            color: var(--warning);
-        }
-
-        .calc-btn.operator:hover {
-            background: rgba(241, 250, 140, 0.2);
-        }
-
-        .calc-btn.equals {
-            background: var(--warning);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .calc-btn.equals:hover {
-            background: var(--success);
-        }
-
-        .calc-btn.clear {
-            background: rgba(255, 85, 85, 0.1);
-            color: var(--error);
-        }
-
-        .calc-btn.clear:hover {
-            background: rgba(255, 85, 85, 0.2);
-        }
-
         @keyframes slideDown {
             from {
                 transform: translateY(-50px);
@@ -816,12 +673,10 @@
                     progressTracker.initializeLesson('algebra_linear_equations', 'lesson2');
                     
                     // Show progress UI elements
-                    document.getElementById('scorePanel').style.display = 'block';
-                    document.getElementById('lessonCompleteModal').style.display = 'block';
-                    
-                    console.log('Progress tracking initialized');
+                    const scorePanel = document.getElementById('scorePanel');
+                    if (scorePanel) scorePanel.style.display = 'block';
                 } else {
-                    console.log('Progress tracking not available - running in basic mode');
+                    // Progress tracking not available - running in basic mode
                 }
             } catch (error) {
                 console.error('Failed to initialize progress tracking:', error);
@@ -868,8 +723,6 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Check Answer';
-            
-            console.log('New problem loaded:', currentProblem.equation, 'Answer:', currentProblem.solution);
         }
 
         // Enhanced functions are defined after variable declarations above
@@ -882,108 +735,7 @@
             }
         });
 
-        // Calculator functionality
-        let calculatorOpen = false;
-        let currentCalculation = '';
-        
-        function toggleCalculator() {
-            calculatorOpen = !calculatorOpen;
-            const panel = document.getElementById('calculatorPanel');
-            const toggle = document.getElementById('calculatorToggle');
-            
-            if (calculatorOpen) {
-                panel.classList.add('open');
-                toggle.textContent = '×';
-                toggle.style.transform = 'rotate(180deg)';
-            } else {
-                panel.classList.remove('open');
-                toggle.textContent = '🧮';
-                toggle.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        function appendToCalculator(value) {
-            const display = document.getElementById('calculatorDisplay');
-            
-            // Handle operators - replace if last character was also an operator
-            if (['+', '-', '*', '/'].includes(value)) {
-                if (['+', '-', '*', '/'].includes(currentCalculation.slice(-1))) {
-                    currentCalculation = currentCalculation.slice(0, -1) + value;
-                } else {
-                    currentCalculation += value;
-                }
-            } else {
-                currentCalculation += value;
-            }
-            
-            display.value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function clearCalculator() {
-            currentCalculation = '';
-            document.getElementById('calculatorDisplay').value = '';
-        }
-
-        function clearEntry() {
-            currentCalculation = currentCalculation.slice(0, -1);
-            document.getElementById('calculatorDisplay').value = currentCalculation.replace(/\*/g, '×');
-        }
-
-        function calculateResult() {
-            try {
-                // Replace display symbols with calculation symbols
-                const calculation = currentCalculation.replace(/×/g, '*');
-                const result = eval(calculation);
-                
-                if (isNaN(result) || !isFinite(result)) {
-                    document.getElementById('calculatorDisplay').value = 'Error';
-                    currentCalculation = '';
-                } else {
-                    document.getElementById('calculatorDisplay').value = result;
-                    currentCalculation = result.toString();
-                }
-            } catch (error) {
-                document.getElementById('calculatorDisplay').value = 'Error';
-                currentCalculation = '';
-            }
-        }
-
-        // Add event listener for calculator toggle
-        document.getElementById('calculatorToggle').addEventListener('click', toggleCalculator);
-
-        // Prevent direct typing in calculator display, only allow programmatic updates
-        document.getElementById('calculatorDisplay').addEventListener('input', function(e) {
-            // Reset to current calculation if user tries to type directly
-            this.value = currentCalculation.replace(/\*/g, '×');
-        });
-
-        // Allow clicking to focus calculator for keyboard input
-        document.getElementById('calculatorDisplay').addEventListener('click', function() {
-            this.focus();
-        });
-
-        // Keyboard support for calculator
-        document.getElementById('calculatorDisplay').addEventListener('keydown', function(e) {
-            const key = e.key;
-            if ('0123456789.'.includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (['+', '-', '*', '/'].includes(key)) {
-                e.preventDefault();
-                appendToCalculator(key);
-            } else if (key === 'Enter' || key === '=') {
-                e.preventDefault();
-                calculateResult();
-            } else if (key === 'Escape' || key === 'c' || key === 'C') {
-                e.preventDefault();
-                clearCalculator();
-            } else if (key === 'Backspace') {
-                e.preventDefault();
-                clearEntry();
-            }
-        });
-
-        // Same sparkle effect
+        // Sparkle effect
         document.addEventListener('mousemove', (e) => {
             if (Math.random() > 0.98) {
                 createSparkle(e.clientX, e.clientY);
@@ -1055,9 +807,7 @@
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Answered';
-            
-            console.log('Checking answer:', userAnswer, 'vs correct:', currentProblem.solution, 'isCorrect:', isCorrect);
-            
+
             // Update progress tracking if available
             if (progressTracker && !isCorrect) {
                 // Only apply penalty once per wrong answer
@@ -1266,10 +1016,7 @@
 
         // Show lesson completion modal
         function showLessonComplete() {
-            if (!progressTracker) {
-                console.log('Lesson would be complete with progress tracking');
-                return;
-            }
+            if (!progressTracker) return;
             
             try {
                 const modal = document.getElementById('lessonCompleteModal');

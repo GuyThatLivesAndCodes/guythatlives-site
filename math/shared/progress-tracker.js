@@ -329,17 +329,13 @@ class ProgressTracker {
     // TODO: Login system
     async login(username, password) {
         // This would integrate with a backend authentication system
-        // For now, just a placeholder
-        console.log('Login system coming soon!');
+        // Placeholder for future implementation
     }
 
     // TODO: Cloud sync
     async syncToCloud() {
         // This would sync progress to a cloud database
-        // For now, just a placeholder
-        if (this.isLoggedIn) {
-            console.log('Cloud sync coming soon!');
-        }
+        // Placeholder for future implementation
     }
 }
 
