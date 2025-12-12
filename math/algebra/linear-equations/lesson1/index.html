@@ -14,8 +14,8 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
     <!-- Progress tracking system (comment out if files not available) -->
-    <link rel="stylesheet" href="../../shared/progress-ui.css">
-    <script src="../../shared/progress-tracker.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     
     <style>
         :root {
@@ -804,6 +804,7 @@
         let isCorrect = false;
         let questionStartTime = Date.now();
         let attempts = 0;
+        let problemAnswered = false; // NEW: Track if current problem has been answered
 
         // Initialize progress tracking with error handling
         let progressTracker = null;
@@ -834,6 +835,7 @@
             problemCount++;
             questionStartTime = Date.now();
             attempts = 0; // Reset attempts for new problem
+            problemAnswered = false; // Reset answered state
             
             document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
             
@@ -863,7 +865,9 @@
             document.getElementById('feedbackContent').innerHTML = '';
             
             // Re-enable the submit button
-            document.getElementById('submitBtn').disabled = false;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Check Answer';
             
             console.log('New problem loaded:', currentProblem.equation, 'Answer:', currentProblem.solution);
         }
@@ -872,6 +876,11 @@
         function checkAnswer() {
             const input = document.getElementById('answerInput').value.trim();
             if (!input) return;
+            
+            // Prevent button spam - only allow one answer per problem
+            if (problemAnswered) {
+                return; // Silently ignore additional attempts
+            }
             
             attempts++;
             userAnswer = parseFloat(input.replace(/x\s*=\s*/, '').replace(/[^-\d.]/g, ''));
@@ -882,11 +891,26 @@
             }
             
             isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
+            problemAnswered = true; // Mark as answered
+            
+            // Disable submit button to prevent spam
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Answered';
             
             console.log('Checking answer:', userAnswer, 'vs correct:', currentProblem.solution, 'isCorrect:', isCorrect);
             
             // Update progress tracking if available
-            if (progressTracker) {
+            if (progressTracker && !isCorrect) {
+                // Only apply penalty once per wrong answer
+                try {
+                    const timeSpent = Date.now() - questionStartTime;
+                    const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
+                } catch (error) {
+                    console.error('Progress tracking error:', error);
+                }
+            } else if (progressTracker && isCorrect) {
+                // Apply points for correct answer
                 try {
                     const timeSpent = Date.now() - questionStartTime;
                     const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
@@ -903,6 +927,57 @@
             }
             
             showFeedback();
+        }
+
+        // Auto-detect which mistake pattern the student likely made
+        function detectMistakePattern(userAnswer, correctAnswer, problem) {
+            const mistakes = problem.mistakes;
+            let bestMatch = null;
+            let smallestDifference = Infinity;
+            
+            for (let i = 0; i < mistakes.length; i++) {
+                const mistake = mistakes[i];
+                
+                // Extract the likely wrong answer from the mistake work
+                let mistakeAnswer = extractAnswerFromWork(mistake.work);
+                
+                if (mistakeAnswer !== null) {
+                    const difference = Math.abs(userAnswer - mistakeAnswer);
+                    if (difference < smallestDifference) {
+                        smallestDifference = difference;
+                        bestMatch = i;
+                    }
+                }
+            }
+            
+            // If we found a close match (within 0.1), return it
+            if (smallestDifference < 0.1 && bestMatch !== null) {
+                return bestMatch;
+            }
+            
+            // Otherwise return null for manual selection
+            return null;
+        }
+
+        // Extract the final answer from mistake work string
+        function extractAnswerFromWork(workString) {
+            // Look for patterns like "x = 5" or "→ x = 3" or "= 2.5"
+            const patterns = [
+                /x\s*=\s*([+-]?\d*\.?\d+)/g,
+                /=\s*([+-]?\d*\.?\d+)$/g,
+                /→\s*([+-]?\d*\.?\d+)/g
+            ];
+            
+            for (let pattern of patterns) {
+                const matches = [...workString.matchAll(pattern)];
+                if (matches.length > 0) {
+                    // Get the last match (final answer)
+                    const lastMatch = matches[matches.length - 1];
+                    return parseFloat(lastMatch[1]);
+                }
+            }
+            
+            return null;
         }
 
         // Show feedback with mistake analysis
@@ -932,21 +1007,58 @@
             } else {
                 feedbackSection.className = 'feedback-section show feedback-incorrect';
                 feedbackIcon.textContent = '🤯';
-                feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
                 
-                feedbackContent.innerHTML = `
-                    <div class="mistake-analysis">
-                        <div class="mistake-title">// Which mistake pattern matches your thinking?</div>
-                        <div class="mistake-options">
-                            ${currentProblem.mistakes.map((mistake, i) => `
-                                <div class="mistake-option" onclick="selectMistake(${i})">
-                                    <strong>${mistake.description}</strong>
-                                    <div class="mistake-explanation">${mistake.work}</div>
+                // Try to auto-detect the mistake pattern
+                const detectedMistake = detectMistakePattern(userAnswer, currentProblem.solution, currentProblem);
+                
+                if (detectedMistake !== null) {
+                    // Show teacher-like feedback with detected mistake
+                    const mistake = currentProblem.mistakes[detectedMistake];
+                    feedbackTitle.textContent = 'I can see where you went wrong!';
+                    
+                    feedbackContent.innerHTML = `
+                        <div class="mistake-analysis">
+                            <div class="mistake-title">// Here's what happened:</div>
+                            <div class="detected-mistake">
+                                <h4><strong>Common mistake: ${mistake.description}</strong></h4>
+                                <div class="mistake-explanation">Your work probably looked like: ${mistake.work}</div>
+                                <p style="margin-top: 1rem; color: var(--text-dim);">
+                                    This is a very common error! Let me show you the correct approach:
+                                </p>
+                            </div>
+                        </div>
+                        <div class="solution-steps">
+                            <div class="solution-title">// Correct Solution Steps</div>
+                            ${currentProblem.steps.map((step, i) => `
+                                <div class="solution-step">
+                                    <div class="step-number">Step ${i + 1}:</div>
+                                    <div class="step-content">${step.step}: ${step.equation}</div>
                                 </div>
                             `).join('')}
                         </div>
-                    </div>
-                `;
+                        <button class="next-problem-btn" onclick="nextProblem()">Try Another Problem →</button>
+                    `;
+                } else {
+                    // Fall back to manual selection if we can't detect the pattern
+                    feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
+                    
+                    feedbackContent.innerHTML = `
+                        <div class="mistake-analysis">
+                            <div class="mistake-title">// Which approach did you use?</div>
+                            <p style="margin-bottom: 1rem; color: var(--text-dim); font-size: 0.9rem;">
+                                I couldn't detect your mistake pattern automatically. Can you help me understand your thinking?
+                            </p>
+                            <div class="mistake-options">
+                                ${currentProblem.mistakes.map((mistake, i) => `
+                                    <div class="mistake-option" onclick="selectMistake(${i})">
+                                        <strong>${mistake.description}</strong>
+                                        <div class="mistake-explanation">${mistake.work}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
 
