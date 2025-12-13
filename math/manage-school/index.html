@@ -641,12 +641,12 @@
 
                 <!-- Tabs -->
                 <div class="tabs">
-                    <button class="tab active" onclick="switchTab('overview')">📊 Overview</button>
-                    <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
-                    <button class="tab" onclick="switchTab('branding')">🎨 Branding</button>
-                    <button class="tab" onclick="switchTab('members')">👥 Members</button>
-                    <button class="tab" onclick="switchTab('courses')">📚 Courses</button>
-                    <button class="tab" onclick="switchTab('invite')">🔗 Invite</button>
+                    <button class="tab active" onclick="switchTab('overview', event)">📊 Overview</button>
+                    <button class="tab" onclick="switchTab('settings', event)">⚙️ Settings</button>
+                    <button class="tab" onclick="switchTab('branding', event)">🎨 Branding</button>
+                    <button class="tab" onclick="switchTab('members', event)">👥 Members</button>
+                    <button class="tab" onclick="switchTab('courses', event)">📚 Courses</button>
+                    <button class="tab" onclick="switchTab('invite', event)">🔗 Invite</button>
                 </div>
 
                 <!-- Tab Contents -->
@@ -985,10 +985,22 @@
         }
 
         // Tab switching
-        function switchTab(tabName) {
+        function switchTab(tabName, evt) {
             // Update tab buttons
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+
+            // If called from an event (button click), highlight that button
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            } else {
+                // If called programmatically, find and highlight the correct tab button
+                const tabButtons = document.querySelectorAll('.tab');
+                tabButtons.forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(tabName)) {
+                        tab.classList.add('active');
+                    }
+                });
+            }
 
             // Update tab content
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
