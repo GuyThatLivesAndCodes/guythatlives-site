@@ -1093,22 +1093,38 @@
             setTimeout(() => notification.remove(), 3000);
         }
 
-        // Initialize
-        setTimeout(() => {
-            if (window.authSystem && window.authSystem.isUserLoggedIn()) {
-                loadSchool();
-            } else {
-                showError('Please login to manage your school');
+        // Initialize with proper auth waiting
+        async function initializeManageSchool() {
+            // Wait for auth system to be ready (up to 5 seconds)
+            let attempts = 0;
+            while ((!window.authSystem || !window.authSystem.auth) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
             }
-        }, 500);
 
-        // Listen for auth changes
-        if (window.authSystem && window.authSystem.auth) {
-            window.authSystem.auth.onAuthStateChanged((user) => {
-                if (user && !currentSchool) {
-                    loadSchool();
+            if (!window.authSystem || !window.authSystem.auth) {
+                showError('Auth system not initialized. <button onclick="location.reload()" style="margin-left: 1rem; padding: 0.5rem 1rem; background: var(--accent); color: var(--primary); border: none; border-radius: 4px; cursor: pointer;">Refresh</button>');
+                return;
+            }
+
+            // Wait for auth state to be determined
+            const user = window.authSystem.auth.currentUser;
+            if (!user) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!window.authSystem.isUserLoggedIn()) {
+                    showError('Please login to manage your school');
+                    return;
                 }
-            });
+            }
+
+            loadSchool();
+        }
+
+        // Run initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeManageSchool);
+        } else {
+            initializeManageSchool();
         }
     </script>
 </body>

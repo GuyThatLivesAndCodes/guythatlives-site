@@ -545,14 +545,53 @@
             }
         }
 
-        // Initialize when auth is ready
-        setTimeout(() => {
-            if (window.authSystem) {
-                showForm();
-            } else {
-                setTimeout(() => showForm(), 500);
+        // Initialize with proper auth waiting
+        async function initializeCreateSchool() {
+            // Wait for auth system to be ready (up to 5 seconds)
+            let attempts = 0;
+            while ((!window.authSystem || !window.authSystem.auth) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
             }
-        }, 200);
+
+            if (!window.authSystem || !window.authSystem.auth) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div style="text-align: center; padding: 3rem;">
+                        <h1>Auth System Error</h1>
+                        <p class="subtitle">Authentication system failed to initialize.</p>
+                        <button class="primary" onclick="location.reload()">Refresh Page</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Wait for auth state to be determined
+            const user = window.authSystem.auth.currentUser;
+            if (!user) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!window.authSystem.isUserLoggedIn()) {
+                    document.getElementById('mainContent').innerHTML = `
+                        <div style="text-align: center; padding: 3rem;">
+                            <h1>Login Required</h1>
+                            <p class="subtitle">Please login to create a school.</p>
+                            <button class="primary" onclick="authSystem.signInWithGoogle()">
+                                Sign In with Google
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+
+            showForm();
+        }
+
+        // Run initialization
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCreateSchool);
+        } else {
+            initializeCreateSchool();
+        }
     </script>
 </body>
 </html>
