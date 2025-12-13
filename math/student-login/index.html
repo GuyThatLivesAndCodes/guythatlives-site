@@ -261,6 +261,13 @@
                 loginBtn.disabled = true;
                 loginBtn.textContent = 'Logging in...';
 
+                console.log('Attempting login for username:', username);
+
+                // Check if db is initialized
+                if (!db) {
+                    throw new Error('Database not initialized');
+                }
+
                 // Query studentAccounts collection for matching username
                 const studentQuery = await db.collection('studentAccounts')
                     .where('username', '==', username)
@@ -268,16 +275,22 @@
                     .limit(1)
                     .get();
 
+                console.log('Query results:', studentQuery.size, 'accounts found');
+
                 if (studentQuery.empty) {
+                    console.log('No account found for username:', username);
                     showError('Invalid username or password');
                     return;
                 }
 
                 const studentDoc = studentQuery.docs[0];
                 const studentData = studentDoc.data();
+                console.log('Found student account:', studentData.username);
 
                 // Verify password (using base64 decode since we encoded it)
                 const storedPassword = atob(studentData.passwordHash);
+                console.log('Password verification:', password === storedPassword ? 'SUCCESS' : 'FAILED');
+
                 if (storedPassword !== password) {
                     showError('Invalid username or password');
                     return;
@@ -296,6 +309,7 @@
 
                 // Store in localStorage
                 localStorage.setItem('studentSession', JSON.stringify(studentSession));
+                console.log('Student session stored, redirecting...');
 
                 showSuccess('Login successful! Redirecting...');
 
@@ -305,8 +319,8 @@
                 }, 1500);
 
             } catch (error) {
-                console.error('Login error:', error);
-                showError('An error occurred during login. Please try again.');
+                console.error('Login error details:', error);
+                showError('An error occurred during login: ' + error.message);
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Log In';
