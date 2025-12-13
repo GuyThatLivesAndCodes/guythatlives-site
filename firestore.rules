@@ -17,11 +17,33 @@ service cloud.firestore {
 
     // Schools collection - for create-your-school feature
     match /schools/{schoolId} {
-      // Allow authenticated users to create and manage schools
-      allow create, write, update, delete: if request.auth != null;
+      // Allow authenticated users to create schools
+      allow create: if request.auth != null;
 
-      // Allow anyone to read schools (for browsing)
-      allow read: if true;
+      // Allow reading if:
+      // - User is owner (createdBy matches)
+      // - User is a member of the school
+      // - School is public/visible
+      // - User is admin
+      allow read: if request.auth != null && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in resource.data.members ||
+        resource.data.visibility == 'public' ||
+        request.auth.token.email == 'guythatlives@protonmail.com'
+      );
+
+      // Allow updates if user is owner or admin of the school
+      allow update: if request.auth != null && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in resource.data.admins ||
+        request.auth.token.email == 'guythatlives@protonmail.com'
+      );
+
+      // Allow delete only if user is owner
+      allow delete: if request.auth != null && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.token.email == 'guythatlives@protonmail.com'
+      );
     }
 
     // Deny everything else by default

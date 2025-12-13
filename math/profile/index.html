@@ -816,6 +816,20 @@
                 `;
             }
 
+            // Add My Schools section
+            html += `
+                <div class="lessons-section">
+                    <h2 class="section-title">
+                        <span>🏫</span> My Schools
+                    </h2>
+                    <div id="mySchoolsList">
+                        <p style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                            <span>⏳</span> Loading schools...
+                        </p>
+                    </div>
+                </div>
+            `;
+
             // Add settings section
             html += `
                 <div class="lessons-section">
@@ -954,6 +968,9 @@
             if (isAdmin) {
                 loadAdminUserList();
             }
+
+            // Load user's schools
+            loadUserSchools();
         }
 
         // Load advertisement preferences
@@ -1221,6 +1238,109 @@
             } catch (error) {
                 console.error('Error deleting user:', error);
                 showNotification(`Error deleting user: ${error.message}`, 'error');
+            }
+        }
+
+        // Load user's schools
+        async function loadUserSchools() {
+            if (!window.authSystem || !window.authSystem.db) return;
+
+            try {
+                const user = window.authSystem.getCurrentUser();
+
+                // Query schools where user is owner or member
+                const ownerSchools = await window.authSystem.db.collection('schools')
+                    .where('createdBy', '==', user.uid)
+                    .get();
+
+                const memberSchools = await window.authSystem.db.collection('schools')
+                    .where('members', 'array-contains', { userId: user.uid })
+                    .get();
+
+                const schools = [];
+
+                ownerSchools.forEach(doc => {
+                    schools.push({ id: doc.id, ...doc.data(), isOwner: true });
+                });
+
+                memberSchools.forEach(doc => {
+                    const schoolData = { id: doc.id, ...doc.data(), isOwner: false };
+                    // Avoid duplicates
+                    if (!schools.find(s => s.id === doc.id)) {
+                        schools.push(schoolData);
+                    }
+                });
+
+                if (schools.length === 0) {
+                    document.getElementById('mySchoolsList').innerHTML = `
+                        <div style="text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🏫</div>
+                            <h3 style="margin-bottom: 0.5rem;">No Schools Yet</h3>
+                            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                                Create a school to organize students, assign courses, and track progress
+                            </p>
+                            <a href="/math/create-your-school/" class="action-btn" style="text-decoration: none;">
+                                <span>➕</span> Create Your School
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Render school cards
+                let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">';
+
+                schools.forEach(school => {
+                    const memberCount = school.members?.length || 0;
+                    const courseCount = school.assignedCourses?.length || 0;
+                    const roleBadge = school.isOwner ?
+                        '<span style="background: rgba(100, 255, 218, 0.2); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-family: \'JetBrains Mono\', monospace; font-weight: 600;">OWNER</span>' :
+                        '<span style="background: rgba(80, 250, 123, 0.2); color: var(--success); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-family: \'JetBrains Mono\', monospace; font-weight: 600;">MEMBER</span>';
+
+                    html += `
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; cursor: pointer;"
+                             onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-5px)';"
+                             onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)';"
+                             onclick="window.location.href='/math/manage-school/?id=${school.id}'">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="font-size: 3rem;">${school.logo || '🏫'}</div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 1.3rem; margin-bottom: 0.3rem;">${school.name}</h3>
+                                    ${roleBadge}
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem; min-height: 2.5rem;">
+                                ${school.description || 'No description'}
+                            </p>
+                            <div style="display: flex; gap: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim);">
+                                <div><span>👥</span> ${memberCount}</div>
+                                <div><span>📚</span> ${courseCount}</div>
+                                <div><span>🔗</span> ${school.inviteCode}</div>
+                            </div>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem;">
+                                <a href="/math/manage-school/?id=${school.id}"
+                                   style="flex: 1; text-align: center; padding: 0.6rem; background: var(--accent); color: var(--primary); border-radius: 6px; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 600; transition: all 0.2s ease;"
+                                   onmouseover="this.style.transform='scale(1.05)';"
+                                   onmouseout="this.style.transform='scale(1)';"
+                                   onclick="event.stopPropagation();">
+                                    ⚙️ Manage
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+
+                document.getElementById('mySchoolsList').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading schools:', error);
+                document.getElementById('mySchoolsList').innerHTML = `
+                    <p style="text-align: center; color: var(--error); padding: 1rem;">
+                        Error loading schools: ${error.message}
+                    </p>
+                `;
             }
         }
 
