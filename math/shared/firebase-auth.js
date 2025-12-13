@@ -162,9 +162,13 @@ class FirebaseAuthSystem {
     updateUIForLoggedInUser() {
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) {
+            // Extract first name or use email username
+            const displayName = this.user.displayName || this.user.email.split('@')[0];
+            const firstName = displayName.split(' ')[0];
+
             loginBtn.innerHTML = `
                 <img src="${this.user.photoURL}" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 0.5rem;">
-                <span>${this.user.displayName?.split(' ')[0] || 'Profile'}</span>
+                <span>${firstName}</span>
             `;
             loginBtn.onclick = () => this.showUserMenu();
         }
