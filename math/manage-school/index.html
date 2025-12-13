@@ -595,7 +595,7 @@
 
                 // Check if user has permission to manage this school
                 const user = window.authSystem.getCurrentUser();
-                if (currentSchool.createdBy !== user.uid &&
+                if (currentSchool.owner !== user.uid &&
                     !currentSchool.admins?.includes(user.uid)) {
                     showError('You do not have permission to manage this school');
                     return;
