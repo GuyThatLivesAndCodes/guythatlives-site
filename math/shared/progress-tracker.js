@@ -13,6 +13,126 @@ class ProgressTracker {
         this.questionCount = 0;
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
+
+        // Check auth status after a short delay to ensure authSystem is initialized
+        setTimeout(() => this.checkAuthStatus(), 100);
+    }
+
+    // Check if user is logged in via authSystem
+    checkAuthStatus() {
+        if (window.authSystem && window.authSystem.isUserLoggedIn()) {
+            this.isLoggedIn = true;
+            this.currentUser = window.authSystem.getCurrentUser();
+            this.loadLocalProgress(); // Reload progress with user context
+        } else {
+            this.showGuestModeWarning();
+        }
+    }
+
+    // Handle user login
+    onUserLogin(user) {
+        this.isLoggedIn = true;
+        this.currentUser = user;
+
+        // Migrate guest progress to user account
+        this.migrateGuestProgress();
+
+        // Reload progress
+        this.localProgress = this.loadLocalProgress();
+
+        // Hide guest warning
+        this.hideGuestModeWarning();
+
+        // TODO: Sync to cloud
+        this.syncToCloud();
+    }
+
+    // Handle user logout
+    onUserLogout() {
+        this.isLoggedIn = false;
+        this.currentUser = null;
+
+        // Reload guest progress
+        this.localProgress = this.loadLocalProgress();
+
+        // Show guest warning
+        this.showGuestModeWarning();
+    }
+
+    // Migrate guest progress to user account
+    migrateGuestProgress() {
+        if (!this.currentUser) return;
+
+        const guestProgress = localStorage.getItem('guythatlives_math_progress');
+        if (guestProgress) {
+            try {
+                const guestData = JSON.parse(guestProgress);
+                const userProgressKey = this.getUserProgressKey();
+                const existingUserProgress = localStorage.getItem(userProgressKey);
+
+                // Only migrate if user has no existing progress
+                if (!existingUserProgress && Object.keys(guestData.lessons).length > 0) {
+                    localStorage.setItem(userProgressKey, guestProgress);
+                    console.log('Guest progress migrated to user account');
+                }
+            } catch (error) {
+                console.error('Error migrating guest progress:', error);
+            }
+        }
+    }
+
+    // Get the storage key for current user
+    getUserProgressKey() {
+        if (this.isLoggedIn && this.currentUser) {
+            return `guythatlives_math_progress_${this.currentUser.email}`;
+        }
+        return 'guythatlives_math_progress';
+    }
+
+    // Show warning for guest mode
+    showGuestModeWarning() {
+        // Check if warning already exists
+        if (document.querySelector('.guest-mode-warning')) return;
+
+        const scorePanel = document.querySelector('.score-panel');
+        if (scorePanel) {
+            const warning = document.createElement('div');
+            warning.className = 'guest-mode-warning';
+            warning.innerHTML = `
+                <span>Guest Mode</span>
+                <button onclick="authSystem.showLoginModal()" style="
+                    background: transparent;
+                    border: 1px solid var(--warning);
+                    color: var(--warning);
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 4px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    margin-left: auto;
+                " onmouseover="this.style.background='rgba(241,250,140,0.1)'" onmouseout="this.style.background='transparent'">
+                    Login to Save
+                </button>
+            `;
+            warning.style.cssText = `
+                font-size: 0.75rem;
+                padding: 0.5rem 0.8rem;
+                margin-top: 0.8rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            `;
+            scorePanel.appendChild(warning);
+        }
+    }
+
+    // Hide guest mode warning
+    hideGuestModeWarning() {
+        const warning = document.querySelector('.guest-mode-warning');
+        if (warning) {
+            warning.remove();
+        }
     }
 
     // Initialize progress tracking for a lesson
@@ -140,14 +260,15 @@ class ProgressTracker {
     // Load progress from localStorage
     loadLocalProgress() {
         try {
-            const stored = localStorage.getItem('guythatlives_math_progress');
+            const storageKey = this.getUserProgressKey();
+            const stored = localStorage.getItem(storageKey);
             if (stored) {
                 return JSON.parse(stored);
             }
         } catch (error) {
             console.error('Error loading progress:', error);
         }
-        
+
         return {
             lessons: {},
             courses: {},
@@ -166,16 +287,43 @@ class ProgressTracker {
         try {
             // Update user stats
             this.updateUserStats();
-            
+
+            const storageKey = this.getUserProgressKey();
+            localStorage.setItem(storageKey, JSON.stringify(this.localProgress));
+
             if (this.isLoggedIn) {
                 // TODO: Sync to cloud database
                 this.syncToCloud();
             }
-            
-            localStorage.setItem('guythatlives_math_progress', JSON.stringify(this.localProgress));
         } catch (error) {
             console.error('Error saving progress:', error);
         }
+    }
+
+    // Sync progress to cloud (placeholder for future implementation)
+    async syncToCloud() {
+        // TODO: Implement cloud sync with backend API
+        // This would:
+        // 1. Send progress data to backend
+        // 2. Receive confirmation
+        // 3. Update last sync timestamp
+        // 4. Handle conflicts (merge strategies)
+
+        if (!this.isLoggedIn || !this.currentUser) {
+            console.log('User not logged in, skipping cloud sync');
+            return;
+        }
+
+        console.log('Cloud sync ready for implementation');
+        // Future implementation:
+        // await fetch('/api/progress/sync', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({
+        //         userId: this.currentUser.email,
+        //         progress: this.localProgress
+        //     })
+        // });
     }
 
     // Update overall user statistics
@@ -324,18 +472,6 @@ class ProgressTracker {
         }
 
         return achievements;
-    }
-
-    // TODO: Login system
-    async login(username, password) {
-        // This would integrate with a backend authentication system
-        // Placeholder for future implementation
-    }
-
-    // TODO: Cloud sync
-    async syncToCloud() {
-        // This would sync progress to a cloud database
-        // Placeholder for future implementation
     }
 }
 
