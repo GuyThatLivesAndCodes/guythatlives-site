@@ -214,6 +214,9 @@ class ProgressTracker {
         this.updateScoreDisplay();
         this.saveProgress();
 
+        // Sync to Firebase if available
+        this.syncToFirebase();
+
         return {
             scoreChange,
             newScore: this.currentScore,
@@ -324,6 +327,58 @@ class ProgressTracker {
         //         progress: this.localProgress
         //     })
         // });
+    }
+
+    // Firebase sync methods
+    async syncToFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) return;
+        if (!this.currentLesson || !this.currentCourse) return;
+
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
+            const lessonId = `${this.currentCourse}_${this.currentLesson}`;
+
+            await userDoc.collection('lessons').doc(lessonId).set({
+                score: this.currentScore,
+                streak: this.streak,
+                questionCount: this.questionCount,
+                correctAnswers: this.correctAnswers,
+                incorrectAnswers: this.incorrectAnswers,
+                timeSpent: this.getTimeSpent(),
+                lastAttempt: firebase.firestore.FieldValue.serverTimestamp(),
+                completed: this.currentScore >= 100
+            }, { merge: true });
+
+        } catch (error) {
+            console.error('Firebase sync error:', error);
+        }
+    }
+
+    async syncFromFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) return;
+        if (!this.currentLesson || !this.currentCourse) return;
+
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
+            const lessonId = `${this.currentCourse}_${this.currentLesson}`;
+            const lessonDoc = await userDoc.collection('lessons').doc(lessonId).get();
+
+            if (lessonDoc.exists) {
+                const data = lessonDoc.data();
+                this.currentScore = data.score || 0;
+                this.streak = data.streak || 0;
+                this.questionCount = data.questionCount || 0;
+                this.correctAnswers = data.correctAnswers || 0;
+                this.incorrectAnswers = data.incorrectAnswers || 0;
+                this.updateScoreDisplay();
+            }
+        } catch (error) {
+            console.error('Firebase sync error:', error);
+        }
+    }
+
+    getTimeSpent() {
+        return Date.now() - this.startTime;
     }
 
     // Update overall user statistics
