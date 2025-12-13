@@ -3,76 +3,82 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection - for storing user data, preferences, and progress
-    match /users/{userId} {
-      // Users can read and write their own data
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    /* ========= Helper Functions ========= */
 
-      // Admin (guythatlives@protonmail.com) can read all users
-      allow read: if request.auth != null && request.auth.token.email == 'guythatlives@protonmail.com';
-
-      // Admin can delete any user
-      allow delete: if request.auth != null && request.auth.token.email == 'guythatlives@protonmail.com';
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Schools collection - for create-your-school feature
-    match /schools/{schoolId} {
-      // Allow authenticated users to create schools
-      allow create: if request.auth != null;
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'zorbyteofficial@gmail.com' ||
+        request.auth.token.email == 'briston.miller@weatherfordisd.net'
+      );
+    }
 
-      // Allow reading if:
-      // - User is owner
-      // - User is a member of the school
-      // - School is public/visible
-      // - User is admin
-      allow read: if request.auth != null && (
+    /* ========= Users ========= */
+
+    match /users/{userId} {
+      // Users can manage their own profile
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+      // Platform admins can manage all users
+      allow read, write, delete: if isAdmin();
+    }
+
+    /* ========= Schools ========= */
+
+    match /schools/{schoolId} {
+
+      // Any authenticated user can create a school
+      allow create: if isSignedIn();
+
+      // Read permissions
+      allow read: if isSignedIn() && (
         resource.data.owner == request.auth.uid ||
         request.auth.uid in resource.data.members ||
         resource.data.visibility == 'public' ||
-        request.auth.token.email == 'guythatlives@protonmail.com'
+        isAdmin()
       );
 
-      // Allow updates if user is owner or admin of the school
-      allow update: if request.auth != null && (
+      // Update permissions
+      allow update: if isSignedIn() && (
         resource.data.owner == request.auth.uid ||
         request.auth.uid in resource.data.admins ||
-        request.auth.token.email == 'guythatlives@protonmail.com'
+        isAdmin()
       );
 
-      // Allow delete only if user is owner
-      allow delete: if request.auth != null && (
+      // Delete permissions
+      allow delete: if isSignedIn() && (
         resource.data.owner == request.auth.uid ||
-        request.auth.token.email == 'guythatlives@protonmail.com'
+        isAdmin()
       );
     }
 
-    // Student Accounts collection - for school-managed student accounts
-    match /studentAccounts/{studentId} {
-      // Allow school owners to create student accounts for their school
-      allow create: if request.auth != null;
+    /* ========= Student Accounts ========= */
 
-      // Allow reading for:
-      // - Unauthenticated users (needed for student login page to query by username)
-      // - School owners/admins
-      // - Platform admin
+    match /studentAccounts/{studentId} {
+
+      // School staff can create student accounts
+      allow create: if isSignedIn();
+
+      /*
+        Public read is allowed for student login lookup.
+        IMPORTANT: This means only non-sensitive fields should exist here.
+      */
       allow read: if true;
 
-      // Allow updates if user is the school owner/admin that created the account
-      allow update: if request.auth != null && (
+      // Only creator or platform admin can modify
+      allow update, delete: if isSignedIn() && (
         request.auth.uid == resource.data.createdBy ||
-        request.auth.token.email == 'guythatlives@protonmail.com'
-      );
-
-      // Allow delete if user is the school owner/admin that created the account
-      allow delete: if request.auth != null && (
-        request.auth.uid == resource.data.createdBy ||
-        request.auth.token.email == 'guythatlives@protonmail.com'
+        isAdmin()
       );
     }
 
-    // Deny everything else by default
+    /* ========= Default Deny ========= */
+
     match /{document=**} {
-      allow read, write: if false;
+      allow write, delete: if false;
     }
   }
 }
