@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your School • GuyThatLives Network</title>
+    <meta name="description" content="Create and manage your school on the GuyThatLives Math Platform.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Auth System -->
+    <script src="../shared/firebase-auth.js"></script>
+    <!-- Global Header -->
+    <script src="../shared/global-header.js"></script>
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+        }
+
+        .form-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Crimson Pro', serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .info-box {
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .info-box.warning {
+            background: rgba(241, 250, 140, 0.05);
+            border-color: rgba(241, 250, 140, 0.2);
+            color: var(--warning);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        button.primary:hover {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-dim);
+        }
+
+        .success-message {
+            background: rgba(80, 250, 123, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container"></div>
+
+    <div class="container">
+        <header>
+            <a href="/math" class="logo">math.guythatlives.net</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <span>create school</span>
+            </nav>
+        </header>
+
+        <main id="mainContent">
+            <div class="loading">
+                <p>Loading...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        function checkAuth() {
+            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div style="text-align: center; padding: 3rem;">
+                        <h1>Login Required</h1>
+                        <p class="subtitle">Please login to create a school.</p>
+                        <button class="primary" onclick="authSystem.signInWithGoogle()">
+                            Sign In with Google
+                        </button>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+
+        // Show the school creation form
+        function showForm() {
+            if (!checkAuth()) return;
+
+            document.getElementById('mainContent').innerHTML = `
+                <h1>Create Your School</h1>
+                <p class="subtitle">Set up your institution to manage classrooms, teachers, and students.</p>
+
+                <form id="schoolForm" onsubmit="handleSubmit(event)">
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span>🏫</span> Basic Information
+                        </h2>
+
+                        <div class="form-group">
+                            <label for="schoolName">School Name *</label>
+                            <input type="text" id="schoolName" required
+                                   placeholder="e.g., Lincoln High School, Smith Homeschool">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="schoolDescription">Description</label>
+                            <textarea id="schoolDescription"
+                                      placeholder="Brief description of your school..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- School Type -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span>🔒</span> School Type
+                        </h2>
+
+                        <div class="form-group">
+                            <label>Select School Type *</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="schoolType" value="private" checked
+                                           onchange="updateTypeInfo()">
+                                    <span>Private/Home School</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="schoolType" value="public"
+                                           onchange="updateTypeInfo()">
+                                    <span>Public School</span>
+                                </label>
+                            </div>
+                            <div id="typeInfo" class="info-box">
+                                <strong>Private/Home School:</strong> Completely free to setup. Your school is private and not listed publicly.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Administrator Info -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span>👤</span> Administrator Information
+                        </h2>
+
+                        <div class="form-group">
+                            <label for="adminName">Your Name *</label>
+                            <input type="text" id="adminName" required
+                                   placeholder="Your full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="adminRole">Your Role *</label>
+                            <select id="adminRole" required>
+                                <option value="principal">Principal/Head</option>
+                                <option value="admin">School Administrator</option>
+                                <option value="parent">Parent/Guardian</option>
+                                <option value="teacher">Lead Teacher</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Initial Setup -->
+                    <div class="form-section">
+                        <h2 class="section-title">
+                            <span>⚙️</span> Initial Setup
+                        </h2>
+
+                        <div class="form-group">
+                            <label>Available Courses *</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" name="courses" value="linear-equations" checked>
+                                    <span>📏 Linear Equations</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <input type="checkbox" name="courses" value="quadratic-functions" checked>
+                                    <span>📐 Quadratic Functions</span>
+                                </label>
+                            </div>
+                            <div class="info-box">
+                                You can change which courses are available to students at any time.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" onclick="window.location.href='/math'">
+                            Cancel
+                        </button>
+                        <button type="submit" class="primary">
+                            Create School
+                        </button>
+                    </div>
+                </form>
+
+                <div id="successMessage" style="display: none;"></div>
+            `;
+        }
+
+        // Update school type information
+        function updateTypeInfo() {
+            const typeInfo = document.getElementById('typeInfo');
+            const selectedType = document.querySelector('input[name="schoolType"]:checked').value;
+
+            if (selectedType === 'private') {
+                typeInfo.innerHTML = `
+                    <strong>Private/Home School:</strong> Completely free to setup. Your school is private and not listed publicly.
+                `;
+                typeInfo.className = 'info-box';
+            } else {
+                typeInfo.innerHTML = `
+                    <strong>Public School:</strong> Your school will be listed at /math/schools/ after approval by a Host Manager. This helps other educators discover and learn from your setup.
+                `;
+                typeInfo.className = 'info-box warning';
+            }
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) {
+                alert('Please login first');
+                return;
+            }
+
+            const user = window.authSystem.getCurrentUser();
+            const schoolName = document.getElementById('schoolName').value;
+            const schoolDescription = document.getElementById('schoolDescription').value;
+            const schoolType = document.querySelector('input[name="schoolType"]:checked').value;
+            const adminName = document.getElementById('adminName').value;
+            const adminRole = document.getElementById('adminRole').value;
+
+            // Get selected courses
+            const selectedCourses = Array.from(document.querySelectorAll('input[name="courses"]:checked'))
+                .map(cb => cb.value);
+
+            // Create school document
+            const schoolData = {
+                name: schoolName,
+                description: schoolDescription,
+                type: schoolType,
+                status: schoolType === 'public' ? 'pending_approval' : 'active',
+                owner: user.uid,
+                ownerEmail: user.email,
+                ownerName: adminName,
+                ownerRole: adminRole,
+                availableCourses: selectedCourses,
+                classrooms: [],
+                teachers: [],
+                students: [],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                // Create school in Firestore
+                const schoolRef = await window.authSystem.db.collection('schools').add(schoolData);
+
+                // Update user role to school_admin
+                await window.authSystem.db.collection('users').doc(user.uid).set({
+                    role: 'school_admin',
+                    schoolId: schoolRef.id,
+                    schoolName: schoolName
+                }, { merge: true });
+
+                // Hide form and show success message
+                document.getElementById('schoolForm').style.display = 'none';
+                const successDiv = document.getElementById('successMessage');
+                successDiv.style.display = 'block';
+
+                if (schoolType === 'public') {
+                    successDiv.innerHTML = `
+                        <div class="success-message">
+                            <h2>School Created Successfully!</h2>
+                            <p style="margin-top: 1rem;">
+                                Your school "${schoolName}" has been created and is pending approval.
+                                A Host Manager will review your request soon.
+                            </p>
+                            <button class="primary" style="margin-top: 1.5rem;" onclick="window.location.href='/math/profile/'">
+                                Go to Profile
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    successDiv.innerHTML = `
+                        <div class="success-message">
+                            <h2>School Created Successfully!</h2>
+                            <p style="margin-top: 1rem;">
+                                Your private school "${schoolName}" is now active!
+                                You can start adding teachers and students.
+                            </p>
+                            <button class="primary" style="margin-top: 1.5rem;" onclick="window.location.href='/math/manage-school/'">
+                                Manage School
+                            </button>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Error creating school:', error);
+                alert('Error creating school. Please try again.');
+
+                const submitBtn = document.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create School';
+            }
+        }
+
+        // Initialize when auth is ready
+        setTimeout(() => {
+            if (window.authSystem) {
+                showForm();
+            } else {
+                setTimeout(() => showForm(), 500);
+            }
+        }, 200);
+    </script>
+</body>
+</html>
