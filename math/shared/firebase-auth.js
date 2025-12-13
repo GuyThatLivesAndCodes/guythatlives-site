@@ -18,6 +18,9 @@ const firebaseConfig = {
 
 };
 
+const app = initializeApp(firebaseConfig);
+
+const analytics = getAnalytics(app);
 
 // Instructions for setup:
 // 1. Go to https://console.firebase.google.com/
