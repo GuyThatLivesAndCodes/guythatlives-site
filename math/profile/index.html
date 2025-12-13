@@ -812,11 +812,60 @@
                 `;
             }
 
+            // Add settings section
+            html += `
+                <div class="lessons-section">
+                    <h2 class="section-title">
+                        <span>⚙️</span> Settings
+                    </h2>
+
+                    <!-- Advertisement Preferences -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem; color: var(--accent);">
+                            📢 Advertisement Preferences
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">
+                            Want to contribute to GuyThatLives? Enable Ads and monetize the business without paying a dime!
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
+                                <input type="checkbox" id="adSidebar" onchange="saveAdPreferences()" style="cursor: pointer;">
+                                <span>Sidebar Ads</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
+                                <input type="checkbox" id="adBottom" onchange="saveAdPreferences()" style="cursor: pointer;">
+                                <span>Bottom-view Ads</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
+                                <input type="checkbox" id="adPopup" onchange="saveAdPreferences()" style="cursor: pointer;">
+                                <span>Pop-up Ads</span>
+                            </label>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; font-style: italic;">
+                            All ads are disabled by default. Enable them to support the platform!
+                        </p>
+                    </div>
+
+                    <!-- Messaging Placeholder -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; opacity: 0.5;">
+                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem;">
+                            💬 Messaging
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-dim);">
+                            Coming soon! Direct messaging between students, teachers, and administrators.
+                        </p>
+                    </div>
+                </div>
+            `;
+
             // Add action buttons
             html += `
                 <div class="actions-section">
                     <button class="action-btn" onclick="window.location.href='/math'">
                         <span>📚</span> Back to Courses
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='/math/create-your-school/'">
+                        <span>🏫</span> Create School
                     </button>
                     <button class="action-btn" onclick="exportProgress()">
                         <span>💾</span> Export Progress
@@ -829,6 +878,78 @@
 
             // Insert into page
             document.getElementById('profileContent').innerHTML = html;
+
+            // Load ad preferences
+            loadAdPreferences();
+        }
+
+        // Load advertisement preferences
+        async function loadAdPreferences() {
+            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) return;
+
+            try {
+                const user = window.authSystem.getCurrentUser();
+                const userDoc = await window.authSystem.db.collection('users').doc(user.uid).get();
+
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    const adPrefs = data.adPreferences || {};
+
+                    // Update checkboxes
+                    const sidebarCb = document.getElementById('adSidebar');
+                    const bottomCb = document.getElementById('adBottom');
+                    const popupCb = document.getElementById('adPopup');
+
+                    if (sidebarCb) sidebarCb.checked = adPrefs.sidebar || false;
+                    if (bottomCb) bottomCb.checked = adPrefs.bottom || false;
+                    if (popupCb) popupCb.checked = adPrefs.popup || false;
+                }
+            } catch (error) {
+                console.error('Error loading ad preferences:', error);
+            }
+        }
+
+        // Save advertisement preferences
+        async function saveAdPreferences() {
+            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) return;
+
+            try {
+                const user = window.authSystem.getCurrentUser();
+                const adPreferences = {
+                    sidebar: document.getElementById('adSidebar').checked,
+                    bottom: document.getElementById('adBottom').checked,
+                    popup: document.getElementById('adPopup').checked
+                };
+
+                await window.authSystem.db.collection('users').doc(user.uid).set({
+                    adPreferences: adPreferences,
+                    adPreferencesUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                // Show success notification (temporary)
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(80, 250, 123, 0.1);
+                    border: 1px solid var(--success);
+                    color: var(--success);
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9rem;
+                `;
+                notification.textContent = 'Ad preferences saved!';
+                document.body.appendChild(notification);
+
+                setTimeout(() => notification.remove(), 3000);
+
+            } catch (error) {
+                console.error('Error saving ad preferences:', error);
+                alert('Error saving preferences. Please try again.');
+            }
         }
 
         // Export progress as JSON
