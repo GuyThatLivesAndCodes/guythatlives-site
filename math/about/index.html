@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About the Platform • GuyThatLives Math Learning</title>
+    <meta name="description" content="Learn about the GuyThatLives Math Platform - An IXL alternative and Khan Academy-style system for mathematics education.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <script src="../shared/firebase-auth.js"></script>
+    <script src="../shared/global-header.js"></script>
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin: 3rem 0 1rem;
+            color: var(--accent);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .highlight {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            color: var(--accent);
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            color: var(--text-dim);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--secondary);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .check {
+            color: var(--success);
+            font-size: 1.2rem;
+        }
+
+        .cta-section {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            margin: 4rem 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--accent);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .cta-button:hover {
+            background: var(--success);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(80, 250, 123, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container"></div>
+
+    <div class="container">
+        <header>
+            <a href="/math" class="logo">math.guythatlives.net</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <span>about</span>
+            </nav>
+        </header>
+
+        <main>
+            <h1>A New Way to Learn Mathematics</h1>
+            <p class="subtitle">
+                Free, innovative, and built for modern learners — from homeschool families to large public schools
+            </p>
+
+            <div class="highlight">
+                <h3>Our Mission</h3>
+                <p>
+                    The GuyThatLives Math Platform is designed to be a free, accessible alternative to expensive
+                    educational platforms like IXL, with the interactive learning approach of Khan Academy.
+                    We believe quality mathematics education should be available to everyone, regardless of
+                    budget or institutional size.
+                </p>
+            </div>
+
+            <h2>What Makes Us Different</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-title">Mistake-Based Learning</div>
+                    <div class="feature-description">
+                        Our revolutionary system learns from your mistakes, showing you common errors
+                        and helping you understand why they happen.
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎲</div>
+                    <div class="feature-title">Infinite Practice</div>
+                    <div class="feature-description">
+                        Every problem is procedurally generated, giving you unlimited practice opportunities
+                        without repetition.
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏫</div>
+                    <div class="feature-title">School Management</div>
+                    <div class="feature-description">
+                        Built-in tools for schools to create classrooms, manage students, and track progress
+                        across entire institutions.
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💯</div>
+                    <div class="feature-title">Real Progress Tracking</div>
+                    <div class="feature-description">
+                        Activity-based time tracking pauses during inactivity, giving accurate learning time
+                        and detailed progress analytics.
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-title">Cloud-Synced Progress</div>
+                    <div class="feature-description">
+                        Your progress automatically saves to the cloud with Firebase, accessible from any device,
+                        anytime.
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Beautiful & Modern</div>
+                    <div class="feature-description">
+                        Clean, distraction-free interface with smooth animations and responsive design
+                        for all screen sizes.
+                    </div>
+                </div>
+            </div>
+
+            <h2>How We Compare</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>GuyThatLives</th>
+                        <th>IXL</th>
+                        <th>Khan Academy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Cost</td>
+                        <td><span class="check">✓</span> Free Forever</td>
+                        <td>$20+/month</td>
+                        <td><span class="check">✓</span> Free</td>
+                    </tr>
+                    <tr>
+                        <td>Mistake Detection</td>
+                        <td><span class="check">✓</span> Advanced AI</td>
+                        <td>Basic</td>
+                        <td>Limited</td>
+                    </tr>
+                    <tr>
+                        <td>School Management</td>
+                        <td><span class="check">✓</span> Built-in</td>
+                        <td><span class="check">✓</span> Paid</td>
+                        <td>Basic</td>
+                    </tr>
+                    <tr>
+                        <td>Infinite Problems</td>
+                        <td><span class="check">✓</span> Procedural</td>
+                        <td>Large library</td>
+                        <td><span class="check">✓</span> Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Progress Tracking</td>
+                        <td><span class="check">✓</span> Activity-based</td>
+                        <td><span class="check">✓</span> Yes</td>
+                        <td><span class="check">✓</span> Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Homeschool Friendly</td>
+                        <td><span class="check">✓</span> Free private schools</td>
+                        <td><span class="check">✓</span> Paid plans</td>
+                        <td><span class="check">✓</span> Yes</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Who Is This For?</h2>
+
+            <h3>Homeschool Parents</h3>
+            <p>
+                Create your own private school completely free. Track multiple students, assign lessons,
+                and monitor progress all in one place. No subscriptions, no hidden fees.
+            </p>
+
+            <h3>Public Schools</h3>
+            <p>
+                Large institutions can create public schools with multiple classrooms, teachers, and
+                hundreds of students. After Host Manager approval, your school will be listed publicly,
+                helping other educators discover and learn from your setup.
+            </p>
+
+            <h3>Teachers & Educators</h3>
+            <p>
+                Manage your classroom periods, assign specific courses, and track individual student
+                progress. Our platform adapts to your teaching style and curriculum needs.
+            </p>
+
+            <h3>Individual Students</h3>
+            <p>
+                Practice at your own pace with unlimited problems. Our mistake detection helps you
+                learn from errors, not just repeat them. Track your progress and earn achievements
+                as you master each concept.
+            </p>
+
+            <h2>Our Commitment to Education</h2>
+
+            <p>
+                We're committed to keeping this platform free and accessible. To support development
+                and hosting costs, we offer completely optional advertisements that users can enable
+                if they wish to contribute. All ads are disabled by default—we'll never force them on you.
+            </p>
+
+            <p>
+                The GuyThatLives Math Platform is built with modern web technologies including Firebase
+                for authentication and cloud storage, KaTeX for beautiful math rendering, and a custom
+                procedural generation engine for infinite practice problems.
+            </p>
+
+            <div class="cta-section">
+                <h2 style="margin-top: 0;">Ready to Start Learning?</h2>
+                <p>Join thousands of students mastering mathematics with our innovative platform.</p>
+                <a href="/math" class="cta-button">Explore Courses</a>
+            </div>
+
+            <h2>Future Development</h2>
+
+            <p>
+                We're continuously improving the platform. Upcoming features include:
+            </p>
+
+            <ul style="font-size: 1.1rem; line-height: 2; color: var(--text-dim); margin-left: 2rem;">
+                <li>Custom lesson creation tools for educators</li>
+                <li>Direct messaging between students, teachers, and administrators</li>
+                <li>More course topics (Geometry, Trigonometry, Calculus)</li>
+                <li>Mobile apps for iOS and Android</li>
+                <li>Detailed analytics and reporting tools</li>
+                <li>Integration with popular Learning Management Systems</li>
+            </ul>
+
+            <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center; color: var(--text-dim);">
+                <p>
+                    <a href="/math" style="color: var(--accent); text-decoration: none;">Back to Math Platform</a> •
+                    <a href="/math/create-your-school/" style="color: var(--accent); text-decoration: none;">Create Your School</a> •
+                    <a href="/math/profile/" style="color: var(--accent); text-decoration: none;">Your Profile</a>
+                </p>
+                <p style="margin-top: 1rem; font-size: 0.9rem;">
+                    © 2024 GuyThatLives Network • Built with passion for education
+                </p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
