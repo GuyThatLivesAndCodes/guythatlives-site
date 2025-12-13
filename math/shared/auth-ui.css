@@ -580,3 +580,76 @@
 .dropdown-item:last-child {
     border-radius: 0 0 8px 8px;
 }
+
+/* Social Sign-In Buttons */
+.social-sign-in {
+    margin-bottom: 1.5rem;
+}
+
+.social-btn {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    margin-bottom: 0.8rem;
+    background: var(--primary);
+    border: 2px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+}
+
+.social-btn:hover {
+    border-color: var(--accent);
+    background: rgba(100, 255, 218, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.social-btn svg {
+    flex-shrink: 0;
+}
+
+.google-btn:hover {
+    border-color: #4285F4;
+}
+
+.apple-btn:hover {
+    border-color: var(--text);
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+}
+
+.divider span {
+    position: relative;
+    background: var(--surface);
+    padding: 0 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+/* Email Auth Form */
+.email-auth-form {
+    width: 100%;
+}
