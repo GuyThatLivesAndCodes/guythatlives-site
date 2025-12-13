@@ -1362,18 +1362,14 @@
         // Load profile when page loads
         setTimeout(checkAuthAndLoadProfile, 200);
 
-        // Reload profile if user logs in
-        document.addEventListener('DOMContentLoaded', () => {
-            // Listen for login events
-            const originalLogin = authSystem.login.bind(authSystem);
-            authSystem.login = async function(...args) {
-                const result = await originalLogin(...args);
-                if (result.success) {
+        // Reload profile when auth state changes
+        if (window.authSystem && window.authSystem.auth) {
+            window.authSystem.auth.onAuthStateChanged((user) => {
+                if (user) {
                     setTimeout(checkAuthAndLoadProfile, 300);
                 }
-                return result;
-            };
-        });
+            });
+        }
     </script>
 </body>
 </html>
