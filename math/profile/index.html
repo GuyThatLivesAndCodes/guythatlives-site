@@ -706,36 +706,73 @@
                 `;
             }
 
-            // Add skills section
+            // Add skills section - grouped by course
             if (lessons.length > 0) {
                 html += `
                     <div class="skills-section">
                         <h2 class="section-title">
-                            <span>🏆</span> Accomplished Skills
+                            <span>🏆</span> Skills
                         </h2>
                         <div class="skills-grid" id="skillsGrid">
                 `;
+
+                // Group lessons by course
+                const courseMap = {};
+                const courseInfo = {
+                    'algebra_linear-equations': { name: 'Linear Equations', icon: '📏', totalLessons: 5 },
+                    'algebra_quadratic-functions': { name: 'Quadratic Functions', icon: '📐', totalLessons: 5 }
+                };
 
                 lessons.forEach(lesson => {
                     const lessonKey = Object.keys(progress.lessons).find(
                         key => progress.lessons[key] === lesson
                     );
-                    const [course, lessonId] = lessonKey.split('_');
-                    const lessonName = lessonId.replace(/-/g, ' ')
-                        .split(' ')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
+                    const [subject, course] = lessonKey.split('_');
+                    const courseKey = `${subject}_${course}`;
 
-                    const completed = lesson.completed;
-                    const statusClass = completed ? 'completed' : 'in-progress';
-                    const scoreClass = lesson.bestScore === 100 ? 'perfect' : '';
-                    const icon = completed ? '✅' : '🔄';
+                    if (!courseMap[courseKey]) {
+                        courseMap[courseKey] = [];
+                    }
+                    courseMap[courseKey].push({ key: lessonKey, data: lesson });
+                });
+
+                // Display each course with lesson completion icons
+                Object.entries(courseMap).forEach(([courseKey, courseLessons]) => {
+                    const info = courseInfo[courseKey] || { name: courseKey, icon: '📚', totalLessons: 5 };
+                    const completedCount = courseLessons.filter(l => l.data.completed).length;
+                    const totalCount = info.totalLessons;
+
+                    // Sort lessons by lesson number
+                    courseLessons.sort((a, b) => {
+                        const numA = parseInt(a.key.match(/lesson(\d+)/)?.[1] || 0);
+                        const numB = parseInt(b.key.match(/lesson(\d+)/)?.[1] || 0);
+                        return numA - numB;
+                    });
+
+                    // Create completion icons (✓ for completed, ☐ for not started)
+                    let completionIcons = '';
+                    for (let i = 1; i <= totalCount; i++) {
+                        const lessonData = courseLessons.find(l => l.key.includes(`lesson${i}`));
+                        if (lessonData && lessonData.data.completed) {
+                            completionIcons += '✓';
+                        } else {
+                            completionIcons += '☐';
+                        }
+                    }
+
+                    const allCompleted = completedCount === totalCount;
+                    const statusClass = allCompleted ? 'completed' : 'in-progress';
 
                     html += `
                         <div class="skill-badge ${statusClass}">
-                            <div class="skill-icon">${icon}</div>
-                            <div class="skill-name">${lessonName}</div>
-                            <div class="skill-score ${scoreClass}">${lesson.bestScore || 0}/100</div>
+                            <div class="skill-icon">${info.icon}</div>
+                            <div class="skill-name">${info.name}</div>
+                            <div class="skill-completion" style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; margin: 0.5rem 0; letter-spacing: 0.3rem;">
+                                ${completionIcons}
+                            </div>
+                            <div class="skill-progress" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim);">
+                                ${completedCount}/${totalCount} lessons
+                            </div>
                         </div>
                     `;
                 });
