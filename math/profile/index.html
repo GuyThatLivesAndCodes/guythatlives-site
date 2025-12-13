@@ -615,12 +615,13 @@
             });
 
             // Build profile HTML
+            const maskedEmail = window.authSystem.maskEmail(user.email);
             let html = `
                 <div class="profile-header">
                     <div class="profile-avatar">👤</div>
                     <div class="profile-info">
                         <h1 class="profile-username">${user.username}</h1>
-                        <div class="profile-email">${user.email}</div>
+                        <div class="profile-email">${maskedEmail}</div>
                         <div class="profile-meta">Member since ${joinDateStr}</div>
                     </div>
                 </div>

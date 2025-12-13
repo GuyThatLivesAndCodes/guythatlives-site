@@ -108,6 +108,18 @@ class FirebaseAuthSystem {
     }
 
     async checkGuestProgressMigration() {
+        // First check if migration was already done or declined
+        try {
+            const userDoc = await this.db.collection('users').doc(this.user.uid).get();
+            if (userDoc.exists && userDoc.data().guestProgressMigrated) {
+                // Migration already done, clear any remaining guest data
+                this.clearGuestProgress();
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking migration status:', error);
+        }
+
         // Check if there's guest progress in localStorage
         const guestProgress = this.getGuestProgress();
 
@@ -120,6 +132,12 @@ class FirebaseAuthSystem {
                 await this.migrateGuestProgress(guestProgress);
                 this.clearGuestProgress();
                 this.showSuccess('Your progress has been saved to your account!');
+            } else {
+                // Mark as declined so we don't ask again
+                await this.db.collection('users').doc(this.user.uid).set({
+                    guestProgressMigrated: true,
+                    migrationDeclined: true
+                }, { merge: true });
             }
         }
     }
@@ -266,6 +284,16 @@ class FirebaseAuthSystem {
 
     getCurrentUser() {
         return this.user;
+    }
+
+    // Mask email for privacy (e.g., "john@example.com" -> "j***@example.com")
+    maskEmail(email) {
+        if (!email) return '';
+        const [username, domain] = email.split('@');
+        if (username.length <= 2) {
+            return `${username[0]}***@${domain}`;
+        }
+        return `${username[0]}${'*'.repeat(username.length - 1)}@${domain}`;
     }
 }
 
