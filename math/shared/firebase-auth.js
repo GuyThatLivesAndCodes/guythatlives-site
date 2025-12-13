@@ -1,12 +1,13 @@
 // Firebase Configuration (REPLACE WITH YOUR OWN CREDENTIALS)
 // Get your config from: https://console.firebase.google.com/
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123"
+  apiKey: "AIzaSyA6R63QS_Q5gmFI5GObnTsjfDegFSC6wVA",
+  authDomain: "guythatlives-math.firebaseapp.com",
+  projectId: "guythatlives-math",
+  storageBucket: "guythatlives-math.firebasestorage.app",
+  messagingSenderId: "668609251422",
+  appId: "1:668609251422:web:b1013698b061b0423c0ccf",
+  measurementId: "G-83LZH2QKBJ"
 };
 
 // Instructions for setup:
