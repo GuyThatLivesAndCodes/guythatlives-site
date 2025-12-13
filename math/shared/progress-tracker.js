@@ -14,8 +14,63 @@ class ProgressTracker {
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
 
+        // Activity tracking
+        this.lastActivityTime = Date.now();
+        this.totalActiveTime = 0;
+        this.isPaused = false;
+        this.activityCheckInterval = null;
+        this.INACTIVITY_THRESHOLD = 3 * 60 * 1000; // 3 minutes in milliseconds
+
         // Check auth status after a short delay to ensure authSystem is initialized
         setTimeout(() => this.checkAuthStatus(), 100);
+
+        // Start activity monitoring
+        this.startActivityTracking();
+    }
+
+    // Start tracking user activity for time tracking
+    startActivityTracking() {
+        // Track mouse movement, clicks, keyboard input
+        const activityEvents = ['mousemove', 'click', 'keypress', 'scroll', 'touchstart'];
+
+        activityEvents.forEach(event => {
+            document.addEventListener(event, () => this.recordActivity(), { passive: true });
+        });
+
+        // Check for inactivity every 10 seconds
+        this.activityCheckInterval = setInterval(() => this.checkInactivity(), 10000);
+    }
+
+    // Record user activity
+    recordActivity() {
+        const now = Date.now();
+
+        // If was paused, resume timing
+        if (this.isPaused) {
+            this.isPaused = false;
+            this.startTime = now - this.totalActiveTime;
+        }
+
+        this.lastActivityTime = now;
+    }
+
+    // Check if user has been inactive
+    checkInactivity() {
+        const inactiveTime = Date.now() - this.lastActivityTime;
+
+        if (inactiveTime > this.INACTIVITY_THRESHOLD && !this.isPaused) {
+            // Pause timing
+            this.isPaused = true;
+            this.totalActiveTime = Date.now() - this.startTime;
+        }
+    }
+
+    // Get actual active time spent (excluding paused time)
+    getActiveTimeSpent() {
+        if (this.isPaused) {
+            return this.totalActiveTime;
+        }
+        return Date.now() - this.startTime;
     }
 
     // Check if user is logged in via authSystem
@@ -142,13 +197,51 @@ class ProgressTracker {
         this.currentScore = this.getLessonProgress(courseId, lessonId).score || 0;
         this.streak = 0;
         this.startTime = Date.now();
+        this.lastActivityTime = Date.now();
+        this.totalActiveTime = 0;
+        this.isPaused = false;
         this.questionCount = 0;
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
         this.scoreHistory = [];
-        
+
+        // Auto-save progress every 30 seconds
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+        this.autoSaveInterval = setInterval(() => {
+            if (this.questionCount > 0) {
+                this.saveCurrentProgress();
+            }
+        }, 30000); // 30 seconds
+
         // Update UI
         this.updateScoreDisplay();
+    }
+
+    // Save current progress (called periodically and after each question)
+    saveCurrentProgress() {
+        const key = `${this.currentCourse}_${this.currentLesson}`;
+
+        // Update or create lesson data
+        const existingData = this.localProgress.lessons[key] || {};
+        const lessonData = {
+            ...existingData,
+            score: this.currentScore,
+            attempts: existingData.attempts || 0,
+            bestScore: Math.max(this.currentScore, existingData.bestScore || 0),
+            timeSpent: this.getActiveTimeSpent(),
+            accuracy: this.questionCount > 0 ? (this.correctAnswers / this.questionCount) : 0,
+            questionsAnswered: this.questionCount,
+            lastAttempt: Date.now(),
+            completed: this.currentScore >= 100
+        };
+
+        this.localProgress.lessons[key] = lessonData;
+        this.saveProgress();
+
+        // Also sync to Firebase
+        this.syncToFirebase();
     }
 
     // Calculate score change based on correctness and timing
@@ -212,10 +305,9 @@ class ProgressTracker {
 
         this.questionCount++;
         this.updateScoreDisplay();
-        this.saveProgress();
 
-        // Sync to Firebase if available
-        this.syncToFirebase();
+        // Save progress after each question at ANY level
+        this.saveCurrentProgress();
 
         return {
             scoreChange,
@@ -239,8 +331,8 @@ class ProgressTracker {
     // Save lesson completion
     completeLessonAttempt() {
         const key = `${this.currentCourse}_${this.currentLesson}`;
-        const totalTime = Date.now() - this.startTime;
-        
+        const totalTime = this.getActiveTimeSpent();
+
         const lessonData = {
             score: this.currentScore,
             completed: this.currentScore >= 100,
@@ -255,7 +347,7 @@ class ProgressTracker {
 
         this.localProgress.lessons[key] = lessonData;
         this.localProgress.lastUpdated = Date.now();
-        
+
         this.saveProgress();
         return lessonData;
     }
@@ -338,16 +430,20 @@ class ProgressTracker {
             const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
             const lessonId = `${this.currentCourse}_${this.currentLesson}`;
 
-            await userDoc.collection('lessons').doc(lessonId).set({
+            // Save progress at ANY level, not just when completed
+            const progressData = {
                 score: this.currentScore,
                 streak: this.streak,
                 questionCount: this.questionCount,
                 correctAnswers: this.correctAnswers,
                 incorrectAnswers: this.incorrectAnswers,
-                timeSpent: this.getTimeSpent(),
+                timeSpent: this.getActiveTimeSpent(),
                 lastAttempt: firebase.firestore.FieldValue.serverTimestamp(),
-                completed: this.currentScore >= 100
-            }, { merge: true });
+                completed: this.currentScore >= 100,
+                accuracy: this.questionCount > 0 ? (this.correctAnswers / this.questionCount) : 0
+            };
+
+            await userDoc.collection('lessons').doc(lessonId).set(progressData, { merge: true });
 
         } catch (error) {
             console.error('Firebase sync error:', error);
@@ -377,8 +473,9 @@ class ProgressTracker {
         }
     }
 
+    // Legacy method for compatibility - now returns active time
     getTimeSpent() {
-        return Date.now() - this.startTime;
+        return this.getActiveTimeSpent();
     }
 
     // Update overall user statistics
