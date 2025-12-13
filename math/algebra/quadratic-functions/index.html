@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quadratic Functions Course • GuyThatLives Network</title>
+    <meta name="description" content="Master quadratic equations through focused mini-lessons covering factoring, completing the square, and the quadratic formula.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Same animated background */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 0;
+            animation: slideDown 1s ease-out;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 1rem 0 3rem;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .hero-description {
+            font-size: 1rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .progress-overview {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(100, 255, 218, 0.05);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+
+        .progress-stat {
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .progress-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+        }
+
+        .progress-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .lessons-section {
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .lesson-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out calc(var(--delay) * 0.1s) both;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 20px rgba(100, 255, 218, 0.1);
+        }
+
+        .lesson-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .lesson-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .lesson-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-number {
+            background: var(--accent);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .lesson-info {
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.3rem 0;
+        }
+
+        .lesson-focus {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-description {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-concepts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-concepts span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            background: rgba(100, 255, 218, 0.05);
+            color: var(--text-dim);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .lesson-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .lesson-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .lesson-action:hover {
+            color: var(--primary);
+        }
+
+        .lesson-action:hover::before {
+            left: 0;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .lessons-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .progress-overview {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/math/algebra" class="logo">GuyThatLives Network / Quadratic Functions</a>
+            <nav class="breadcrumb">
+                <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <span>quadratic functions</span>
+            </nav>
+        </header>
+
+        <section class="hero-section">
+            <h1 class="hero-title">Quadratic Functions Mastery</h1>
+            <p class="hero-subtitle">// Step-by-step progression with targeted learning</p>
+            <p class="hero-description">
+                Master quadratic equations through focused mini-lessons covering factoring, completing the square, and the quadratic formula.
+            </p>
+
+            <div class="progress-overview">
+                <div class="progress-stat">
+                    <span class="progress-number">5</span>
+                    <span class="progress-label">lessons</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="progress-number">15-20</span>
+                    <span class="progress-label">min each</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="progress-number">∞</span>
+                    <span class="progress-label">practice</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="lessons-section">
+            <h2 class="section-title">Course Progression</h2>
+            <p class="section-subtitle">Master each concept before moving to the next</p>
+
+            <div class="lessons-grid">
+                <!-- Lesson 1 -->
+                <div class="lesson-card" style="--delay: 1">
+                    <div class="lesson-header">
+                        <div class="lesson-number">01</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Simple Factoring</h3>
+                            <p class="lesson-focus">Focus: Finding factor pairs</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Master factoring simple quadratics of the form x² + bx + c = 0. Learn to find factor pairs that add to b and multiply to c.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>x² + 5x + 6 = 0</span>
+                        <span>factor pairs</span>
+                        <span>sign patterns</span>
+                        <span>zero product</span>
+                    </div>
+                    <a href="lesson1/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 1
+                    </a>
+                </div>
+
+                <!-- Lesson 2 -->
+                <div class="lesson-card" style="--delay: 2">
+                    <div class="lesson-header">
+                        <div class="lesson-number">02</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Factoring with Coefficients</h3>
+                            <p class="lesson-focus">Focus: AC method</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Tackle quadratics with leading coefficients using the AC method. Learn to handle equations like 2x² + 7x + 3 = 0.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>2x² + 7x + 3 = 0</span>
+                        <span>AC method</span>
+                        <span>grouping</span>
+                        <span>factoring out GCF</span>
+                    </div>
+                    <a href="lesson2/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 2
+                    </a>
+                </div>
+
+                <!-- Lesson 3 -->
+                <div class="lesson-card" style="--delay: 3">
+                    <div class="lesson-header">
+                        <div class="lesson-number">03</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Completing the Square</h3>
+                            <p class="lesson-focus">Focus: Perfect square trinomials</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Transform quadratics into perfect square form. Master the (b/2)² technique to convert any quadratic into vertex form.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>x² + 6x + 5 = 0</span>
+                        <span>(x + 3)² = 4</span>
+                        <span>(b/2)²</span>
+                        <span>vertex form</span>
+                    </div>
+                    <a href="lesson3/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 3
+                    </a>
+                </div>
+
+                <!-- Lesson 4 -->
+                <div class="lesson-card" style="--delay: 4">
+                    <div class="lesson-header">
+                        <div class="lesson-number">04</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Quadratic Formula</h3>
+                            <p class="lesson-focus">Focus: Using the formula</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Master the quadratic formula: x = (-b ± √(b² - 4ac)) / 2a. Learn to handle discriminants and recognize when equations have 2, 1, or 0 real solutions.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>discriminant</span>
+                        <span>-b ± √Δ</span>
+                        <span>two solutions</span>
+                        <span>no real solutions</span>
+                    </div>
+                    <a href="lesson4/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 4
+                    </a>
+                </div>
+
+                <!-- Lesson 5 -->
+                <div class="lesson-card" style="--delay: 5">
+                    <div class="lesson-header">
+                        <div class="lesson-number">05</div>
+                        <div class="lesson-info">
+                            <h3 class="lesson-title">Choosing the Best Method</h3>
+                            <p class="lesson-focus">Focus: Strategy selection</p>
+                        </div>
+                    </div>
+                    <p class="lesson-description">
+                        Put it all together! Learn when to factor, when to complete the square, and when to use the formula. Develop strategic problem-solving skills.
+                    </p>
+                    <div class="lesson-concepts">
+                        <span>method selection</span>
+                        <span>efficiency</span>
+                        <span>mixed practice</span>
+                        <span>mastery</span>
+                    </div>
+                    <a href="lesson5/" class="lesson-action">
+                        <span>🎯</span>
+                        Start Lesson 5
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Same sparkle effect
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.98) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.style.cssText = `
+                position: fixed;
+                left: ${x}px;
+                top: ${y}px;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 1000;
+                animation: sparkleAnimation 1s ease-out forwards;
+            `;
+
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes sparkleAnimation {
+                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+                }
+            `;
+
+            if (!document.querySelector('style[data-sparkle]')) {
+                style.setAttribute('data-sparkle', 'true');
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(sparkle);
+
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+    </script>
+</body>
+</html>
