@@ -1,31 +1,14 @@
 // Firebase Configuration (REPLACE WITH YOUR OWN CREDENTIALS)
-
-import { initializeApp } from "firebase/app";
-
-import { getAnalytics } from "firebase/analytics";
-
 // Get your config from: https://console.firebase.google.com/
 const firebaseConfig = {
-
   apiKey: "AIzaSyA6R63QS_Q5gmFI5GObnTsjfDegFSC6wVA",
-
   authDomain: "guythatlives-math.firebaseapp.com",
-
   projectId: "guythatlives-math",
-
   storageBucket: "guythatlives-math.firebasestorage.app",
-
   messagingSenderId: "668609251422",
-
   appId: "1:668609251422:web:b1013698b061b0423c0ccf",
-
   measurementId: "G-83LZH2QKBJ"
-
 };
-
-const app = initializeApp(firebaseConfig);
-
-const analytics = getAnalytics(app);
 
 // Instructions for setup:
 // 1. Go to https://console.firebase.google.com/
