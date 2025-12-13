@@ -570,26 +570,56 @@
 
     <script>
         // Check if user is logged in
-        function checkAuthAndLoadProfile() {
-            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) {
-                // User not logged in, show login prompt
-                document.getElementById('profileContent').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔒</div>
-                        <h2>Login Required</h2>
-                        <p class="empty-state-text">
-                            Please login to view your profile and track your progress.
-                        </p>
-                        <button class="empty-state-btn" onclick="authSystem.showLoginModal()">
-                            <span>🔐</span> Login Now
-                        </button>
-                    </div>
-                `;
+        async function checkAuthAndLoadProfile() {
+            // Wait for auth system to be ready
+            let attempts = 0;
+            while ((!window.authSystem || !window.authSystem.auth) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (!window.authSystem || !window.authSystem.auth) {
+                showLoginRequired('Auth system not initialized');
                 return;
+            }
+
+            // Wait for auth state to be determined
+            const user = window.authSystem.auth.currentUser;
+
+            if (!user) {
+                // Wait a bit more in case auth state is still loading
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                if (!window.authSystem.isUserLoggedIn()) {
+                    showLoginRequired();
+                    return;
+                }
             }
 
             // User is logged in, load their profile
             loadProfile();
+        }
+
+        // Show login required message
+        function showLoginRequired(debugInfo = '') {
+            document.getElementById('profileContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔒</div>
+                    <h2>Login Required</h2>
+                    <p class="empty-state-text">
+                        Please login to view your profile and track your progress.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="empty-state-btn" onclick="authSystem.showAuthModal()">
+                            <span>🔐</span> Login Now
+                        </button>
+                        <button class="action-btn" onclick="location.reload()">
+                            <span>🔄</span> Refresh Page
+                        </button>
+                    </div>
+                    ${debugInfo ? `<p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; font-family: 'JetBrains Mono', monospace;">Debug: ${debugInfo}</p>` : ''}
+                </div>
+            `;
         }
 
         function loadProfile() {
@@ -1480,13 +1510,13 @@
         }
 
         // Load profile when page loads
-        setTimeout(checkAuthAndLoadProfile, 200);
+        checkAuthAndLoadProfile();
 
         // Reload profile when auth state changes
         if (window.authSystem && window.authSystem.auth) {
             window.authSystem.auth.onAuthStateChanged((user) => {
                 if (user) {
-                    setTimeout(checkAuthAndLoadProfile, 300);
+                    checkAuthAndLoadProfile();
                 }
             });
         }
