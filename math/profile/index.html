@@ -846,6 +846,22 @@
                         </p>
                     </div>
 
+                    <!-- Progress Sync -->
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem; color: var(--accent);">
+                            ☁️ Progress Sync
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">
+                            Save your browser progress to Firebase. This will upload all lessons you've completed on this device to the cloud.
+                        </p>
+                        <button class="action-btn" onclick="saveBrowserProgress()" style="width: 100%; justify-content: center;">
+                            <span>💾</span> Save Progress from Browser
+                        </button>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.8rem; font-style: italic;">
+                            Your progress is automatically saved to Firebase when you're signed in and working on lessons.
+                        </p>
+                    </div>
+
                     <!-- Messaging Placeholder -->
                     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; opacity: 0.5;">
                         <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem;">
@@ -987,6 +1003,79 @@
                 if (doubleConfirm) {
                     deleteAccount();
                 }
+            }
+        }
+
+        // Save browser progress to Firebase
+        async function saveBrowserProgress() {
+            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) {
+                alert('You must be logged in to save progress to Firebase');
+                return;
+            }
+
+            if (!window.progressTracker) {
+                window.progressTracker = new ProgressTracker();
+            }
+
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span>⏳</span> Saving...';
+
+            try {
+                const result = await window.progressTracker.saveBrowserProgressToFirebase();
+
+                // Show success notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(80, 250, 123, 0.1);
+                    border: 1px solid var(--success);
+                    color: var(--success);
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9rem;
+                `;
+                notification.textContent = `Successfully saved ${result.lessonsCount} lesson(s) to Firebase!`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => notification.remove(), 4000);
+
+                button.innerHTML = '<span>✓</span> Saved!';
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error saving progress:', error);
+
+                // Show error notification
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(255, 85, 85, 0.1);
+                    border: 1px solid var(--error);
+                    color: var(--error);
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    z-index: 10000;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9rem;
+                `;
+                notification.textContent = `Error: ${error.message}`;
+                document.body.appendChild(notification);
+
+                setTimeout(() => notification.remove(), 4000);
+
+                button.disabled = false;
+                button.innerHTML = originalText;
             }
         }
 

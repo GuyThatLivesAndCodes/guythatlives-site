@@ -89,17 +89,11 @@ class ProgressTracker {
         this.isLoggedIn = true;
         this.currentUser = user;
 
-        // Migrate guest progress to user account
-        this.migrateGuestProgress();
-
-        // Reload progress
-        this.localProgress = this.loadLocalProgress();
-
         // Hide guest warning
         this.hideGuestModeWarning();
 
-        // TODO: Sync to cloud
-        this.syncToCloud();
+        // Note: We no longer automatically load or save progress on login
+        // User must manually trigger "Save Progress from Browser" from settings
     }
 
     // Handle user logout
@@ -114,25 +108,90 @@ class ProgressTracker {
         this.showGuestModeWarning();
     }
 
-    // Migrate guest progress to user account
-    migrateGuestProgress() {
-        if (!this.currentUser) return;
+    // Manually save browser progress to Firebase (called from settings)
+    async saveBrowserProgressToFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) {
+            throw new Error('You must be logged in to save progress to Firebase');
+        }
 
-        const guestProgress = localStorage.getItem('guythatlives_math_progress');
-        if (guestProgress) {
-            try {
-                const guestData = JSON.parse(guestProgress);
-                const userProgressKey = this.getUserProgressKey();
-                const existingUserProgress = localStorage.getItem(userProgressKey);
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
 
-                // Only migrate if user has no existing progress
-                if (!existingUserProgress && Object.keys(guestData.lessons).length > 0) {
-                    localStorage.setItem(userProgressKey, guestProgress);
-                    console.log('Guest progress migrated to user account');
-                }
-            } catch (error) {
-                console.error('Error migrating guest progress:', error);
+            // Get all progress from localStorage
+            const browserProgress = this.loadLocalProgress();
+
+            if (Object.keys(browserProgress.lessons).length === 0) {
+                throw new Error('No progress found in browser to save');
             }
+
+            // Save all lessons to Firebase
+            const batch = window.authSystem.db.batch();
+
+            for (const [lessonKey, lessonData] of Object.entries(browserProgress.lessons)) {
+                const lessonDoc = userDoc.collection('lessons').doc(lessonKey);
+                batch.set(lessonDoc, {
+                    ...lessonData,
+                    savedFromBrowser: true,
+                    savedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+
+            await batch.commit();
+
+            return {
+                success: true,
+                lessonsCount: Object.keys(browserProgress.lessons).length
+            };
+        } catch (error) {
+            console.error('Error saving browser progress to Firebase:', error);
+            throw error;
+        }
+    }
+
+    // Load progress from Firebase to browser (optional method for future use)
+    async loadProgressFromFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) {
+            throw new Error('You must be logged in to load progress from Firebase');
+        }
+
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
+            const lessonsSnapshot = await userDoc.collection('lessons').get();
+
+            if (lessonsSnapshot.empty) {
+                throw new Error('No saved progress found in Firebase');
+            }
+
+            const firebaseProgress = {
+                lessons: {},
+                courses: {},
+                user: {
+                    totalScore: 0,
+                    lessonsCompleted: 0,
+                    timeSpent: 0,
+                    createdDate: Date.now()
+                },
+                lastUpdated: Date.now()
+            };
+
+            lessonsSnapshot.forEach(doc => {
+                firebaseProgress.lessons[doc.id] = doc.data();
+            });
+
+            // Save to localStorage
+            const storageKey = this.getUserProgressKey();
+            localStorage.setItem(storageKey, JSON.stringify(firebaseProgress));
+
+            // Reload local progress
+            this.localProgress = this.loadLocalProgress();
+
+            return {
+                success: true,
+                lessonsCount: Object.keys(firebaseProgress.lessons).length
+            };
+        } catch (error) {
+            console.error('Error loading progress from Firebase:', error);
+            throw error;
         }
     }
 
@@ -240,8 +299,10 @@ class ProgressTracker {
         this.localProgress.lessons[key] = lessonData;
         this.saveProgress();
 
-        // Also sync to Firebase
-        this.syncToFirebase();
+        // Sync to Firebase only if user is signed in
+        if (this.isLoggedIn) {
+            this.syncToFirebase();
+        }
     }
 
     // Calculate score change based on correctness and timing
@@ -386,42 +447,14 @@ class ProgressTracker {
             const storageKey = this.getUserProgressKey();
             localStorage.setItem(storageKey, JSON.stringify(this.localProgress));
 
-            if (this.isLoggedIn) {
-                // TODO: Sync to cloud database
-                this.syncToCloud();
-            }
+            // Note: We no longer automatically sync to cloud
+            // Progress is only synced when user manually saves from settings
         } catch (error) {
             console.error('Error saving progress:', error);
         }
     }
 
-    // Sync progress to cloud (placeholder for future implementation)
-    async syncToCloud() {
-        // TODO: Implement cloud sync with backend API
-        // This would:
-        // 1. Send progress data to backend
-        // 2. Receive confirmation
-        // 3. Update last sync timestamp
-        // 4. Handle conflicts (merge strategies)
-
-        if (!this.isLoggedIn || !this.currentUser) {
-            console.log('User not logged in, skipping cloud sync');
-            return;
-        }
-
-        console.log('Cloud sync ready for implementation');
-        // Future implementation:
-        // await fetch('/api/progress/sync', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({
-        //         userId: this.currentUser.email,
-        //         progress: this.localProgress
-        //     })
-        // });
-    }
-
-    // Firebase sync methods
+    // Firebase sync methods - only syncs current lesson progress during active session
     async syncToFirebase() {
         if (!window.authSystem || !window.authSystem.isLoggedIn) return;
         if (!this.currentLesson || !this.currentCourse) return;
@@ -430,7 +463,7 @@ class ProgressTracker {
             const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
             const lessonId = `${this.currentCourse}_${this.currentLesson}`;
 
-            // Save progress at ANY level, not just when completed
+            // Save current lesson progress to Firebase
             const progressData = {
                 score: this.currentScore,
                 streak: this.streak,
@@ -445,29 +478,6 @@ class ProgressTracker {
 
             await userDoc.collection('lessons').doc(lessonId).set(progressData, { merge: true });
 
-        } catch (error) {
-            console.error('Firebase sync error:', error);
-        }
-    }
-
-    async syncFromFirebase() {
-        if (!window.authSystem || !window.authSystem.isLoggedIn) return;
-        if (!this.currentLesson || !this.currentCourse) return;
-
-        try {
-            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
-            const lessonId = `${this.currentCourse}_${this.currentLesson}`;
-            const lessonDoc = await userDoc.collection('lessons').doc(lessonId).get();
-
-            if (lessonDoc.exists) {
-                const data = lessonDoc.data();
-                this.currentScore = data.score || 0;
-                this.streak = data.streak || 0;
-                this.questionCount = data.questionCount || 0;
-                this.correctAnswers = data.correctAnswers || 0;
-                this.incorrectAnswers = data.incorrectAnswers || 0;
-                this.updateScoreDisplay();
-            }
         } catch (error) {
             console.error('Firebase sync error:', error);
         }
