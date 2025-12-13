@@ -275,7 +275,15 @@
                     .limit(1)
                     .get();
 
-                console.log('Query results:', studentQuery.size, 'accounts found');
+                const snapshot = await db.collection('studentAccounts').get();
+                    console.log(
+                    'Query results:',
+                    studentQuery.size,
+                    '/',
+                    snapshot.size,
+                    'accounts found'
+                );
+
 
                 if (studentQuery.empty) {
                     console.log('No account found for username:', username);
