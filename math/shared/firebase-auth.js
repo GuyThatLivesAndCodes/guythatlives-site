@@ -1,4 +1,9 @@
 // Firebase Configuration (REPLACE WITH YOUR OWN CREDENTIALS)
+
+import { initializeApp } from "firebase/app";
+
+import { getAnalytics } from "firebase/analytics";
+
 // Get your config from: https://console.firebase.google.com/
 const firebaseConfig = {
 
