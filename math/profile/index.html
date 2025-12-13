@@ -1280,7 +1280,7 @@
 
                 // Query schools where user is owner or member
                 const ownerSchools = await window.authSystem.db.collection('schools')
-                    .where('createdBy', '==', user.uid)
+                    .where('owner', '==', user.uid)
                     .get();
 
                 const memberSchools = await window.authSystem.db.collection('schools')
