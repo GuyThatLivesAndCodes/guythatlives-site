@@ -19,6 +19,9 @@ All authentication-related files are located in `/math/shared/`:
 
 <!-- Auth UI Styles -->
 <link rel="stylesheet" href="../shared/auth-ui.css">
+
+<!-- Ad UI Styles (optional - for advertisement system) -->
+<link rel="stylesheet" href="../shared/ads-ui.css">
 ```
 
 ### 2. Add before closing `</body>` tag:
@@ -31,6 +34,9 @@ All authentication-related files are located in `/math/shared/`:
 
 <!-- Firebase Auth System -->
 <script src="../shared/firebase-auth.js"></script>
+
+<!-- Ad System (optional - shows ads based on user preferences) -->
+<script src="../shared/ads.js"></script>
 ```
 
 ### 3. Add Login Button to Header:
