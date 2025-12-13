@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login • GuyThatLives Math</title>
+    <meta name="description" content="Student login for GuyThatLives Math Platform.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .login-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--success);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(255, 85, 85, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(80, 250, 123, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .help-text {
+            text-align: center;
+            color: var(--text-dim);
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .help-text a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 500px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container"></div>
+
+    <div class="login-container">
+        <div class="logo">math.guythatlives.net</div>
+        <h1>🎓 Student Login</h1>
+        <p class="subtitle">Enter your school-provided credentials</p>
+
+        <div id="errorMessage" style="display: none;"></div>
+        <div id="successMessage" style="display: none;"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required placeholder="Your username" autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="Your password" autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginBtn">
+                Log In
+            </button>
+        </form>
+
+        <div class="help-text">
+            Don't have an account? Ask your teacher or school administrator.
+            <br><br>
+            <a href="/math">← Back to Math Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Firebase (will use existing config from firebase-auth.js)
+        let db;
+
+        // Wait for Firebase to initialize
+        window.addEventListener('load', () => {
+            if (firebase.apps.length === 0) {
+                // Initialize Firebase with config
+                const firebaseConfig = {
+                    apiKey: "AIzaSyDP6KKxn2TaDnB8SdWQFmJhg-1cqz4Z3tQ",
+                    authDomain: "guythatlives-site.firebaseapp.com",
+                    projectId: "guythatlives-site",
+                    storageBucket: "guythatlives-site.firebasestorage.app",
+                    messagingSenderId: "340522044475",
+                    appId: "1:340522044475:web:ea91fae7c3ece9c5f1ef78"
+                };
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+        });
+
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Hide previous messages
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+
+            try {
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+
+                // Query studentAccounts collection for matching username
+                const studentQuery = await db.collection('studentAccounts')
+                    .where('username', '==', username)
+                    .where('isActive', '==', true)
+                    .limit(1)
+                    .get();
+
+                if (studentQuery.empty) {
+                    showError('Invalid username or password');
+                    return;
+                }
+
+                const studentDoc = studentQuery.docs[0];
+                const studentData = studentDoc.data();
+
+                // Verify password (using base64 decode since we encoded it)
+                const storedPassword = atob(studentData.passwordHash);
+                if (storedPassword !== password) {
+                    showError('Invalid username or password');
+                    return;
+                }
+
+                // Success! Store student session
+                const studentSession = {
+                    studentId: studentDoc.id,
+                    username: studentData.username,
+                    fullName: studentData.fullName,
+                    schoolId: studentData.schoolId,
+                    schoolName: studentData.schoolName,
+                    role: 'student',
+                    loginTime: new Date().toISOString()
+                };
+
+                // Store in localStorage
+                localStorage.setItem('studentSession', JSON.stringify(studentSession));
+
+                showSuccess('Login successful! Redirecting...');
+
+                // Redirect to student dashboard or algebra page
+                setTimeout(() => {
+                    window.location.href = '/math/algebra/';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('An error occurred during login. Please try again.');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

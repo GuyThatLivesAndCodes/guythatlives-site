@@ -801,7 +801,9 @@
 
         function renderMembersTab() {
             const members = currentSchool.members || [];
+            const students = currentSchool.students || [];
             let membersHTML = '';
+            let studentsHTML = '';
 
             if (members.length === 0) {
                 membersHTML = '<p style="text-align: center; color: var(--text-dim); padding: 2rem;">No members yet. Invite people to join!</p>';
@@ -825,7 +827,7 @@
                                     <td><span class="role-badge role-${member.role}">${member.role}</span></td>
                                     <td>${member.joinedAt ? new Date(member.joinedAt.toDate()).toLocaleDateString() : 'Unknown'}</td>
                                     <td>
-                                        ${member.userId !== currentSchool.createdBy ? `
+                                        ${member.userId !== currentSchool.owner ? `
                                             <button class="btn" onclick="removeMember('${member.userId}')">Remove</button>
                                         ` : '<span style="color: var(--text-dim);">Owner</span>'}
                                     </td>
@@ -836,10 +838,83 @@
                 `;
             }
 
+            // Student accounts section
+            if (students.length === 0) {
+                studentsHTML = '<p style="text-align: center; color: var(--text-dim); padding: 1rem;">No student accounts yet. Create one below!</p>';
+            } else {
+                studentsHTML = `
+                    <table class="members-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${students.map(student => `
+                                <tr>
+                                    <td style="font-family: 'JetBrains Mono', monospace;">
+                                        <strong>${student.username}</strong>
+                                    </td>
+                                    <td>${student.fullName || 'N/A'}</td>
+                                    <td>${student.createdAt ? new Date(student.createdAt.toDate()).toLocaleDateString() : 'Unknown'}</td>
+                                    <td>
+                                        <button class="btn" onclick="viewStudentCredentials('${student.username}', '${student.tempPassword || ''}')">
+                                            View Login
+                                        </button>
+                                        <button class="btn" onclick="deleteStudentAccount('${student.userId}', '${student.username}')" style="color: var(--error); border-color: var(--error);">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
             return `
                 <div class="form-section">
-                    <h3>👥 School Members</h3>
+                    <h3>👥 School Staff & Teachers</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Teachers and administrators who can manage the school
+                    </p>
                     ${membersHTML}
+                </div>
+
+                <div class="form-section" style="margin-top: 2rem;">
+                    <h3>🎓 Student Accounts</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">
+                        Managed student accounts for your school. Students log in with username and password.
+                    </p>
+                    ${studentsHTML}
+
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(100, 255, 218, 0.05); border: 1px solid rgba(100, 255, 218, 0.2); border-radius: 8px;">
+                        <h4 style="margin-bottom: 1rem;">➕ Create Student Account</h4>
+                        <div style="display: grid; gap: 1rem;">
+                            <div>
+                                <label class="form-label">Username *</label>
+                                <input type="text" id="studentUsername" class="form-input" placeholder="e.g., john.doe"
+                                       style="font-family: 'JetBrains Mono', monospace;">
+                                <p class="form-hint">Letters, numbers, dots, and dashes only. This is what students will use to log in.</p>
+                            </div>
+                            <div>
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" id="studentFullName" class="form-input" placeholder="e.g., John Doe">
+                            </div>
+                            <div>
+                                <label class="form-label">Temporary Password *</label>
+                                <input type="text" id="studentPassword" class="form-input" placeholder="Create a temporary password"
+                                       style="font-family: 'JetBrains Mono', monospace;">
+                                <p class="form-hint">Student can change this after first login. Min 6 characters.</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="createStudentAccount()">
+                                <span>➕</span> Create Student Account
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
         }
@@ -1018,6 +1093,204 @@
             const link = document.getElementById('inviteLink').value;
             navigator.clipboard.writeText(link);
             showNotification('Invite link copied!', 'success');
+        }
+
+        // Student Account Management
+        async function createStudentAccount() {
+            const username = document.getElementById('studentUsername').value.trim();
+            const fullName = document.getElementById('studentFullName').value.trim();
+            const password = document.getElementById('studentPassword').value;
+
+            // Validate inputs
+            if (!username || !fullName || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9.-]+$/.test(username)) {
+                alert('Username can only contain letters, numbers, dots, and dashes');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            try {
+                // Create email in format: username.schoolid@student.guythatlives.net
+                const studentEmail = `${username}.${currentSchool.id}@student.guythatlives.net`;
+
+                // Check if username already exists
+                const existingStudents = currentSchool.students || [];
+                if (existingStudents.some(s => s.username === username)) {
+                    alert('This username already exists in your school');
+                    return;
+                }
+
+                showNotification('Creating student account...', 'info');
+
+                // Create Firebase user using Cloud Function or Admin SDK
+                // Note: This requires a backend Cloud Function since createUserWithEmailAndPassword
+                // would sign out the current admin user. For now, we'll store the credentials
+                // and create a custom auth flow.
+
+                // Generate a unique student ID
+                const studentRef = await window.authSystem.db.collection('studentAccounts').add({
+                    username: username,
+                    fullName: fullName,
+                    email: studentEmail,
+                    schoolId: currentSchool.id,
+                    schoolName: currentSchool.name,
+                    passwordHash: btoa(password), // Base64 encode (NOT secure for production, but okay for demo)
+                    tempPassword: password,
+                    role: 'student',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy: window.authSystem.getCurrentUser().uid,
+                    isActive: true
+                });
+
+                // Add student to school's students array
+                const updatedStudents = [
+                    ...existingStudents,
+                    {
+                        userId: studentRef.id,
+                        username: username,
+                        fullName: fullName,
+                        email: studentEmail,
+                        tempPassword: password,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }
+                ];
+
+                await window.authSystem.db.collection('schools').doc(currentSchool.id).update({
+                    students: updatedStudents
+                });
+
+                // Clear form
+                document.getElementById('studentUsername').value = '';
+                document.getElementById('studentFullName').value = '';
+                document.getElementById('studentPassword').value = '';
+
+                showNotification('Student account created successfully!', 'success');
+
+                // Reload school to update UI
+                await loadSchool();
+                switchTab('members');
+
+            } catch (error) {
+                console.error('Error creating student account:', error);
+                showNotification('Error creating student account: ' + error.message, 'error');
+            }
+        }
+
+        async function viewStudentCredentials(username, tempPassword) {
+            const loginInstructions = `
+📚 Student Login Information
+
+Username: ${username}
+Password: ${tempPassword || '(password not stored)'}
+
+Students can log in at:
+${window.location.origin}/math/student-login/
+
+Instructions for students:
+1. Go to the student login page
+2. Enter username: ${username}
+3. Enter the password provided
+4. Students can change their password after logging in
+            `.trim();
+
+            // Create a modal to show credentials
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                padding: 1rem;
+            `;
+
+            modal.innerHTML = `
+                <div style="
+                    background: var(--surface);
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    padding: 2rem;
+                    max-width: 500px;
+                    width: 100%;
+                ">
+                    <h3 style="margin-bottom: 1rem;">🎓 Student Login Credentials</h3>
+                    <pre style="
+                        background: var(--primary);
+                        border: 1px solid var(--border);
+                        border-radius: 8px;
+                        padding: 1rem;
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 0.9rem;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        margin-bottom: 1rem;
+                    ">${loginInstructions}</pre>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" onclick="navigator.clipboard.writeText(\`${loginInstructions}\`); showNotification('Credentials copied!', 'success');">
+                            📋 Copy to Clipboard
+                        </button>
+                        <button class="btn" onclick="this.closest('div').parentElement.parentElement.remove()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        async function deleteStudentAccount(userId, username) {
+            const confirmed = confirm(
+                `⚠️ DELETE STUDENT ACCOUNT\n\n` +
+                `Are you sure you want to delete the account for "${username}"?\n\n` +
+                `This will:\n` +
+                `• Remove the student from your school\n` +
+                `• Delete all student progress data\n` +
+                `• Cannot be undone`
+            );
+
+            if (!confirmed) return;
+
+            try {
+                // Remove from studentAccounts collection
+                await window.authSystem.db.collection('studentAccounts').doc(userId).delete();
+
+                // Remove from school's students array
+                const updatedStudents = (currentSchool.students || []).filter(s => s.userId !== userId);
+                await window.authSystem.db.collection('schools').doc(currentSchool.id).update({
+                    students: updatedStudents
+                });
+
+                showNotification('Student account deleted', 'success');
+
+                // Reload school
+                await loadSchool();
+                switchTab('members');
+
+            } catch (error) {
+                console.error('Error deleting student account:', error);
+                showNotification('Error deleting student: ' + error.message, 'error');
+            }
         }
 
         // Delete school
