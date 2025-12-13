@@ -252,6 +252,11 @@ class FirebaseAuthSystem {
         document.getElementById('authEmail')?.focus();
     }
 
+    // Alias for backward compatibility with HTML files
+    showLoginModal() {
+        this.showAuthModal();
+    }
+
     // Close authentication modal
     closeAuthModal() {
         this.authModal?.classList.remove('show');
@@ -373,7 +378,7 @@ class FirebaseAuthSystem {
         const loginBtn = document.getElementById('loginBtn');
         if (loginBtn) {
             loginBtn.innerHTML = `<span>🔐</span> Login`;
-            loginBtn.onclick = () => this.showAuthModal();
+            loginBtn.onclick = () => this.showLoginModal();
         }
 
         if (window.progressTracker) {
