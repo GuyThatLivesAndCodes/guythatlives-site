@@ -8,7 +8,10 @@
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
+    <!-- Auth UI Styles -->
+    <link rel="stylesheet" href="../../shared/auth-ui.css">
+
     <style>
         :root {
             --primary: #0a0e27;
@@ -407,6 +410,9 @@
             <nav class="breadcrumb">
                 <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <span>linear equations</span>
             </nav>
+            <button id="loginBtn" class="login-btn" onclick="authSystem.showAuthModal()">
+                <span>🔐</span> Login
+            </button>
         </header>
 
         <section class="hero-section">
@@ -608,5 +614,13 @@
             setTimeout(() => sparkle.remove(), 1000);
         }
     </script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Auth System -->
+    <script src="../../shared/firebase-auth.js"></script>
 </body>
 </html>

@@ -469,5 +469,12 @@ class FirebaseAuthSystem {
     }
 }
 
-// Global instance
-window.authSystem = new FirebaseAuthSystem();
+// Global instance - initialize after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        window.authSystem = new FirebaseAuthSystem();
+    });
+} else {
+    // DOM already loaded
+    window.authSystem = new FirebaseAuthSystem();
+}
