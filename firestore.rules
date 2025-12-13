@@ -76,9 +76,7 @@ service cloud.firestore {
     }
 
     /* ========= Default Deny ========= */
-
-    match /{document=**} {
-      allow write, delete: if false;
-    }
+    // Removed catch-all rule to prevent interference with specific permissions
+    // Firestore denies by default if no rule matches
   }
 }
