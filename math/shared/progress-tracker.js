@@ -13,6 +13,181 @@ class ProgressTracker {
         this.questionCount = 0;
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
+
+        // Activity tracking
+        this.lastActivityTime = Date.now();
+        this.totalActiveTime = 0;
+        this.isPaused = false;
+        this.activityCheckInterval = null;
+        this.INACTIVITY_THRESHOLD = 3 * 60 * 1000; // 3 minutes in milliseconds
+
+        // Check auth status after a short delay to ensure authSystem is initialized
+        setTimeout(() => this.checkAuthStatus(), 100);
+
+        // Start activity monitoring
+        this.startActivityTracking();
+    }
+
+    // Start tracking user activity for time tracking
+    startActivityTracking() {
+        // Track mouse movement, clicks, keyboard input
+        const activityEvents = ['mousemove', 'click', 'keypress', 'scroll', 'touchstart'];
+
+        activityEvents.forEach(event => {
+            document.addEventListener(event, () => this.recordActivity(), { passive: true });
+        });
+
+        // Check for inactivity every 10 seconds
+        this.activityCheckInterval = setInterval(() => this.checkInactivity(), 10000);
+    }
+
+    // Record user activity
+    recordActivity() {
+        const now = Date.now();
+
+        // If was paused, resume timing
+        if (this.isPaused) {
+            this.isPaused = false;
+            this.startTime = now - this.totalActiveTime;
+        }
+
+        this.lastActivityTime = now;
+    }
+
+    // Check if user has been inactive
+    checkInactivity() {
+        const inactiveTime = Date.now() - this.lastActivityTime;
+
+        if (inactiveTime > this.INACTIVITY_THRESHOLD && !this.isPaused) {
+            // Pause timing
+            this.isPaused = true;
+            this.totalActiveTime = Date.now() - this.startTime;
+        }
+    }
+
+    // Get actual active time spent (excluding paused time)
+    getActiveTimeSpent() {
+        if (this.isPaused) {
+            return this.totalActiveTime;
+        }
+        return Date.now() - this.startTime;
+    }
+
+    // Check if user is logged in via authSystem
+    checkAuthStatus() {
+        if (window.authSystem && window.authSystem.isUserLoggedIn()) {
+            this.isLoggedIn = true;
+            this.currentUser = window.authSystem.getCurrentUser();
+            this.loadLocalProgress(); // Reload progress with user context
+        } else {
+            this.showGuestModeWarning();
+        }
+    }
+
+    // Handle user login
+    onUserLogin(user) {
+        this.isLoggedIn = true;
+        this.currentUser = user;
+
+        // Migrate guest progress to user account
+        this.migrateGuestProgress();
+
+        // Reload progress
+        this.localProgress = this.loadLocalProgress();
+
+        // Hide guest warning
+        this.hideGuestModeWarning();
+
+        // TODO: Sync to cloud
+        this.syncToCloud();
+    }
+
+    // Handle user logout
+    onUserLogout() {
+        this.isLoggedIn = false;
+        this.currentUser = null;
+
+        // Reload guest progress
+        this.localProgress = this.loadLocalProgress();
+
+        // Show guest warning
+        this.showGuestModeWarning();
+    }
+
+    // Migrate guest progress to user account
+    migrateGuestProgress() {
+        if (!this.currentUser) return;
+
+        const guestProgress = localStorage.getItem('guythatlives_math_progress');
+        if (guestProgress) {
+            try {
+                const guestData = JSON.parse(guestProgress);
+                const userProgressKey = this.getUserProgressKey();
+                const existingUserProgress = localStorage.getItem(userProgressKey);
+
+                // Only migrate if user has no existing progress
+                if (!existingUserProgress && Object.keys(guestData.lessons).length > 0) {
+                    localStorage.setItem(userProgressKey, guestProgress);
+                    console.log('Guest progress migrated to user account');
+                }
+            } catch (error) {
+                console.error('Error migrating guest progress:', error);
+            }
+        }
+    }
+
+    // Get the storage key for current user
+    getUserProgressKey() {
+        if (this.isLoggedIn && this.currentUser) {
+            return `guythatlives_math_progress_${this.currentUser.email}`;
+        }
+        return 'guythatlives_math_progress';
+    }
+
+    // Show warning for guest mode
+    showGuestModeWarning() {
+        // Check if warning already exists
+        if (document.querySelector('.guest-mode-warning')) return;
+
+        const scorePanel = document.querySelector('.score-panel');
+        if (scorePanel) {
+            const warning = document.createElement('div');
+            warning.className = 'guest-mode-warning';
+            warning.innerHTML = `
+                <span>Guest Mode</span>
+                <button onclick="authSystem.showLoginModal()" style="
+                    background: transparent;
+                    border: 1px solid var(--warning);
+                    color: var(--warning);
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 4px;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.75rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    margin-left: auto;
+                " onmouseover="this.style.background='rgba(241,250,140,0.1)'" onmouseout="this.style.background='transparent'">
+                    Login to Save
+                </button>
+            `;
+            warning.style.cssText = `
+                font-size: 0.75rem;
+                padding: 0.5rem 0.8rem;
+                margin-top: 0.8rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            `;
+            scorePanel.appendChild(warning);
+        }
+    }
+
+    // Hide guest mode warning
+    hideGuestModeWarning() {
+        const warning = document.querySelector('.guest-mode-warning');
+        if (warning) {
+            warning.remove();
+        }
     }
 
     // Initialize progress tracking for a lesson
@@ -22,13 +197,51 @@ class ProgressTracker {
         this.currentScore = this.getLessonProgress(courseId, lessonId).score || 0;
         this.streak = 0;
         this.startTime = Date.now();
+        this.lastActivityTime = Date.now();
+        this.totalActiveTime = 0;
+        this.isPaused = false;
         this.questionCount = 0;
         this.correctAnswers = 0;
         this.incorrectAnswers = 0;
         this.scoreHistory = [];
-        
+
+        // Auto-save progress every 30 seconds
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+        this.autoSaveInterval = setInterval(() => {
+            if (this.questionCount > 0) {
+                this.saveCurrentProgress();
+            }
+        }, 30000); // 30 seconds
+
         // Update UI
         this.updateScoreDisplay();
+    }
+
+    // Save current progress (called periodically and after each question)
+    saveCurrentProgress() {
+        const key = `${this.currentCourse}_${this.currentLesson}`;
+
+        // Update or create lesson data
+        const existingData = this.localProgress.lessons[key] || {};
+        const lessonData = {
+            ...existingData,
+            score: this.currentScore,
+            attempts: existingData.attempts || 0,
+            bestScore: Math.max(this.currentScore, existingData.bestScore || 0),
+            timeSpent: this.getActiveTimeSpent(),
+            accuracy: this.questionCount > 0 ? (this.correctAnswers / this.questionCount) : 0,
+            questionsAnswered: this.questionCount,
+            lastAttempt: Date.now(),
+            completed: this.currentScore >= 100
+        };
+
+        this.localProgress.lessons[key] = lessonData;
+        this.saveProgress();
+
+        // Also sync to Firebase
+        this.syncToFirebase();
     }
 
     // Calculate score change based on correctness and timing
@@ -92,7 +305,9 @@ class ProgressTracker {
 
         this.questionCount++;
         this.updateScoreDisplay();
-        this.saveProgress();
+
+        // Save progress after each question at ANY level
+        this.saveCurrentProgress();
 
         return {
             scoreChange,
@@ -116,8 +331,8 @@ class ProgressTracker {
     // Save lesson completion
     completeLessonAttempt() {
         const key = `${this.currentCourse}_${this.currentLesson}`;
-        const totalTime = Date.now() - this.startTime;
-        
+        const totalTime = this.getActiveTimeSpent();
+
         const lessonData = {
             score: this.currentScore,
             completed: this.currentScore >= 100,
@@ -132,7 +347,7 @@ class ProgressTracker {
 
         this.localProgress.lessons[key] = lessonData;
         this.localProgress.lastUpdated = Date.now();
-        
+
         this.saveProgress();
         return lessonData;
     }
@@ -140,14 +355,15 @@ class ProgressTracker {
     // Load progress from localStorage
     loadLocalProgress() {
         try {
-            const stored = localStorage.getItem('guythatlives_math_progress');
+            const storageKey = this.getUserProgressKey();
+            const stored = localStorage.getItem(storageKey);
             if (stored) {
                 return JSON.parse(stored);
             }
         } catch (error) {
             console.error('Error loading progress:', error);
         }
-        
+
         return {
             lessons: {},
             courses: {},
@@ -166,16 +382,100 @@ class ProgressTracker {
         try {
             // Update user stats
             this.updateUserStats();
-            
+
+            const storageKey = this.getUserProgressKey();
+            localStorage.setItem(storageKey, JSON.stringify(this.localProgress));
+
             if (this.isLoggedIn) {
                 // TODO: Sync to cloud database
                 this.syncToCloud();
             }
-            
-            localStorage.setItem('guythatlives_math_progress', JSON.stringify(this.localProgress));
         } catch (error) {
             console.error('Error saving progress:', error);
         }
+    }
+
+    // Sync progress to cloud (placeholder for future implementation)
+    async syncToCloud() {
+        // TODO: Implement cloud sync with backend API
+        // This would:
+        // 1. Send progress data to backend
+        // 2. Receive confirmation
+        // 3. Update last sync timestamp
+        // 4. Handle conflicts (merge strategies)
+
+        if (!this.isLoggedIn || !this.currentUser) {
+            console.log('User not logged in, skipping cloud sync');
+            return;
+        }
+
+        console.log('Cloud sync ready for implementation');
+        // Future implementation:
+        // await fetch('/api/progress/sync', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({
+        //         userId: this.currentUser.email,
+        //         progress: this.localProgress
+        //     })
+        // });
+    }
+
+    // Firebase sync methods
+    async syncToFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) return;
+        if (!this.currentLesson || !this.currentCourse) return;
+
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
+            const lessonId = `${this.currentCourse}_${this.currentLesson}`;
+
+            // Save progress at ANY level, not just when completed
+            const progressData = {
+                score: this.currentScore,
+                streak: this.streak,
+                questionCount: this.questionCount,
+                correctAnswers: this.correctAnswers,
+                incorrectAnswers: this.incorrectAnswers,
+                timeSpent: this.getActiveTimeSpent(),
+                lastAttempt: firebase.firestore.FieldValue.serverTimestamp(),
+                completed: this.currentScore >= 100,
+                accuracy: this.questionCount > 0 ? (this.correctAnswers / this.questionCount) : 0
+            };
+
+            await userDoc.collection('lessons').doc(lessonId).set(progressData, { merge: true });
+
+        } catch (error) {
+            console.error('Firebase sync error:', error);
+        }
+    }
+
+    async syncFromFirebase() {
+        if (!window.authSystem || !window.authSystem.isLoggedIn) return;
+        if (!this.currentLesson || !this.currentCourse) return;
+
+        try {
+            const userDoc = window.authSystem.db.collection('users').doc(window.authSystem.user.uid);
+            const lessonId = `${this.currentCourse}_${this.currentLesson}`;
+            const lessonDoc = await userDoc.collection('lessons').doc(lessonId).get();
+
+            if (lessonDoc.exists) {
+                const data = lessonDoc.data();
+                this.currentScore = data.score || 0;
+                this.streak = data.streak || 0;
+                this.questionCount = data.questionCount || 0;
+                this.correctAnswers = data.correctAnswers || 0;
+                this.incorrectAnswers = data.incorrectAnswers || 0;
+                this.updateScoreDisplay();
+            }
+        } catch (error) {
+            console.error('Firebase sync error:', error);
+        }
+    }
+
+    // Legacy method for compatibility - now returns active time
+    getTimeSpent() {
+        return this.getActiveTimeSpent();
     }
 
     // Update overall user statistics
@@ -324,22 +624,6 @@ class ProgressTracker {
         }
 
         return achievements;
-    }
-
-    // TODO: Login system
-    async login(username, password) {
-        // This would integrate with a backend authentication system
-        // For now, just a placeholder
-        console.log('Login system coming soon!');
-    }
-
-    // TODO: Cloud sync
-    async syncToCloud() {
-        // This would sync progress to a cloud database
-        // For now, just a placeholder
-        if (this.isLoggedIn) {
-            console.log('Cloud sync coming soon!');
-        }
     }
 }
 

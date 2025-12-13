@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 2: Multiplication & Division • GuyThatLives Network</title>
-    <meta name="description" content="Master equations with coefficients and division through mistake-based learning.">
-    
+    <title>Lesson 4: Variables on Both Sides • GuyThatLives Network</title>
+    <meta name="description" content="Master equations with variables on both sides through mistake-based learning.">
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- KaTeX for math rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -19,15 +19,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="https://guythatlives.net/math/shared/firebase-auth.js"></script>
     <script src="https://guythatlives.net/math/shared/global-header.js"></script>
-    
+
     <!-- Progress tracking system -->
     <link rel="stylesheet" href="https://guythatlives.net/math/shared/progress-ui.css">
     <script src="https://guythatlives.net/math/shared/progress-tracker.js"></script>
-	
+
     <!-- App Panel System -->
     <link rel="stylesheet" href="https://guythatlives.net/math/shared/app-panel.css">
     <script src="https://guythatlives.net/math/shared/app-panel.js"></script>
-    
+
     <style>
         :root {
             --primary: #0a0e27;
@@ -74,7 +74,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
@@ -484,11 +484,11 @@
 
     <div class="container">
         <header>
-            <a href="/math/algebra/linear-equations" class="logo">Lesson 2: Multiplication & Division</a>
+            <a href="/math/algebra/linear-equations" class="logo">Lesson 4: Variables on Both Sides</a>
             <div class="header-controls">
                 <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
                 <nav class="breadcrumb">
-                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 2</span>
+                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 4</span>
                 </nav>
             </div>
         </header>
@@ -497,12 +497,12 @@
             <div class="problem-section">
                 <div class="problem-header">
                     <div class="problem-number" id="problemNumber">Problem 1</div>
-                    <h1 class="problem-title">Solve for x (Lesson 2)</h1>
+                    <h1 class="problem-title">Solve for x (Lesson 4)</h1>
                 </div>
 
                 <div class="problem-statement">
                     <div class="equation-display" id="equationDisplay">3x = 15</div>
-                    <p class="solve-instruction">Find the value of x using multiplication or division</p>
+                    <p class="solve-instruction">Find the value of x by moving variables to one side</p>
                 </div>
 
                 <div class="input-section">
@@ -554,11 +554,11 @@
             <div class="modal-header">
                 <div class="modal-icon">🏆</div>
                 <h2 class="modal-title">Lesson Complete!</h2>
-                <p class="modal-subtitle">You've mastered multiplication & division!</p>
+                <p class="modal-subtitle">You've mastered equations with variables on both sides!</p>
             </div>
             <div class="modal-stats">
                 <div class="final-score" id="finalScore">100</div>
-                <p>Excellent work on Lesson 2!</p>
+                <p>Excellent work on Lesson 4!</p>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <span class="stat-value" id="finalAccuracy">100%</span>
@@ -573,7 +573,7 @@
             <div id="achievementsContainer"></div>
             <div class="modal-actions">
                 <a href="../" class="modal-btn">← Course Menu</a>
-                <a href="../lesson3/" class="modal-btn primary">Next Lesson →</a>
+                <a href="../lesson5/" class="modal-btn primary">Next Lesson →</a>
             </div>
         </div>
     </div>
@@ -581,86 +581,145 @@
     <!-- App Panel will be inserted by JavaScript -->
 
     <script>
-        // Procedural problem generation - LESSON 2: MULTIPLICATION/DIVISION ONLY
+        // Procedural problem generation - lesson 4: VARIABLES ON BOTH SIDES
         function generateRandomProblem() {
             const problemTypes = [
-                'multiplication',
-                'division'
+                'variable_both_sides_add',
+                'variable_both_sides_subtract',
+                'variable_both_sides_mixed'
             ];
 
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
 
             switch(type) {
-                case 'multiplication':
-                    return generateMultiplicationProblem();
-                case 'division':
-                    return generateDivisionProblem();
+                case 'variable_both_sides_add':
+                    return generateVariableBothSidesAdd();
+                case 'variable_both_sides_subtract':
+                    return generateVariableBothSidesSubtract();
+                case 'variable_both_sides_mixed':
+                    return generateVariableBothSidesMixed();
                 default:
-                    return generateMultiplicationProblem();
+                    return generateVariableBothSidesAdd();
             }
         }
 
-        function generateMultiplicationProblem() {
-            const a = Math.floor(Math.random() * 8) + 2; // coefficient (2-9)
-            const x = Math.floor(Math.random() * 12) + 1; // solution (1-12)
-            const result = a * x;
-            const variable = getRandomVariable(); // Random variable name
+        function generateVariableBothSidesAdd() {
+            const variable = getRandomVariable();
+            // Generate: ax + b = cx + d where a > c
+            const a = Math.floor(Math.random() * 5) + 3; // coefficient left (3-7)
+            const c = Math.floor(Math.random() * (a - 1)) + 1; // coefficient right (1 to a-1)
+            const x = Math.floor(Math.random() * 8) + 2; // solution (2-9)
+            const d = Math.floor(Math.random() * 15) + 3; // constant right (3-17)
+            const b = (c * x + d) - (a * x); // calculate b so equation is consistent
+
+            const leftCoeff = a;
+            const rightCoeff = c;
+            const diffCoeff = a - c;
 
             return {
-                equation: `${a}${variable} = ${result}`,
+                equation: `${a}${variable} + ${b} = ${c}${variable} + ${d}`,
                 solution: x,
                 variable: variable,
                 steps: [
-                    { step: `Divide both sides by ${a}`, equation: `${variable} = ${result}/${a} = ${x}` }
+                    { step: `Subtract ${c}${variable} from both sides`, equation: `${diffCoeff}${variable} + ${b} = ${d}` },
+                    { step: `Subtract ${b} from both sides`, equation: `${diffCoeff}${variable} = ${d - b}` },
+                    { step: `Divide both sides by ${diffCoeff}`, equation: `${variable} = ${x}` }
                 ],
                 mistakes: [
                     {
-                        type: "multiplication_error",
-                        description: `Multiplied by ${a} instead of dividing`,
-                        work: `${variable} = ${result} × ${a} = ${result * a}`
+                        type: "forgot_to_move_variable",
+                        description: `Forgot to move the ${c}${variable} term`,
+                        work: `${a}${variable} = ${d - b}, then ${variable} = ${Math.round(((d - b) / a) * 10) / 10}`
                     },
                     {
-                        type: "wrong_coefficient",
-                        description: `Divided by wrong number`,
-                        work: `${variable} = ${result}/${a + 1} = ${Math.round((result / (a + 1)) * 10) / 10}`
+                        type: "wrong_sign_moving_variable",
+                        description: `Added ${c}${variable} instead of subtracting`,
+                        work: `${a + c}${variable} + ${b} = ${d}, wrong approach`
                     },
                     {
-                        type: "one_side_only",
-                        description: `Only divided one side`,
-                        work: `${variable} = ${result} (forgot to divide)`
+                        type: "arithmetic_error",
+                        description: `Made an arithmetic error when combining`,
+                        work: `${diffCoeff}${variable} = ${d - b + 1}, then ${variable} = ${Math.round(((d - b + 1) / diffCoeff) * 10) / 10}`
                     }
                 ]
             };
         }
 
-        function generateDivisionProblem() {
-            const a = Math.floor(Math.random() * 8) + 2; // divisor (2-9)
-            const x = Math.floor(Math.random() * 15) + 1; // solution (1-15)
-            const whole = a * x; // to avoid fractions in result
-            const variable = getRandomVariable(); // Random variable name
+        function generateVariableBothSidesSubtract() {
+            const variable = getRandomVariable();
+            // Generate: ax - b = cx + d where a > c
+            const a = Math.floor(Math.random() * 5) + 4; // coefficient left (4-8)
+            const c = Math.floor(Math.random() * (a - 2)) + 1; // coefficient right (1 to a-2)
+            const x = Math.floor(Math.random() * 8) + 2; // solution (2-9)
+            const d = Math.floor(Math.random() * 12) + 2; // constant right (2-13)
+            const b = (a * x) - (c * x + d); // calculate b so equation is consistent
+
+            const diffCoeff = a - c;
 
             return {
-                equation: `${variable}/${a} = ${x}`,
-                solution: whole,
+                equation: `${a}${variable} - ${b} = ${c}${variable} + ${d}`,
+                solution: x,
                 variable: variable,
                 steps: [
-                    { step: `Multiply both sides by ${a}`, equation: `${variable} = ${x} × ${a} = ${whole}` }
+                    { step: `Subtract ${c}${variable} from both sides`, equation: `${diffCoeff}${variable} - ${b} = ${d}` },
+                    { step: `Add ${b} to both sides`, equation: `${diffCoeff}${variable} = ${d + b}` },
+                    { step: `Divide both sides by ${diffCoeff}`, equation: `${variable} = ${x}` }
                 ],
                 mistakes: [
                     {
-                        type: "division_error",
-                        description: `Divided by ${a} instead of multiplying`,
-                        work: `${variable} = ${x} ÷ ${a} = ${x / a}`
+                        type: "forgot_to_move_variable",
+                        description: `Forgot to move the ${c}${variable} term`,
+                        work: `${a}${variable} = ${d + b}, then ${variable} = ${Math.round(((d + b) / a) * 10) / 10}`
                     },
                     {
-                        type: "wrong_operation",
-                        description: `Added ${a} instead of multiplying`,
-                        work: `${variable} = ${x} + ${a} = ${x + a}`
+                        type: "wrong_sign_moving_variable",
+                        description: `Added ${c}${variable} instead of subtracting`,
+                        work: `${a + c}${variable} - ${b} = ${d}, wrong result`
                     },
                     {
-                        type: "coefficient_confusion",
-                        description: `Thought ${a} was the answer`,
-                        work: `${variable} = ${a} (confused coefficient with solution)`
+                        type: "arithmetic_error",
+                        description: `Made an arithmetic error when adding`,
+                        work: `${diffCoeff}${variable} = ${d + b - 2}, then ${variable} = ${Math.round(((d + b - 2) / diffCoeff) * 10) / 10}`
+                    }
+                ]
+            };
+        }
+
+        function generateVariableBothSidesMixed() {
+            const variable = getRandomVariable();
+            // Generate: ax + b = cx - d where a > c
+            const a = Math.floor(Math.random() * 5) + 4; // coefficient left (4-8)
+            const c = Math.floor(Math.random() * (a - 1)) + 1; // coefficient right (1 to a-1)
+            const x = Math.floor(Math.random() * 10) + 3; // solution (3-12)
+            const d = Math.floor(Math.random() * 10) + 2; // constant right (2-11)
+            const b = (c * x - d) - (a * x); // calculate b so equation is consistent
+
+            const diffCoeff = a - c;
+
+            return {
+                equation: `${a}${variable} + ${b} = ${c}${variable} - ${d}`,
+                solution: x,
+                variable: variable,
+                steps: [
+                    { step: `Subtract ${c}${variable} from both sides`, equation: `${diffCoeff}${variable} + ${b} = -${d}` },
+                    { step: `Subtract ${b} from both sides`, equation: `${diffCoeff}${variable} = ${-d - b}` },
+                    { step: `Divide both sides by ${diffCoeff}`, equation: `${variable} = ${x}` }
+                ],
+                mistakes: [
+                    {
+                        type: "forgot_to_move_variable",
+                        description: `Forgot to move the ${c}${variable} term`,
+                        work: `${a}${variable} = ${-d - b}, then ${variable} = ${Math.round(((-d - b) / a) * 10) / 10}`
+                    },
+                    {
+                        type: "wrong_sign_with_negative",
+                        description: `Confused signs when dealing with -${d}`,
+                        work: `${diffCoeff}${variable} = ${d - b}, then ${variable} = ${Math.round(((d - b) / diffCoeff) * 10) / 10}`
+                    },
+                    {
+                        type: "arithmetic_error",
+                        description: `Made an arithmetic error with negatives`,
+                        work: `${diffCoeff}${variable} = ${-d - b + 1}, then ${variable} = ${Math.round(((-d - b + 1) / diffCoeff) * 10) / 10}`
                     }
                 ]
             };
@@ -682,13 +741,13 @@
 
         // Initialize progress tracking with error handling
         let progressTracker = null;
-        
+
         function initializeProgressTracking() {
             try {
                 if (typeof ProgressTracker !== 'undefined') {
                     progressTracker = new ProgressTracker();
-                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson2');
-                    
+                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson4');
+
                     // Show progress UI elements
                     const scorePanel = document.getElementById('scorePanel');
                     if (scorePanel) scorePanel.style.display = 'block';
@@ -708,9 +767,9 @@
             questionStartTime = Date.now();
             attempts = 0; // Reset attempts for new problem
             problemAnswered = false; // Reset answered state
-            
+
             document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
-            
+
             // Update question count (with or without progress tracking)
             if (progressTracker) {
                 document.getElementById('questionCount').textContent = problemCount;
@@ -721,7 +780,7 @@
                     questionCountElement.textContent = problemCount;
                 }
             }
-            
+
             // Render equation with KaTeX
             katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
                 displayMode: true,
@@ -738,7 +797,7 @@
             document.getElementById('feedbackIcon').textContent = '🤔';
             document.getElementById('feedbackTitle').textContent = 'Submit your answer to see feedback';
             document.getElementById('feedbackContent').innerHTML = '';
-            
+
             // Re-enable the submit button
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = false;
@@ -776,7 +835,7 @@
                 z-index: 1000;
                 animation: sparkleAnimation 1s ease-out forwards;
             `;
-            
+
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes sparkleAnimation {
@@ -785,14 +844,14 @@
                     100% { transform: scale(0) rotate(360deg); opacity: 0; }
                 }
             `;
-            
+
             if (!document.querySelector('style[data-sparkle]')) {
                 style.setAttribute('data-sparkle', 'true');
                 document.head.appendChild(style);
             }
-            
+
             document.body.appendChild(sparkle);
-            
+
             setTimeout(() => sparkle.remove(), 1000);
         }
 
@@ -821,10 +880,10 @@
                 alert('Please enter a valid number');
                 return;
             }
-            
+
             isCorrect = Math.abs(userAnswer - currentProblem.solution) < 0.001;
             problemAnswered = true; // Mark as answered
-            
+
             // Disable submit button to prevent spam
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -844,7 +903,7 @@
                 try {
                     const timeSpent = Date.now() - questionStartTime;
                     const scoreResult = progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
-                    
+
                     // Check if lesson is complete
                     if (progressTracker.currentScore >= 100) {
                         setTimeout(() => {
@@ -855,7 +914,7 @@
                     console.error('Progress tracking error:', error);
                 }
             }
-            
+
             showFeedback();
         }
 
@@ -864,13 +923,13 @@
             const mistakes = problem.mistakes;
             let bestMatch = null;
             let smallestDifference = Infinity;
-            
+
             for (let i = 0; i < mistakes.length; i++) {
                 const mistake = mistakes[i];
-                
+
                 // Extract the likely wrong answer from the mistake work
                 let mistakeAnswer = extractAnswerFromWork(mistake.work);
-                
+
                 if (mistakeAnswer !== null) {
                     const difference = Math.abs(userAnswer - mistakeAnswer);
                     if (difference < smallestDifference) {
@@ -879,7 +938,7 @@
                     }
                 }
             }
-            
+
             // If we found a close match (within 0.5 to handle rounding), return it
             if (smallestDifference < 0.5 && bestMatch !== null) {
                 return bestMatch;
@@ -925,7 +984,7 @@
                 feedbackSection.className = 'feedback-section show feedback-correct';
                 feedbackIcon.textContent = '🎉';
                 feedbackTitle.textContent = 'Excellent! You got it right!';
-                
+
                 feedbackContent.innerHTML = `
                     <div class="solution-steps">
                         <div class="solution-title">// Correct Solution Steps</div>
@@ -941,15 +1000,15 @@
             } else {
                 feedbackSection.className = 'feedback-section show feedback-incorrect';
                 feedbackIcon.textContent = '🤯';
-                
+
                 // Try to auto-detect the mistake pattern
                 const detectedMistake = detectMistakePattern(userAnswer, currentProblem.solution, currentProblem);
-                
+
                 if (detectedMistake !== null) {
                     // Show teacher-like feedback with detected mistake
                     const mistake = currentProblem.mistakes[detectedMistake];
                     feedbackTitle.textContent = 'I can see where you went wrong!';
-                    
+
                     feedbackContent.innerHTML = `
                         <div class="mistake-analysis">
                             <div class="mistake-title">// Here's what happened:</div>
@@ -975,7 +1034,7 @@
                 } else {
                     // Fall back to manual selection if we can't detect the pattern
                     feedbackTitle.textContent = 'Not quite right. Let\'s learn from this!';
-                    
+
                     feedbackContent.innerHTML = `
                         <div class="mistake-analysis">
                             <div class="mistake-title">// Which approach did you use?</div>
@@ -999,7 +1058,7 @@
         // Select a mistake pattern (fallback for manual selection)
         function selectMistake(mistakeIndex) {
             const options = document.querySelectorAll('.mistake-option');
-            
+
             options.forEach((option, i) => {
                 option.classList.remove('selected', 'correct-choice');
                 if (i === mistakeIndex) {
@@ -1010,7 +1069,7 @@
             // Show explanation and correct solution
             setTimeout(() => {
                 options[mistakeIndex].classList.add('correct-choice');
-                
+
                 const feedbackContent = document.getElementById('feedbackContent');
                 feedbackContent.innerHTML += `
                     <div class="solution-steps">
@@ -1030,7 +1089,7 @@
         // Load next problem with focus management
         function nextProblem() {
             loadProblem();
-            
+
             // Focus back on the input field for better UX
             setTimeout(() => {
                 document.getElementById('answerInput').focus();
@@ -1040,22 +1099,22 @@
         // Show lesson completion modal
         function showLessonComplete() {
             if (!progressTracker) return;
-            
+
             try {
                 const modal = document.getElementById('lessonCompleteModal');
                 const lessonData = progressTracker.completeLessonAttempt();
-                
+
                 // Update modal content
                 document.getElementById('finalScore').textContent = lessonData.score;
-                document.getElementById('finalAccuracy').textContent = 
+                document.getElementById('finalAccuracy').textContent =
                     Math.round(lessonData.accuracy * 100) + '%';
-                document.getElementById('finalTime').textContent = 
+                document.getElementById('finalTime').textContent =
                     formatTime(lessonData.timeSpent);
-                
+
                 // Show achievements
                 const achievements = progressTracker.getAchievements();
                 const achievementsContainer = document.getElementById('achievementsContainer');
-                
+
                 if (achievements.length > 0) {
                     achievementsContainer.innerHTML = achievements.map(achievement => `
                         <div class="achievement">
@@ -1067,7 +1126,7 @@
                         </div>
                     `).join('');
                 }
-                
+
                 modal.classList.add('show');
             } catch (error) {
                 console.error('Error showing lesson completion:', error);
@@ -1081,7 +1140,7 @@
                 problemCount = 0;
                 attempts = 0;
                 problemAnswered = false;
-                
+
                 // Reset progress tracking if available
                 if (progressTracker) {
                     try {
@@ -1096,10 +1155,10 @@
                         console.error('Error resetting progress:', error);
                     }
                 }
-                
+
                 // Load first problem
                 loadProblem();
-                
+
                 // Show confirmation
                 setTimeout(() => {
                     alert('Lesson restarted! Good luck! 🎯');
@@ -1136,7 +1195,7 @@
                 z-index: 1000;
                 animation: sparkleAnimation 1s ease-out forwards;
             `;
-            
+
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes sparkleAnimation {
@@ -1145,14 +1204,14 @@
                     100% { transform: scale(0) rotate(360deg); opacity: 0; }
                 }
             `;
-            
+
             if (!document.querySelector('style[data-sparkle]')) {
                 style.setAttribute('data-sparkle', 'true');
                 document.head.appendChild(style);
             }
-            
+
             document.body.appendChild(sparkle);
-            
+
             setTimeout(() => sparkle.remove(), 1000);
         }
 
@@ -1162,11 +1221,11 @@
             const rect = submitBtn.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            
+
             const numCoins = isCorrect ? 8 : 4;
             const coinColor = isCorrect ? '#50fa7b' : '#ff5555';
             const coinSymbol = isCorrect ? '🪙' : '💔';
-            
+
             for (let i = 0; i < numCoins; i++) {
                 setTimeout(() => {
                     createCoin(centerX, centerY, coinColor, coinSymbol, isCorrect);
@@ -1176,13 +1235,13 @@
 
         function createCoin(startX, startY, color, symbol, isCorrect) {
             const coin = document.createElement('div');
-            
+
             // Random direction and distance
             const angle = (Math.PI * 2 * Math.random());
             const distance = 80 + Math.random() * 40;
             const endX = startX + Math.cos(angle) * distance;
             const endY = startY + Math.sin(angle) * distance - 30; // Slight upward bias
-            
+
             coin.style.cssText = `
                 position: fixed;
                 left: ${startX}px;
@@ -1194,48 +1253,48 @@
                 --endX: ${endX}px;
                 --endY: ${endY}px;
             `;
-            
+
             coin.textContent = symbol;
-            
+
             // Add coin animation styles if not exists
             if (!document.querySelector('style[data-coin-animation]')) {
                 const style = document.createElement('style');
                 style.setAttribute('data-coin-animation', 'true');
                 style.textContent = `
                     @keyframes coinSuccess {
-                        0% { 
-                            transform: scale(0) rotate(0deg); 
+                        0% {
+                            transform: scale(0) rotate(0deg);
                             opacity: 1;
                         }
-                        20% { 
-                            transform: scale(1.2) rotate(90deg); 
+                        20% {
+                            transform: scale(1.2) rotate(90deg);
                             opacity: 1;
                         }
-                        100% { 
-                            transform: scale(0.8) rotate(360deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); 
+                        100% {
+                            transform: scale(0.8) rotate(360deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px));
                             opacity: 0;
                         }
                     }
                     @keyframes coinFail {
-                        0% { 
-                            transform: scale(0) rotate(0deg); 
+                        0% {
+                            transform: scale(0) rotate(0deg);
                             opacity: 1;
                         }
-                        20% { 
-                            transform: scale(1) rotate(-30deg); 
+                        20% {
+                            transform: scale(1) rotate(-30deg);
                             opacity: 1;
                         }
-                        100% { 
-                            transform: scale(0.5) rotate(-180deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); 
+                        100% {
+                            transform: scale(0.5) rotate(-180deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px));
                             opacity: 0;
                         }
                     }
                 `;
                 document.head.appendChild(style);
             }
-            
+
             document.body.appendChild(coin);
-            
+
             setTimeout(() => coin.remove(), 1000);
         }
     </script>

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 2: Multiplication & Division • GuyThatLives Network</title>
-    <meta name="description" content="Master equations with coefficients and division through mistake-based learning.">
+    <title>Lesson 3: Multi-Step Equations • GuyThatLives Network</title>
+    <meta name="description" content="Master multi-step equations combining addition, subtraction, multiplication, and division through mistake-based learning.">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
@@ -484,11 +484,11 @@
 
     <div class="container">
         <header>
-            <a href="/math/algebra/linear-equations" class="logo">Lesson 2: Multiplication & Division</a>
+            <a href="/math/algebra/linear-equations" class="logo">Lesson 3: Multi-Step Equations</a>
             <div class="header-controls">
                 <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
                 <nav class="breadcrumb">
-                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 2</span>
+                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 3</span>
                 </nav>
             </div>
         </header>
@@ -497,12 +497,12 @@
             <div class="problem-section">
                 <div class="problem-header">
                     <div class="problem-number" id="problemNumber">Problem 1</div>
-                    <h1 class="problem-title">Solve for x (Lesson 2)</h1>
+                    <h1 class="problem-title">Solve for x (Lesson 3)</h1>
                 </div>
 
                 <div class="problem-statement">
                     <div class="equation-display" id="equationDisplay">3x = 15</div>
-                    <p class="solve-instruction">Find the value of x using multiplication or division</p>
+                    <p class="solve-instruction">Find the value of x using by combining operations step by step</p>
                 </div>
 
                 <div class="input-section">
@@ -554,11 +554,11 @@
             <div class="modal-header">
                 <div class="modal-icon">🏆</div>
                 <h2 class="modal-title">Lesson Complete!</h2>
-                <p class="modal-subtitle">You've mastered multiplication & division!</p>
+                <p class="modal-subtitle">You've mastered multi-step equations!</p>
             </div>
             <div class="modal-stats">
                 <div class="final-score" id="finalScore">100</div>
-                <p>Excellent work on Lesson 2!</p>
+                <p>Excellent work on Lesson 3!</p>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <span class="stat-value" id="finalAccuracy">100%</span>
@@ -573,7 +573,7 @@
             <div id="achievementsContainer"></div>
             <div class="modal-actions">
                 <a href="../" class="modal-btn">← Course Menu</a>
-                <a href="../lesson3/" class="modal-btn primary">Next Lesson →</a>
+                <a href="../lesson4/" class="modal-btn primary">Next Lesson →</a>
             </div>
         </div>
     </div>
@@ -581,86 +581,90 @@
     <!-- App Panel will be inserted by JavaScript -->
 
     <script>
-        // Procedural problem generation - LESSON 2: MULTIPLICATION/DIVISION ONLY
+        // Procedural problem generation - lesson 3: MULTI-STEP EQUATIONS
         function generateRandomProblem() {
             const problemTypes = [
-                'multiplication',
-                'division'
+                'multiply_then_add',
+                'multiply_then_subtract'
             ];
 
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
 
             switch(type) {
-                case 'multiplication':
-                    return generateMultiplicationProblem();
-                case 'division':
-                    return generateDivisionProblem();
+                case 'multiply_then_add':
+                    return generateMultiplyAddProblem();
+                case 'multiply_then_subtract':
+                    return generateMultiplySubtractProblem();
                 default:
-                    return generateMultiplicationProblem();
+                    return generateMultiplyAddProblem();
             }
         }
 
-        function generateMultiplicationProblem() {
-            const a = Math.floor(Math.random() * 8) + 2; // coefficient (2-9)
-            const x = Math.floor(Math.random() * 12) + 1; // solution (1-12)
-            const result = a * x;
-            const variable = getRandomVariable(); // Random variable name
+        function generateMultiplyAddProblem() {
+            const a = Math.floor(Math.random() * 7) + 2; // coefficient (2-8)
+            const b = Math.floor(Math.random() * 10) + 2; // constant (2-11)
+            const x = Math.floor(Math.random() * 10) + 1; // solution (1-10)
+            const result = a * x + b; // ax + b = result
+            const variable = getRandomVariable();
 
             return {
-                equation: `${a}${variable} = ${result}`,
+                equation: `${a}${variable} + ${b} = ${result}`,
                 solution: x,
                 variable: variable,
                 steps: [
-                    { step: `Divide both sides by ${a}`, equation: `${variable} = ${result}/${a} = ${x}` }
+                    { step: `Subtract ${b} from both sides`, equation: `${a}${variable} = ${result} - ${b} = ${result - b}` },
+                    { step: `Divide both sides by ${a}`, equation: `${variable} = ${result - b}/${a} = ${x}` }
                 ],
                 mistakes: [
                     {
-                        type: "multiplication_error",
-                        description: `Multiplied by ${a} instead of dividing`,
-                        work: `${variable} = ${result} × ${a} = ${result * a}`
+                        type: "divided_before_subtracting",
+                        description: `Divided before subtracting ${b}`,
+                        work: `${variable} = (${result})/${a} - ${b} = ${(result / a) - b}`
                     },
                     {
-                        type: "wrong_coefficient",
-                        description: `Divided by wrong number`,
-                        work: `${variable} = ${result}/${a + 1} = ${Math.round((result / (a + 1)) * 10) / 10}`
+                        type: "wrong_order",
+                        description: `Subtracted ${b} from wrong side`,
+                        work: `${a}${variable} = ${b} - ${result} = ${b - result}`
                     },
                     {
-                        type: "one_side_only",
-                        description: `Only divided one side`,
-                        work: `${variable} = ${result} (forgot to divide)`
+                        type: "forgot_to_divide",
+                        description: `Forgot to divide by ${a}`,
+                        work: `${variable} = ${result - b} (forgot to divide)`
                     }
                 ]
             };
         }
 
-        function generateDivisionProblem() {
-            const a = Math.floor(Math.random() * 8) + 2; // divisor (2-9)
-            const x = Math.floor(Math.random() * 15) + 1; // solution (1-15)
-            const whole = a * x; // to avoid fractions in result
-            const variable = getRandomVariable(); // Random variable name
+        function generateMultiplySubtractProblem() {
+            const a = Math.floor(Math.random() * 7) + 2; // coefficient (2-8)
+            const b = Math.floor(Math.random() * 10) + 2; // constant (2-11)
+            const x = Math.floor(Math.random() * 10) + 1; // solution (1-10)
+            const result = a * x - b; // ax - b = result
+            const variable = getRandomVariable();
 
             return {
-                equation: `${variable}/${a} = ${x}`,
-                solution: whole,
+                equation: `${a}${variable} - ${b} = ${result}`,
+                solution: x,
                 variable: variable,
                 steps: [
-                    { step: `Multiply both sides by ${a}`, equation: `${variable} = ${x} × ${a} = ${whole}` }
+                    { step: `Add ${b} to both sides`, equation: `${a}${variable} = ${result} + ${b} = ${result + b}` },
+                    { step: `Divide both sides by ${a}`, equation: `${variable} = ${result + b}/${a} = ${x}` }
                 ],
                 mistakes: [
                     {
-                        type: "division_error",
-                        description: `Divided by ${a} instead of multiplying`,
-                        work: `${variable} = ${x} ÷ ${a} = ${x / a}`
+                        type: "divided_before_adding",
+                        description: `Divided before adding ${b}`,
+                        work: `${variable} = (${result})/${a} + ${b} = ${Math.round(((result / a) + b) * 10) / 10}`
                     },
                     {
-                        type: "wrong_operation",
-                        description: `Added ${a} instead of multiplying`,
-                        work: `${variable} = ${x} + ${a} = ${x + a}`
+                        type: "subtracted_instead",
+                        description: `Subtracted ${b} instead of adding`,
+                        work: `${a}${variable} = ${result} - ${b} = ${result - b}`
                     },
                     {
-                        type: "coefficient_confusion",
-                        description: `Thought ${a} was the answer`,
-                        work: `${variable} = ${a} (confused coefficient with solution)`
+                        type: "forgot_to_divide",
+                        description: `Forgot to divide by ${a}`,
+                        work: `${variable} = ${result + b} (forgot to divide)`
                     }
                 ]
             };
@@ -687,7 +691,7 @@
             try {
                 if (typeof ProgressTracker !== 'undefined') {
                     progressTracker = new ProgressTracker();
-                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson2');
+                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson3');
                     
                     // Show progress UI elements
                     const scorePanel = document.getElementById('scorePanel');

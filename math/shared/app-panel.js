@@ -329,6 +329,50 @@ class AppPanel {
                 }
             }
         });
+
+        // Factoring Helper App
+        this.registerApp({
+            id: 'factoring',
+            name: 'Factoring Helper',
+            icon: '🧩',
+            content: `
+                <div class="factoring-app">
+                    <label style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--text-dim); display: block; margin-bottom: 0.5rem;">Find factors of:</label>
+                    <input type="number" id="factorNumber" class="factor-input" placeholder="Enter number" style="width: 100%; background: var(--primary); border: 2px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 1rem; padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <button onclick="findFactors()" class="factor-btn" style="width: 100%; background: transparent; border: 2px solid var(--accent); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.9rem; padding: 0.7rem 1.5rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Find Factors</button>
+                    <div id="factorResults" class="factor-results" style="margin-top: 1rem; padding: 1rem; background: rgba(100, 255, 218, 0.05); border: 1px solid rgba(100, 255, 218, 0.1); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; max-height: 300px; overflow-y: auto;"></div>
+                </div>
+            `,
+            onOpen: () => {
+                document.getElementById('factorResults').innerHTML = '<p style="color: var(--text-dim);">Enter a number to find all its factor pairs</p>';
+            }
+        });
+
+        // Formula Reference App
+        this.registerApp({
+            id: 'formula',
+            name: 'Formula Reference',
+            icon: '📐',
+            content: `
+                <div class="formula-app">
+                    <h4 style="font-family: 'JetBrains Mono', monospace; color: var(--accent); margin-bottom: 1rem;">Quadratic Formula</h4>
+                    <div class="formula-display" style="background: rgba(100, 255, 218, 0.05); border: 1px solid rgba(100, 255, 218, 0.2); border-radius: 12px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem;">
+                        <div style="font-size: 1.4rem; font-weight: 500; color: var(--warning); margin: 1rem 0;">x = (-b ± √(b² - 4ac)) / 2a</div>
+                    </div>
+                    <div class="formula-parts" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim);">
+                        <p style="margin: 0.5rem 0;"><strong style="color: var(--accent);">For:</strong> ax² + bx + c = 0</p>
+                        <p style="margin: 0.5rem 0;"><strong style="color: var(--accent);">a</strong> = coefficient of x²</p>
+                        <p style="margin: 0.5rem 0;"><strong style="color: var(--accent);">b</strong> = coefficient of x</p>
+                        <p style="margin: 0.5rem 0;"><strong style="color: var(--accent);">c</strong> = constant term</p>
+                        <hr style="border: none; border-top: 1px solid rgba(100, 255, 218, 0.1); margin: 1rem 0;">
+                        <p style="margin: 0.5rem 0;"><strong style="color: var(--success);">Discriminant:</strong> Δ = b² - 4ac</p>
+                        <p style="margin: 0.3rem 0; padding-left: 1rem;">• If Δ > 0: Two real solutions</p>
+                        <p style="margin: 0.3rem 0; padding-left: 1rem;">• If Δ = 0: One real solution</p>
+                        <p style="margin: 0.3rem 0; padding-left: 1rem;">• If Δ < 0: No real solutions</p>
+                    </div>
+                </div>
+            `
+        });
     }
 }
 
@@ -437,22 +481,22 @@ const timer = {
     elapsed: 0,
     isRunning: false,
     interval: null,
-    
+
     init() {
         this.updateDisplay();
     },
-    
+
     start() {
         if (!this.isRunning) {
             this.startTime = Date.now() - this.elapsed;
             this.isRunning = true;
             this.interval = setInterval(() => this.updateDisplay(), 100);
-            
+
             document.getElementById('timerStart').textContent = 'Running';
             document.getElementById('timerStart').classList.add('active');
         }
     },
-    
+
     pause() {
         if (this.isRunning) {
             this.isRunning = false;
@@ -461,7 +505,7 @@ const timer = {
             document.getElementById('timerStart').classList.remove('active');
         }
     },
-    
+
     reset() {
         this.isRunning = false;
         this.elapsed = 0;
@@ -473,21 +517,92 @@ const timer = {
         document.getElementById('timerStart').classList.remove('active');
         this.updateDisplay();
     },
-    
+
     updateDisplay() {
         if (this.isRunning) {
             this.elapsed = Date.now() - this.startTime;
         }
-        
+
         const minutes = Math.floor(this.elapsed / 60000);
         const seconds = Math.floor((this.elapsed % 60000) / 1000);
-        
+
         const display = document.getElementById('timerDisplay');
         if (display) {
             display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
 };
+
+// Factoring Helper functionality
+function findFactors() {
+    const num = parseInt(document.getElementById('factorNumber').value);
+    const resultsDiv = document.getElementById('factorResults');
+
+    if (!num || isNaN(num)) {
+        resultsDiv.innerHTML = '<p style="color: var(--error);">Please enter a valid number</p>';
+        return;
+    }
+
+    if (num === 0) {
+        resultsDiv.innerHTML = '<p style="color: var(--warning);">Zero has infinite factors</p>';
+        return;
+    }
+
+    const absNum = Math.abs(num);
+    const factors = [];
+    const factorPairs = [];
+
+    // Find all factors
+    for (let i = 1; i <= Math.sqrt(absNum); i++) {
+        if (absNum % i === 0) {
+            factors.push(i);
+            if (i !== absNum / i) {
+                factors.push(absNum / i);
+            }
+        }
+    }
+
+    factors.sort((a, b) => a - b);
+
+    // Create factor pairs
+    for (let i = 0; i < factors.length; i++) {
+        const factor1 = factors[i];
+        const factor2 = absNum / factor1;
+        if (factor1 <= factor2 && !factorPairs.some(p => p[0] === factor1 && p[1] === factor2)) {
+            factorPairs.push([factor1, factor2]);
+        }
+    }
+
+    // Include negative factors if original number was positive
+    if (num > 0) {
+        for (let i = 0; i < factors.length; i++) {
+            const factor1 = -factors[i];
+            const factor2 = -absNum / factors[i];
+            if (factor1 >= factor2 && !factorPairs.some(p => p[0] === factor1 && p[1] === factor2)) {
+                factorPairs.push([factor1, factor2]);
+            }
+        }
+    }
+
+    let html = `<div style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Factors of ${num}:</strong></div>`;
+    html += `<div style="color: var(--text-dim); margin-bottom: 0.5rem;">All factors: ${num > 0 ? factors.concat(factors.map(f => -f)).sort((a,b) => a-b).join(', ') : factors.join(', ')}</div>`;
+    html += `<div style="margin-top: 1rem;"><strong style="color: var(--success);">Factor pairs:</strong></div>`;
+    html += '<div style="margin-top: 0.5rem;">';
+
+    factorPairs.forEach(pair => {
+        const sum = pair[0] + pair[1];
+        const product = pair[0] * pair[1];
+        html += `<div style="padding: 0.5rem; margin: 0.3rem 0; background: rgba(80, 250, 123, 0.05); border-radius: 6px;">
+            <span style="color: var(--warning);">${pair[0]}</span> ×
+            <span style="color: var(--warning);">${pair[1]}</span> =
+            <span style="color: var(--accent);">${product}</span>
+            <span style="color: var(--text-dim); margin-left: 1rem;">(sum: ${sum})</span>
+        </div>`;
+    });
+
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+}
 
 // Global app panel instance
 let appPanel;

@@ -8,7 +8,15 @@
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Auth UI Styles -->
+    <link rel="stylesheet" href="shared/auth-ui.css">
+
     <style>
         :root {
             --primary: #0a0e27;
@@ -81,6 +89,7 @@
             align-items: center;
             padding: 2rem 0;
             animation: slideDown 1s ease-out;
+            gap: 1rem;
         }
 
         .logo {
@@ -450,6 +459,9 @@
             <nav class="breadcrumb">
                 <a href="https://guythatlives.net">home</a> / <span>mathematics</span>
             </nav>
+            <button id="loginBtn" class="login-btn" onclick="authSystem.showLoginModal()">
+                <span>🔐</span> Login
+            </button>
         </header>
 
         <section class="hero-section">
@@ -588,47 +600,12 @@
         </section>
     </div>
 
-    <script>
-        // Same sparkle effect
-        document.addEventListener('mousemove', (e) => {
-            if (Math.random() > 0.98) {
-                createSparkle(e.clientX, e.clientY);
-            }
-        });
+    <!-- Firebase Auth System -->
+    <script src="shared/firebase-auth.js"></script>
+    <!-- Shared Particles -->
+    <script src="shared/particles.js"></script>
 
-        function createSparkle(x, y) {
-            const sparkle = document.createElement('div');
-            sparkle.style.cssText = `
-                position: fixed;
-                left: ${x}px;
-                top: ${y}px;
-                width: 4px;
-                height: 4px;
-                background: var(--accent);
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 1000;
-                animation: sparkleAnimation 1s ease-out forwards;
-            `;
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes sparkleAnimation {
-                    0% { transform: scale(0) rotate(0deg); opacity: 1; }
-                    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
-                    100% { transform: scale(0) rotate(360deg); opacity: 0; }
-                }
-            `;
-            
-            if (!document.querySelector('style[data-sparkle]')) {
-                style.setAttribute('data-sparkle', 'true');
-                document.head.appendChild(style);
-            }
-            
-            document.body.appendChild(sparkle);
-            
-            setTimeout(() => sparkle.remove(), 1000);
-        }
+    <script>
 
         // Course card hover effects
         document.querySelectorAll('.course-card').forEach(card => {

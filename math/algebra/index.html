@@ -8,7 +8,10 @@
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
+    <!-- Auth UI Styles -->
+    <link rel="stylesheet" href="../shared/auth-ui.css">
+
     <style>
         :root {
             --primary: #0a0e27;
@@ -81,6 +84,7 @@
             align-items: center;
             padding: 2rem 0;
             animation: slideDown 1s ease-out;
+            gap: 1rem;
         }
 
         .logo {
@@ -414,6 +418,9 @@
             <nav class="breadcrumb">
                 <a href="/">home</a> / <a href="/math">math</a> / <span>algebra</span>
             </nav>
+            <button id="loginBtn" class="login-btn" onclick="authSystem.showLoginModal()">
+                <span>🔐</span> Login
+            </button>
         </header>
 
         <section class="hero-section">
@@ -470,9 +477,9 @@
                         <li>quadratic formula</li>
                         <li>vertex form</li>
                     </ul>
-                    <a href="quadratics/" class="topic-action">
+                    <a href="quadratic-functions/" class="topic-action">
                         <span>🎯</span>
-                        Coming Soon
+                        Start Course (5 Lessons)
                     </a>
                 </div>
 
@@ -583,6 +590,9 @@
             </div>
         </section>
     </div>
+
+    <!-- Auth System -->
+    <script src="../shared/auth.js"></script>
 
     <script>
         // Same sparkle effect
