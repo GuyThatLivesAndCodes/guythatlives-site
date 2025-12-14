@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson 1: One-Step Equations • GuyThatLives Network</title>
-    <meta name="description" content="Master one-step linear equations with addition and subtraction through mistake-based learning.">
+    <meta name="description" content="Master simple equations with addition, subtraction, and multiplication through mistake-based learning.">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
@@ -636,11 +636,11 @@
 
     <div class="container">
         <header>
-            <a href="/math/algebra/linear-equations" class="logo">Lesson 1: One-Step Equations</a>
+            <a href="/math/calculation/standard-integer" class="logo">Lesson 1: Short Equations</a>
             <div class="header-controls">
                 <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
                 <nav class="breadcrumb">
-                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/linear-equations">linear equations</a> / <span>lesson 1</span>
+                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/calculation/">calculation</a> / <a href="/math/calculation/standard-integer">standard (integers)</a> / <span>lesson 1</span>
                 </nav>
             </div>
         </header>
@@ -706,7 +706,7 @@
             <div class="modal-header">
                 <div class="modal-icon">🏆</div>
                 <h2 class="modal-title">Lesson Complete!</h2>
-                <p class="modal-subtitle">You've mastered one-step equations!</p>
+                <p class="modal-subtitle">You've mastered simple equations!</p>
             </div>
             <div class="modal-stats">
                 <div class="final-score" id="finalScore">100</div>
@@ -737,7 +737,8 @@
         function generateRandomProblem() {
             const problemTypes = [
                 'addition_basic',
-                'subtraction_basic'
+                'subtraction_basic',
+                'multiplication_basic'
             ];
             
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
@@ -747,15 +748,17 @@
                     return generateAdditionProblem();
                 case 'subtraction_basic':
                     return generateSubtractionProblem();
+                case 'multiplication_basic':
+                    return generateMultiplicationProblem();
                 default:
                     return generateAdditionProblem();
             }
         }
 
         function generateAdditionProblem() {
-            const b = Math.floor(Math.random() * 20) + 3; // constant (3-22)
-            const x = Math.floor(Math.random() * 15) + 1; // solution (1-15)
-            const result = x + b;
+            const a = Math.floor(Math.random() * 30) + 3; // constant (3-22)
+            const b = Math.floor(Math.random() * 30) + 1; // solution (1-15)
+            const result = a + b;
             
             return {
                 equation: `x + ${b} = ${result}`,
@@ -765,55 +768,156 @@
                 ],
                 mistakes: [
                     {
-                        type: "sign_error",
-                        description: `Added ${b} instead of subtracting`,
-                        work: `x + ${b} + ${b} = ${result} + ${b} → x = ${result + b}`
+                        type: "subtracted_a",
+                        description: `Subtracted ${b} by ${a} instead of adding`,
+                        work: `${b} - ${a} = ${b - a}`,
+                        answer: `${b - a}`
                     },
                     {
-                        type: "one_side_only",
-                        description: "Only subtracted from one side",
-                        work: `x + ${b} - ${b} = ${result} → x = ${result}`
+                        type: "gave_a",
+                        description: "Only gave the value of the first number",
+                        work: `${a}`,
+                        answer: `${a}`
                     },
                     {
-                        type: "wrong_operation",
-                        description: `Multiplied by ${b} instead of subtracting`,
-                        work: `x = ${result} × ${b} = ${result * b}`
+                        type: "gave_b",
+                        description: "Only gave the value of the second number",
+                        work: `${b}`,
+                        answer: `${b}`
+                    },
+                    {
+                        type: "subtracted_b",
+                        description: `Subtracted ${a} by ${b} instead of adding`,
+                        work: `${a} - ${b} = ${a - b}`,
+                        answer: `${a - b}`
+                    },
+                    {
+                        type: "multiplied",
+                        description: `Multiplied ${a} and ${b} instead of adding`,
+                        work: `${a} * ${b} = ${a * b}`,
+                        answer: `${a * b}`
+                    },
+                    {
+                        type: "divided_a",
+                        description: `Divided ${a} by ${b} instead of adding`,
+                        work: `${a} / ${b} = ${a/b}`,
+                        answer: `${a/b}`
+                    },
+                    {
+                        type: "divided_b",
+                        description: `Divided ${b} by ${a} instead of adding`,
+                        work: `${b} / ${a} = ${b/a}`,
+                        answer: `${b/a}`
                     }
                 ]
             };
         }
 
         function generateSubtractionProblem() {
-            const b = Math.floor(Math.random() * 15) + 2; 
-            const x = Math.floor(Math.random() * 20) + 1;
-            const result = x - b;
-            
-            // Make sure result is positive
-            if (result <= 0) {
-                return generateAdditionProblem(); // fallback to addition
-            }
+            const a = Math.floor(Math.random() * 40) + 2; 
+            const b = Math.floor(Math.random() * 40) + 1;
+            const result = a - b;
             
             return {
-                equation: `x - ${b} = ${result}`,
+                equation: `${a} - ${b}`,
                 solution: x,
                 steps: [
-                    { step: `Add ${b} to both sides`, equation: `x = ${result + b}` }
+                    { step: `Subtract ${b} from ${a}`, equation: `${a} - ${b} = ${result}` }
                 ],
                 mistakes: [
                     {
-                        type: "sign_error",
-                        description: `Subtracted ${b} instead of adding`,
-                        work: `x - ${b} - ${b} = ${result} - ${b} → x = ${result - b}`
+                        type: "added",
+                        description: `Added ${a} to ${b} instead of subtracting`,
+                        work: `${a} + ${b} = ${a + b}`,
+                        answer: `${a + b}`
                     },
                     {
-                        type: "one_side_only",
-                        description: "Only added to one side",
-                        work: `x - ${b} + ${b} = ${result} → x = ${result}`
+                        type: "gave_a",
+                        description: "Only gave the value of the first number",
+                        work: `${a}`,
+                        answer: `${a}`
                     },
                     {
-                        type: "wrong_direction",
-                        description: "Moved the number but forgot to change sign",
-                        work: `x = ${result} - ${b} = ${result - b}`
+                        type: "gave_b",
+                        description: "Only gave the value of the second number",
+                        work: `${b}`,
+                        answer: `${b}`
+                    },
+                    {
+                        type: "multiplied",
+                        description: `Multipled ${a} by ${b} instead of subtracting`,
+                        work: `${a} * ${b} = ${a * b}`,
+                        answer: `${a * b}`
+                    },
+                    {
+                        type: "divided_a",
+                        description: `Divided ${a} by ${b} instead of subtracting`,
+                        work: `${a}/${b} = ${a/b}`,
+                        answer: `${a/b}`
+                    },
+                    {
+                        type: "divided_b",
+                        description: `Divided ${b} by ${a} instead of subtracting`,
+                        work: `${b}/${a} = ${b/a}`,
+                        answer: `${b/a}`
+                    }
+                ]
+            };
+        }
+
+        function generateMultiplicationProblem() {
+            const a = Math.floor(Math.random() * 20) + 3; 
+            const b = Math.floor(Math.random() * 20) + 1;
+            const result = a * b;
+            
+            return {
+                equation: `${a} * ${b}`,
+                solution: x,
+                steps: [
+                    { step: `Multiply ${a} by ${b}`, equation: `${a} * ${b} = ${result}` }
+                ],
+                mistakes: [
+                    {
+                        type: "added",
+                        description: `Added ${a} to ${b} instead of multiplication`,
+                        work: `${a} + ${b} = ${a + b}`,
+                        answer: `${a + b}`
+                    },
+                    {
+                        type: "subtracted_a",
+                        description: `Subtracted ${b} by ${a} instead of adding`,
+                        work: `${b} - ${a} = ${b - a}`,
+                        answer: `${b - a}`
+                    },
+                    {
+                        type: "subtracted_b",
+                        description: `Subtracted ${a} by ${b} instead of adding`,
+                        work: `${a} - ${b} = ${a - b}`,
+                        answer: `${a - b}`
+                    },
+                    {
+                        type: "gave_a",
+                        description: "Only gave the value of the first number",
+                        work: `${a}`,
+                        answer: `${a}`
+                    },
+                    {
+                        type: "gave_b",
+                        description: "Only gave the value of the second number",
+                        work: `${b}`,
+                        answer: `${b}`
+                    },
+                    {
+                        type: "divided_a",
+                        description: `Divided ${a} by ${b} instead of subtracting`,
+                        work: `${a}/${b} = ${a/b}`,
+                        answer: `${a/b}`
+                    },
+                    {
+                        type: "divided_b",
+                        description: `Divided ${b} by ${a} instead of subtracting`,
+                        work: `${b}/${a} = ${b/a}`,
+                        answer: `${b/a}`
                     }
                 ]
             };
@@ -834,7 +938,7 @@
             try {
                 if (typeof ProgressTracker !== 'undefined') {
                     progressTracker = new ProgressTracker();
-                    progressTracker.initializeLesson('algebra_linear_equations', 'lesson1');
+                    progressTracker.initializeLesson('calculation_standard_integer', 'lesson1');
                     
                     // Show progress UI elements
                     document.getElementById('scorePanel').style.display = 'block';
@@ -960,7 +1064,7 @@
                 const mistake = mistakes[i];
                 
                 // Extract the likely wrong answer from the mistake work
-                let mistakeAnswer = extractAnswerFromWork(mistake.work);
+                let mistakeAnswer = extractAnswerFromWork(mistake.answer);
                 
                 if (mistakeAnswer !== null) {
                     const difference = Math.abs(userAnswer - mistakeAnswer);
