@@ -329,6 +329,14 @@
             left: 0;
         }
 
+        .topic-action:disabled:hover::before {
+            left: -100%; /* Keep it hidden */
+        }
+
+        .topic-action:disabled:hover {
+            color: var(--text-dim); /* Maintain disabled text color */
+        }
+
         .learning-path {
             background: rgba(100, 255, 218, 0.02);
             border: 1px solid rgba(100, 255, 218, 0.1);
