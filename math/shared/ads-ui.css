@@ -1,0 +1,344 @@
+/* Advertisement System Styles */
+
+/* General Ad Container */
+.ad-container {
+    font-family: 'JetBrains Mono', monospace;
+    z-index: 5000;
+}
+
+.ad-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.ad-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ad-placeholder {
+    background: rgba(100, 255, 218, 0.02);
+    border: 2px dashed rgba(100, 255, 218, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100px;
+    padding: 1rem;
+}
+
+.ad-placeholder-horizontal {
+    min-height: 90px;
+}
+
+.ad-placeholder-popup {
+    min-height: 250px;
+}
+
+.ad-demo {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+}
+
+.ad-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 85, 85, 0.2);
+    border: 1px solid var(--error);
+    color: var(--error);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.ad-close:hover {
+    background: var(--error);
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+/* Sidebar Ad */
+.ad-sidebar {
+    position: fixed;
+    right: 20px;
+    top: 100px;
+    width: 300px;
+}
+
+.ad-sidebar .ad-content {
+    height: 600px;
+}
+
+/* Bottom Ad */
+.ad-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    background: var(--primary);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.ad-bottom .ad-content {
+    max-width: 728px;
+    margin: 0 auto;
+    height: 90px;
+}
+
+/* Popup Ad */
+.ad-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10000;
+}
+
+.ad-popup.show {
+    opacity: 1;
+}
+
+.ad-popup-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+.ad-popup-content {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 400px;
+    padding: 1.5rem;
+    background: var(--primary);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+    from {
+        transform: translateY(-50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.ad-popup-content .ad-content {
+    margin: 1rem 0;
+}
+
+.ad-close-popup {
+    top: 1rem;
+    right: 1rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .ad-sidebar {
+        display: none;
+    }
+
+    .ad-bottom .ad-content {
+        max-width: 100%;
+        height: auto;
+        min-height: 60px;
+    }
+
+    .ad-popup-content {
+        max-width: 90%;
+    }
+}
+
+/* Ad Preference Panel Styles (for profile page) */
+.ad-prefs-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.ad-prefs-triangle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.ad-prefs-panel {
+    background: rgba(100, 255, 218, 0.03);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.ad-prefs-panel:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(100, 255, 218, 0.1);
+}
+
+.ad-prefs-panel.active {
+    border-color: var(--accent);
+    background: rgba(100, 255, 218, 0.1);
+}
+
+.ad-prefs-panel.bottom-row {
+    grid-column: 1 / -1;
+}
+
+.ad-prefs-panel.warning {
+    border-color: var(--warning);
+    background: rgba(241, 250, 140, 0.05);
+}
+
+.ad-prefs-panel.warning.active {
+    background: rgba(241, 250, 140, 0.1);
+}
+
+.ad-prefs-icon {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 0.8rem;
+}
+
+.ad-prefs-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    color: var(--text);
+}
+
+.ad-prefs-description {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.ad-prefs-checkbox {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--accent);
+}
+
+.ad-prefs-warning-text {
+    font-size: 0.8rem;
+    color: var(--warning);
+    margin-top: 0.5rem;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Admin Panel Styles */
+.admin-panel {
+    background: linear-gradient(135deg, rgba(100, 255, 218, 0.05), rgba(255, 85, 85, 0.05));
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.admin-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--primary);
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-left: 0.5rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    background: rgba(100, 255, 218, 0.1);
+    padding: 0.8rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+}
+
+.admin-table td {
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-table tr:hover {
+    background: rgba(100, 255, 218, 0.05);
+}
+
+.admin-action-btn {
+    padding: 0.4rem 0.8rem;
+    margin: 0 0.2rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.admin-action-btn:hover {
+    border-color: var(--accent);
+    background: rgba(100, 255, 218, 0.1);
+}
+
+.admin-action-btn.danger {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.admin-action-btn.danger:hover {
+    background: rgba(255, 85, 85, 0.1);
+}

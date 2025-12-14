@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algebra Course • GuyThatLives Network</title>
+    <title>Algebra Practice | GuyThatLives Math – Interactive Problems</title>
     <meta name="description" content="Master algebra through mistake-based learning. Choose from different topics and skill levels.">
     
     <!-- Fonts -->
@@ -11,6 +11,8 @@
 
     <!-- Auth UI Styles -->
     <link rel="stylesheet" href="../shared/auth-ui.css">
+    <!-- Ad UI Styles -->
+    <link rel="stylesheet" href="../shared/ads-ui.css">
 
     <style>
         :root {
@@ -418,7 +420,7 @@
             <nav class="breadcrumb">
                 <a href="/">home</a> / <a href="/math">math</a> / <span>algebra</span>
             </nav>
-            <button id="loginBtn" class="login-btn" onclick="authSystem.showLoginModal()">
+            <button id="loginBtn" class="login-btn" onclick="authSystem.showAuthModal()">
                 <span>🔐</span> Login
             </button>
         </header>
@@ -591,8 +593,15 @@
         </section>
     </div>
 
-    <!-- Auth System -->
-    <script src="../shared/auth.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Auth System -->
+    <script src="../shared/firebase-auth.js"></script>
+    <!-- Ad System -->
+    <script src="../shared/ads.js"></script>
 
     <script>
         // Same sparkle effect

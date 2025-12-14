@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ========= Helper Functions ========= */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'zorbyteofficial@gmail.com' ||
+        request.auth.token.email == 'briston.miller@weatherfordisd.net'
+      );
+    }
+
+    /* ========= Users ========= */
+
+    match /users/{userId} {
+      // Users can manage their own profile
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+      // Platform admins can manage all users
+      allow read, write, delete: if isAdmin();
+    }
+
+    /* ========= Schools ========= */
+
+    match /schools/{schoolId} {
+
+      // Any authenticated user can create a school
+      allow create: if isSignedIn();
+
+      // Read permissions
+      allow read: if isSignedIn() && (
+        resource.data.owner == request.auth.uid ||
+        request.auth.uid in resource.data.members ||
+        resource.data.visibility == 'public' ||
+        isAdmin()
+      );
+
+      // Update permissions
+      allow update: if isSignedIn() && (
+        resource.data.owner == request.auth.uid ||
+        request.auth.uid in resource.data.admins ||
+        isAdmin()
+      );
+
+      // Delete permissions
+      allow delete: if isSignedIn() && (
+        resource.data.owner == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    /* ========= Student Accounts ========= */
+
+    match /studentAccounts/{studentId} {
+
+      // School staff can create student accounts
+      allow create: if isSignedIn();
+
+      /*
+        Public read is allowed for student login lookup.
+        IMPORTANT: This means only non-sensitive fields should exist here.
+      */
+      allow read: if true;
+
+      // Only creator or platform admin can modify
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == resource.data.createdBy ||
+        isAdmin()
+      );
+    }
+
+    /* ========= Default Deny ========= */
+    // Removed catch-all rule to prevent interference with specific permissions
+    // Firestore denies by default if no rule matches
+  }
+}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Learning Platform • GuyThatLives Network</title>
+    <title>GuyThatLives Math – Free Online Math Practice and Mistake-Based Learning</title>
     <meta name="description" content="Interactive math courses with mistake-based learning. Learn by understanding where you went wrong.">
     
     <!-- Fonts -->
@@ -16,6 +16,8 @@
 
     <!-- Auth UI Styles -->
     <link rel="stylesheet" href="shared/auth-ui.css">
+    <!-- Ad UI Styles -->
+    <link rel="stylesheet" href="../shared/ads-ui.css">
 
     <style>
         :root {
@@ -455,11 +457,11 @@
 
     <div class="container">
         <header>
-            <a href="/" class="logo">math.guythatlives.net</a>
+            <a href="/" class="logo">GuyThatLives Network</a>
             <nav class="breadcrumb">
                 <a href="https://guythatlives.net">home</a> / <span>mathematics</span>
             </nav>
-            <button id="loginBtn" class="login-btn" onclick="authSystem.showLoginModal()">
+            <button id="loginBtn" class="login-btn" onclick="authSystem.showAuthModal()">
                 <span>🔐</span> Login
             </button>
         </header>
@@ -602,6 +604,8 @@
 
     <!-- Firebase Auth System -->
     <script src="shared/firebase-auth.js"></script>
+    <!-- Ad System -->
+    <script src="shared/ads.js"></script>
     <!-- Shared Particles -->
     <script src="shared/particles.js"></script>
 

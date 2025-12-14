@@ -16,6 +16,8 @@
 
     <!-- Auth UI Styles -->
     <link rel="stylesheet" href="../shared/auth-ui.css">
+    <!-- Ad UI Styles -->
+    <link rel="stylesheet" href="../shared/ads-ui.css">
 
     <style>
         :root {
@@ -559,6 +561,8 @@
 
     <!-- Firebase Auth System -->
     <script src="../shared/firebase-auth.js"></script>
+    <!-- Ad System -->
+    <script src="../shared/ads.js"></script>
     <!-- Progress Tracker -->
     <script src="../shared/progress-tracker.js"></script>
     <!-- Shared Particles -->
@@ -566,26 +570,56 @@
 
     <script>
         // Check if user is logged in
-        function checkAuthAndLoadProfile() {
-            if (!window.authSystem || !window.authSystem.isUserLoggedIn()) {
-                // User not logged in, show login prompt
-                document.getElementById('profileContent').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔒</div>
-                        <h2>Login Required</h2>
-                        <p class="empty-state-text">
-                            Please login to view your profile and track your progress.
-                        </p>
-                        <button class="empty-state-btn" onclick="authSystem.showLoginModal()">
-                            <span>🔐</span> Login Now
-                        </button>
-                    </div>
-                `;
+        async function checkAuthAndLoadProfile() {
+            // Wait for auth system to be ready
+            let attempts = 0;
+            while ((!window.authSystem || !window.authSystem.auth) && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+
+            if (!window.authSystem || !window.authSystem.auth) {
+                showLoginRequired('Auth system not initialized');
                 return;
+            }
+
+            // Wait for auth state to be determined
+            const user = window.authSystem.auth.currentUser;
+
+            if (!user) {
+                // Wait a bit more in case auth state is still loading
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                if (!window.authSystem.isUserLoggedIn()) {
+                    showLoginRequired();
+                    return;
+                }
             }
 
             // User is logged in, load their profile
             loadProfile();
+        }
+
+        // Show login required message
+        function showLoginRequired(debugInfo = '') {
+            document.getElementById('profileContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔒</div>
+                    <h2>Login Required</h2>
+                    <p class="empty-state-text">
+                        Please login to view your profile and track your progress.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="empty-state-btn" onclick="authSystem.showAuthModal()">
+                            <span>🔐</span> Login Now
+                        </button>
+                        <button class="action-btn" onclick="location.reload()">
+                            <span>🔄</span> Refresh Page
+                        </button>
+                    </div>
+                    ${debugInfo ? `<p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; font-family: 'JetBrains Mono', monospace;">Debug: ${debugInfo}</p>` : ''}
+                </div>
+            `;
         }
 
         function loadProfile() {
@@ -812,6 +846,20 @@
                 `;
             }
 
+            // Add My Schools section
+            html += `
+                <div class="lessons-section">
+                    <h2 class="section-title">
+                        <span>🏫</span> My Schools
+                    </h2>
+                    <div id="mySchoolsList">
+                        <p style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                            <span>⏳</span> Loading schools...
+                        </p>
+                    </div>
+                </div>
+            `;
+
             // Add settings section
             html += `
                 <div class="lessons-section">
@@ -820,28 +868,51 @@
                     </h2>
 
                     <!-- Advertisement Preferences -->
-                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
-                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem; color: var(--accent);">
+                    <div class="ad-prefs-container">
+                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.5rem; color: var(--accent);">
                             📢 Advertisement Preferences
                         </h3>
-                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 0.5rem;">
                             Want to contribute to GuyThatLives? Enable Ads and monetize the business without paying a dime!
                         </p>
-                        <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
-                                <input type="checkbox" id="adSidebar" onchange="saveAdPreferences()" style="cursor: pointer;">
-                                <span>Sidebar Ads</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
-                                <input type="checkbox" id="adBottom" onchange="saveAdPreferences()" style="cursor: pointer;">
-                                <span>Bottom-view Ads</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.8rem; cursor: pointer;">
-                                <input type="checkbox" id="adPopup" onchange="saveAdPreferences()" style="cursor: pointer;">
-                                <span>Pop-up Ads</span>
-                            </label>
+
+                        <div class="ad-prefs-triangle">
+                            <!-- Top Row: Sidebar and Bottom Ads -->
+                            <div class="ad-prefs-panel" id="sidebarPanel" onclick="toggleAdPreference('sidebar')">
+                                <input type="checkbox" id="adSidebar" class="ad-prefs-checkbox" onclick="event.stopPropagation();" onchange="toggleAdPreference('sidebar')">
+                                <div class="ad-prefs-icon">
+                                    📊
+                                </div>
+                                <div class="ad-prefs-title">Sidebar Ads</div>
+                                <div class="ad-prefs-description">Fixed sidebar advertisement on the right side of pages</div>
+                            </div>
+
+                            <div class="ad-prefs-panel" id="bottomPanel" onclick="toggleAdPreference('bottom')">
+                                <input type="checkbox" id="adBottom" class="ad-prefs-checkbox" onclick="event.stopPropagation();" onchange="toggleAdPreference('bottom')">
+                                <div class="ad-prefs-icon">
+                                    📱
+                                </div>
+                                <div class="ad-prefs-title">Bottom-view Ads</div>
+                                <div class="ad-prefs-description">Banner advertisement at the bottom of the screen</div>
+                            </div>
+
+                            <!-- Bottom Row: Popup Ads -->
+                            <div class="ad-prefs-panel bottom-row warning" id="popupPanel" onclick="toggleAdPreference('popup')">
+                                <input type="checkbox" id="adPopup" class="ad-prefs-checkbox" onclick="event.stopPropagation();" onchange="toggleAdPreference('popup')">
+                                <div class="ad-prefs-icon">
+                                    ⚠️
+                                </div>
+                                <div class="ad-prefs-title">Pop-up Ads</div>
+                                <div class="ad-prefs-description">
+                                    Periodic pop-up advertisements that appear over content
+                                </div>
+                                <div class="ad-prefs-warning-text">
+                                    ⚠️ Not recommended: Pop-ups can override the screen constantly and interrupt lessons
+                                </div>
+                            </div>
                         </div>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; font-style: italic;">
+
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; font-style: italic; text-align: center;">
                             All ads are disabled by default. Enable them to support the platform!
                         </p>
                     </div>
@@ -863,7 +934,7 @@
                     </div>
 
                     <!-- Messaging Placeholder -->
-                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; opacity: 0.5;">
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; opacity: 0.5;">
                         <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem; margin-bottom: 0.8rem;">
                             💬 Messaging
                         </h3>
@@ -871,6 +942,31 @@
                             Coming soon! Direct messaging between students, teachers, and administrators.
                         </p>
                     </div>
+            `;
+
+            // Add Host Manager Settings for admin account
+            const isAdmin = user.email === 'guythatlives@protonmail.com';
+            if (isAdmin) {
+                html += `
+                    <!-- Host Manager Settings -->
+                    <div class="admin-panel">
+                        <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; margin-bottom: 0.8rem; color: var(--accent);">
+                            🛡️ Host Manager Settings<span class="admin-badge">Admin</span>
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1.5rem;">
+                            View and manage all user accounts. As the platform host, you have full access to modify or delete any account.
+                        </p>
+
+                        <div id="adminUserList">
+                            <p style="text-align: center; color: var(--text-dim); padding: 1rem;">
+                                <span>⏳</span> Loading users...
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
                 </div>
             `;
 
@@ -897,6 +993,14 @@
 
             // Load ad preferences
             loadAdPreferences();
+
+            // Load admin user list if admin
+            if (isAdmin) {
+                loadAdminUserList();
+            }
+
+            // Load user's schools
+            loadUserSchools();
         }
 
         // Load advertisement preferences
@@ -925,6 +1029,25 @@
             }
         }
 
+        // Toggle ad preference (new panel-based system)
+        function toggleAdPreference(type) {
+            const checkbox = document.getElementById(`ad${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            const panel = document.getElementById(`${type}Panel`);
+
+            // Toggle checkbox
+            checkbox.checked = !checkbox.checked;
+
+            // Update panel appearance
+            if (checkbox.checked) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+
+            // Save preferences
+            saveAdPreferences();
+        }
+
         // Save advertisement preferences
         async function saveAdPreferences() {
             if (!window.authSystem || !window.authSystem.isUserLoggedIn()) return;
@@ -942,29 +1065,312 @@
                     adPreferencesUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
 
-                // Show success notification (temporary)
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: rgba(80, 250, 123, 0.1);
-                    border: 1px solid var(--success);
-                    color: var(--success);
-                    padding: 1rem 1.5rem;
-                    border-radius: 8px;
-                    z-index: 10000;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 0.9rem;
-                `;
-                notification.textContent = 'Ad preferences saved!';
-                document.body.appendChild(notification);
+                // Update panel appearances
+                ['sidebar', 'bottom', 'popup'].forEach(type => {
+                    const checkbox = document.getElementById(`ad${type.charAt(0).toUpperCase() + type.slice(1)}`);
+                    const panel = document.getElementById(`${type}Panel`);
+                    if (checkbox && panel) {
+                        if (checkbox.checked) {
+                            panel.classList.add('active');
+                        } else {
+                            panel.classList.remove('active');
+                        }
+                    }
+                });
 
-                setTimeout(() => notification.remove(), 3000);
+                // Show success notification
+                showNotification('Ad preferences saved!', 'success');
+
+                // Update ad system if loaded
+                if (window.adSystem) {
+                    window.adSystem.updatePreferences(adPreferences);
+                }
 
             } catch (error) {
                 console.error('Error saving ad preferences:', error);
-                alert('Error saving preferences. Please try again.');
+                showNotification('Error saving preferences', 'error');
+            }
+        }
+
+        // Show notification helper
+        function showNotification(message, type = 'success') {
+            const colors = {
+                success: { bg: 'rgba(80, 250, 123, 0.1)', border: 'var(--success)', color: 'var(--success)' },
+                error: { bg: 'rgba(255, 85, 85, 0.1)', border: 'var(--error)', color: 'var(--error)' }
+            };
+            const style = colors[type] || colors.success;
+
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${style.bg};
+                border: 1px solid ${style.border};
+                color: ${style.color};
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                z-index: 10000;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.9rem;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Load admin user list
+        async function loadAdminUserList() {
+            if (!window.authSystem || !window.authSystem.db) return;
+
+            try {
+                const usersSnapshot = await window.authSystem.db.collection('users').get();
+                const users = [];
+
+                usersSnapshot.forEach(doc => {
+                    users.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Sort by creation date (newest first)
+                users.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate() || new Date(0);
+                    const dateB = b.createdAt?.toDate() || new Date(0);
+                    return dateB - dateA;
+                });
+
+                let html = `
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Created</th>
+                                    <th>Lessons</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                for (const user of users) {
+                    const createdDate = user.createdAt?.toDate().toLocaleDateString() || 'Unknown';
+                    const lessonsCompleted = user.progress?.lessons ? Object.values(user.progress.lessons).filter(l => l.completed).length : 0;
+                    const isCurrentUser = user.email === window.authSystem.getCurrentUser().email;
+
+                    html += `
+                        <tr>
+                            <td>
+                                <strong>${user.username || 'Anonymous'}</strong>
+                                ${isCurrentUser ? '<span style="color: var(--accent); font-size: 0.75rem;"> (You)</span>' : ''}
+                            </td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">${user.email}</td>
+                            <td>${createdDate}</td>
+                            <td style="text-align: center;">${lessonsCompleted}</td>
+                            <td>
+                                <button class="admin-action-btn" onclick="viewUserDetails('${user.id}', '${user.email}')">
+                                    👁️ View
+                                </button>
+                                ${!isCurrentUser ? `
+                                    <button class="admin-action-btn danger" onclick="adminDeleteUser('${user.id}', '${user.email}')">
+                                        🗑️ Delete
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 1rem; text-align: center; font-style: italic;">
+                        Total users: ${users.length}
+                    </p>
+                `;
+
+                document.getElementById('adminUserList').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('adminUserList').innerHTML = `
+                    <p style="text-align: center; color: var(--error); padding: 1rem;">
+                        Error loading users: ${error.message}
+                    </p>
+                `;
+            }
+        }
+
+        // View user details
+        async function viewUserDetails(userId, userEmail) {
+            try {
+                const userDoc = await window.authSystem.db.collection('users').doc(userId).get();
+                if (!userDoc.exists) {
+                    alert('User not found');
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const progress = userData.progress || { lessons: {} };
+                const lessons = Object.values(progress.lessons || {});
+                const adPrefs = userData.adPreferences || { sidebar: false, bottom: false, popup: false };
+
+                let details = `User Details: ${userData.username || userEmail}\n\n`;
+                details += `Email: ${userEmail}\n`;
+                details += `Created: ${userData.createdAt?.toDate().toLocaleDateString() || 'Unknown'}\n`;
+                details += `Lessons Completed: ${lessons.filter(l => l.completed).length}\n`;
+                details += `Total Score: ${lessons.reduce((sum, l) => sum + (l.bestScore || 0), 0)}\n`;
+                details += `\nAd Preferences:\n`;
+                details += `  Sidebar: ${adPrefs.sidebar ? 'Enabled' : 'Disabled'}\n`;
+                details += `  Bottom: ${adPrefs.bottom ? 'Enabled' : 'Disabled'}\n`;
+                details += `  Popup: ${adPrefs.popup ? 'Enabled' : 'Disabled'}\n`;
+
+                alert(details);
+            } catch (error) {
+                console.error('Error viewing user:', error);
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Admin delete user
+        async function adminDeleteUser(userId, userEmail) {
+            const confirmed = confirm(
+                `⚠️ DELETE USER\n\n` +
+                `Are you sure you want to delete this user?\n\n` +
+                `Email: ${userEmail}\n\n` +
+                `This will permanently delete:\n` +
+                `• User account\n` +
+                `• All progress data\n` +
+                `• All preferences\n\n` +
+                `This action CANNOT be undone!`
+            );
+
+            if (!confirmed) return;
+
+            const doubleConfirm = confirm(
+                `FINAL CONFIRMATION\n\n` +
+                `Type YES in your mind to confirm deletion of ${userEmail}`
+            );
+
+            if (!doubleConfirm) return;
+
+            try {
+                // Delete user document from Firestore
+                await window.authSystem.db.collection('users').doc(userId).delete();
+
+                showNotification(`User ${userEmail} deleted successfully`, 'success');
+
+                // Reload user list
+                setTimeout(() => loadAdminUserList(), 1000);
+
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showNotification(`Error deleting user: ${error.message}`, 'error');
+            }
+        }
+
+        // Load user's schools
+        async function loadUserSchools() {
+            if (!window.authSystem || !window.authSystem.db) return;
+
+            try {
+                const user = window.authSystem.getCurrentUser();
+
+                // Query schools where user is owner or member
+                const ownerSchools = await window.authSystem.db.collection('schools')
+                    .where('owner', '==', user.uid)
+                    .get();
+
+                const memberSchools = await window.authSystem.db.collection('schools')
+                    .where('members', 'array-contains', { userId: user.uid })
+                    .get();
+
+                const schools = [];
+
+                ownerSchools.forEach(doc => {
+                    schools.push({ id: doc.id, ...doc.data(), isOwner: true });
+                });
+
+                memberSchools.forEach(doc => {
+                    const schoolData = { id: doc.id, ...doc.data(), isOwner: false };
+                    // Avoid duplicates
+                    if (!schools.find(s => s.id === doc.id)) {
+                        schools.push(schoolData);
+                    }
+                });
+
+                if (schools.length === 0) {
+                    document.getElementById('mySchoolsList').innerHTML = `
+                        <div style="text-align: center; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🏫</div>
+                            <h3 style="margin-bottom: 0.5rem;">No Schools Yet</h3>
+                            <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                                Create a school to organize students, assign courses, and track progress
+                            </p>
+                            <a href="/math/create-your-school/" class="action-btn" style="text-decoration: none;">
+                                <span>➕</span> Create Your School
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Render school cards
+                let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem;">';
+
+                schools.forEach(school => {
+                    const memberCount = school.members?.length || 0;
+                    const courseCount = school.assignedCourses?.length || 0;
+                    const roleBadge = school.isOwner ?
+                        '<span style="background: rgba(100, 255, 218, 0.2); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-family: \'JetBrains Mono\', monospace; font-weight: 600;">OWNER</span>' :
+                        '<span style="background: rgba(80, 250, 123, 0.2); color: var(--success); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-family: \'JetBrains Mono\', monospace; font-weight: 600;">MEMBER</span>';
+
+                    html += `
+                        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.3s ease; cursor: pointer;"
+                             onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-5px)';"
+                             onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)';"
+                             onclick="window.location.href='/math/manage-school/?id=${school.id}'">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="font-size: 3rem;">${school.logo || '🏫'}</div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 1.3rem; margin-bottom: 0.3rem;">${school.name}</h3>
+                                    ${roleBadge}
+                                </div>
+                            </div>
+                            <p style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 1rem; min-height: 2.5rem;">
+                                ${school.description || 'No description'}
+                            </p>
+                            <div style="display: flex; gap: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-dim);">
+                                <div><span>👥</span> ${memberCount}</div>
+                                <div><span>📚</span> ${courseCount}</div>
+                                <div><span>🔗</span> ${school.inviteCode}</div>
+                            </div>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem;">
+                                <a href="/math/manage-school/?id=${school.id}"
+                                   style="flex: 1; text-align: center; padding: 0.6rem; background: var(--accent); color: var(--primary); border-radius: 6px; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 600; transition: all 0.2s ease;"
+                                   onmouseover="this.style.transform='scale(1.05)';"
+                                   onmouseout="this.style.transform='scale(1)';"
+                                   onclick="event.stopPropagation();">
+                                    ⚙️ Manage
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+
+                document.getElementById('mySchoolsList').innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading schools:', error);
+                document.getElementById('mySchoolsList').innerHTML = `
+                    <p style="text-align: center; color: var(--error); padding: 1rem;">
+                        Error loading schools: ${error.message}
+                    </p>
+                `;
             }
         }
 
@@ -1104,20 +1510,16 @@
         }
 
         // Load profile when page loads
-        setTimeout(checkAuthAndLoadProfile, 200);
+        checkAuthAndLoadProfile();
 
-        // Reload profile if user logs in
-        document.addEventListener('DOMContentLoaded', () => {
-            // Listen for login events
-            const originalLogin = authSystem.login.bind(authSystem);
-            authSystem.login = async function(...args) {
-                const result = await originalLogin(...args);
-                if (result.success) {
-                    setTimeout(checkAuthAndLoadProfile, 300);
+        // Reload profile when auth state changes
+        if (window.authSystem && window.authSystem.auth) {
+            window.authSystem.auth.onAuthStateChanged((user) => {
+                if (user) {
+                    checkAuthAndLoadProfile();
                 }
-                return result;
-            };
-        });
+            });
+        }
     </script>
 </body>
 </html>
