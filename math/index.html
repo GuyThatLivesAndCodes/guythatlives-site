@@ -367,6 +367,60 @@
             display: none;
         }
 
+        .beta-course-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 2px solid var(--beta);
+            color: var(--beta);
+            text-decoration: none;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .beta-course-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--beta);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .beta-course-action:hover {
+            color: var(--primary);
+        }
+
+        .beta-course-action:hover::before {
+            left: 0;
+        }
+
+        .beta-course-action:disabled {
+            border-color: var(--beta);
+            color: var(--text-dim);
+            cursor: not-allowed;
+        }
+
+        .beta-course-action:disabled:hover {
+            color: var(--text-dim);
+        }
+
+        .beta-course-action:disabled::before {
+            display: none;
+        }
+
         .philosophy-section {
             margin-top: 6rem;
             padding: 3rem;
@@ -545,10 +599,10 @@
                         <li>Coordinate geometry</li>
                         <li>Trigonometric ratios</li>
                     </ul>
-                    <a href="geometry/" class="course-action" disabled>
+                    <button class="beta-course-action" disabled>
                         <span>🛑</span>
                         Disabled Temporarily
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Pre-Calculus Course -->
