@@ -764,7 +764,7 @@
                 equation: `${a} + ${b}`,
                 solution: result,
                 steps: [
-                    { step: `Add ${a} to ${b} together`, equation: `${a} + ${b} = ${result}` }
+                    { step: `Add ${a} to ${b} together`, equation: `${result}` }
                 ],
                 mistakes: [
                     {
@@ -772,18 +772,6 @@
                         description: `Subtracted ${b} by ${a} instead of adding`,
                         work: `${b} - ${a} = ${b - a}`,
                         answer: `${b - a}`
-                    },
-                    {
-                        type: "gave_a",
-                        description: "Only gave the value of the first number",
-                        work: `${a}`,
-                        answer: `${a}`
-                    },
-                    {
-                        type: "gave_b",
-                        description: "Only gave the value of the second number",
-                        work: `${b}`,
-                        answer: `${b}`
                     },
                     {
                         type: "subtracted_b",
@@ -822,7 +810,7 @@
                 equation: `${a} - ${b}`,
                 solution: result,
                 steps: [
-                    { step: `Subtract ${b} from ${a}`, equation: `${a} - ${b} = ${result}` }
+                    { step: `Subtract ${b} from ${a}`, equation: `${result}` }
                 ],
                 mistakes: [
                     {
@@ -832,16 +820,10 @@
                         answer: `${a + b}`
                     },
                     {
-                        type: "gave_a",
-                        description: "Only gave the value of the first number",
-                        work: `${a}`,
-                        answer: `${a}`
-                    },
-                    {
-                        type: "gave_b",
-                        description: "Only gave the value of the second number",
-                        work: `${b}`,
-                        answer: `${b}`
+                        type: "subtracted_wrong_way",
+                        description: `Subtracted the wrong way`,
+                        work: `${b} - ${a} = ${b - a}`,
+                        answer: `${b - a}`
                     },
                     {
                         type: "multiplied",
@@ -874,7 +856,7 @@
                 equation: `${a} * ${b}`,
                 solution: result,
                 steps: [
-                    { step: `Multiply ${a} by ${b}`, equation: `${a} * ${b} = ${result}` }
+                    { step: `Multiply ${a} by ${b}`, equation: `${result}` }
                 ],
                 mistakes: [
                     {
@@ -894,18 +876,6 @@
                         description: `Subtracted ${a} by ${b} instead of adding`,
                         work: `${a} - ${b} = ${a - b}`,
                         answer: `${a - b}`
-                    },
-                    {
-                        type: "gave_a",
-                        description: "Only gave the value of the first number",
-                        work: `${a}`,
-                        answer: `${a}`
-                    },
-                    {
-                        type: "gave_b",
-                        description: "Only gave the value of the second number",
-                        work: `${b}`,
-                        answer: `${b}`
                     },
                     {
                         type: "divided_a",
@@ -1064,7 +1034,7 @@
                 const mistake = mistakes[i];
                 
                 // Extract the likely wrong answer from the mistake work
-                let mistakeAnswer = extractAnswerFromWork(mistake.answer);
+                let mistakeAnswer = parseFloat(mistake.answer);
                 
                 if (mistakeAnswer !== null) {
                     const difference = Math.abs(userAnswer - mistakeAnswer);
