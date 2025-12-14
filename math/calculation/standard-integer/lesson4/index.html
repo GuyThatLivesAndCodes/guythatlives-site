@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 1: Short Addition Equations • GuyThatLives Network</title>
+    <title>Lesson 4: Moderate Addition, Subtraction, and Multiplication Equations • GuyThatLives Network</title>
     <meta name="description" content="Master simple equations with addition, subtraction, and multiplication through mistake-based learning.">
     
     <!-- Fonts -->
@@ -725,7 +725,7 @@
             <div id="achievementsContainer"></div>
             <div class="modal-actions">
                 <a href="../" class="modal-btn">← Course Menu</a>
-                <a href="../lesson2/" class="modal-btn primary">Next Lesson →</a>
+                <a href="../lesson4/" class="modal-btn primary">Next Lesson →</a>
             </div>
         </div>
     </div>
@@ -736,14 +736,25 @@
         // Procedural problem generation - LESSON 1: ADDITION/SUBTRACTION ONLY
         function generateRandomProblem() {
             const problemTypes = [
-                'addition_basic'
+                'addition',
+                'subtraction',
+                'multiplication',
+                'addition_multiplication'
             ];
             
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
             
             switch(type) {
-                case 'addition_basic':
+                case 'addition':
                     return generateAdditionProblem();
+                case 'subtraction':
+                    return generateSubtractionProblem();
+                case 'multiplication':
+                    return generateMultiplicationProblem();
+                case 'addition_multiplication':
+                    return generateAdditionMultiplicationProblem();
+                case 'subtraction_multiplication':
+                    return generateSubtractionProblem();
                 default:
                     return generateAdditionProblem();
             }
@@ -929,6 +940,109 @@
             };
         }
 
+        function generateAdditionMultiplicationProblem() {
+            const a = Math.floor(Math.random() * 10) + 3;
+            const b = Math.floor(Math.random() * 10) + 1;
+            const c = Math.floor(Math.random() * 10) + 2;
+            const bMultiplied = b * c;
+            const result = a + bc;
+            
+            return {
+                equation: `${a} + ${b} + ${c}`,
+                solution: result,
+                steps: [
+                    { step: `Multiply ${b} and ${c} together`, equation: `${a} + (${bMultiplied})` },
+                    { step: `Add ${a} to ${bMultiplied}`, equation: `${result}` }
+                ],
+                mistakes: [
+                    {
+                        type: "forgot_negative",
+                        description: `Forgot a negative`,
+                        work: `${a} + ${b} * ${c} = ${result * -1}`,
+                        answer: `${result * -1}`
+                    },
+                    {
+                        type: "subtracted_a",
+                        description: `Subtracted ${bMultiplied} by ${a} instead of adding`,
+                        work: `(${bMultiplied}) - ${a} = ${bMultiplied - a}`,
+                        answer: `${bMultiplied - a}`
+                    },
+                    {
+                        type: "subtracted_b",
+                        description: `Subtracted ${a} by ${bMultiplied} instead of adding`,
+                        work: `${a} - (${bMultiplied}) = ${a - bMultiplied}`,
+                        answer: `${a - bMultiplied}`
+                    },
+                    {
+                        type: "added_beforehand",
+                        description: `Added ${a} to ${b} before multiplication forgetting PEMDAS:
+                        
+                        - P = Parenthesis
+                        - E = Exponents (ignored for this lesson)
+                        - M = Multiplication
+                        - D = Division (ignored for this lesson)
+                        - A = Addition
+                        - S = Subtraction
+                        `,
+                        work: `${a} + ${b} * ${c} = ${a + b} * ${c}`,
+                        answer: `${(a + b) * c}`
+                    },
+                    {
+                        type: "subtracted_a_beforehand",
+                        description: `Subtracted ${a} by ${b} incorrectly before multiplication forgetting PEMDAS:
+                        
+                        - P = Parenthesis
+                        - E = Exponents (ignored for this lesson)
+                        - M = Multiplication
+                        - D = Division (ignored for this lesson)
+                        - A = Addition
+                        - S = Subtraction
+                        `,
+                        work: `${a} - ${b} * ${c} = ${a - b} * ${c}`,
+                        answer: `${(a - b) * c}`
+                    },
+                    {
+                        type: "subtracted_b_beforehand",
+                        description: `Subtracted ${b} by ${a} incorrectly before multiplication forgetting PEMDAS:
+                        
+                        - P = Parenthesis
+                        - E = Exponents (ignored for this lesson)
+                        - M = Multiplication
+                        - D = Division (ignored for this lesson)
+                        - A = Addition
+                        - S = Subtraction
+                        `,
+                        work: `${b} - ${a} * ${c} = ${b - a} * ${c}`,
+                        answer: `${(b - a) * c}`
+                    },
+                    {
+                        type: "subtracted_a",
+                        description: `Subtracted ${a} by ${bMultiplied} incorrectly`,
+                        work: `${a} - ${bMultiplied}= ${a - bMultiplied}`,
+                        answer: `${a - bMultiplied}`
+                    },
+                    {
+                        type: "subtracted_b",
+                        description: `Subtracted ${bMultiplied} by ${a} incorrectly`,
+                        work: `${bMultiplied} - ${a}= ${bMultiplied - a}`,
+                        answer: `${bMultiplied - a}`
+                    },
+                    {
+                        type: "divided_a",
+                        description: `Divided ${a} by ${b} instead of subtracting`,
+                        work: `${a} + ${b}/${c} = ${a} + ${toFraction(a, b)}`,
+                        answer: `${a + toFraction(b, c)}`
+                    },
+                    {
+                        type: "divided_b",
+                        description: `Divided ${b} by ${a} instead of subtracting`,
+                        work: `${b}/${a} = ${toFraction(b, a)}`,
+                        answer: `${toFraction(b, a)}`
+                    }
+                ]
+            };
+        }
+
         let currentProblem = null;
         let problemCount = 0;
         let userAnswer = null;
@@ -944,7 +1058,7 @@
             try {
                 if (typeof ProgressTracker !== 'undefined') {
                     progressTracker = new ProgressTracker();
-                    progressTracker.initializeLesson('calculation_standard_integer', 'lesson1');
+                    progressTracker.initializeLesson('calculation_standard_integer', 'lesson4');
                     
                     // Show progress UI elements
                     document.getElementById('scorePanel').style.display = 'block';

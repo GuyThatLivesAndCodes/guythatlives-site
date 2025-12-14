@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 1: Short Addition Equations • GuyThatLives Network</title>
+    <title>Lesson 2: Short Subtraction Equations • GuyThatLives Network</title>
     <meta name="description" content="Master simple equations with addition, subtraction, and multiplication through mistake-based learning.">
     
     <!-- Fonts -->
@@ -736,14 +736,14 @@
         // Procedural problem generation - LESSON 1: ADDITION/SUBTRACTION ONLY
         function generateRandomProblem() {
             const problemTypes = [
-                'addition_basic'
+                'subtraction_basic'
             ];
             
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
             
             switch(type) {
-                case 'addition_basic':
-                    return generateAdditionProblem();
+                case 'subtraction_basic':
+                    return generateSubtractionProblem();
                 default:
                     return generateAdditionProblem();
             }
@@ -944,7 +944,7 @@
             try {
                 if (typeof ProgressTracker !== 'undefined') {
                     progressTracker = new ProgressTracker();
-                    progressTracker.initializeLesson('calculation_standard_integer', 'lesson1');
+                    progressTracker.initializeLesson('calculation_standard_integer', 'lesson2');
                     
                     // Show progress UI elements
                     document.getElementById('scorePanel').style.display = 'block';
