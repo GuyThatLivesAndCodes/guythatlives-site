@@ -761,10 +761,10 @@
             const result = a + b;
             
             return {
-                equation: `x + ${b} = ${result}`,
-                solution: x,
+                equation: `${a} + ${b}`,
+                solution: result,
                 steps: [
-                    { step: `Subtract ${b} from both sides`, equation: `x = ${result - b}` }
+                    { step: `Add ${a} to ${b} together`, equation: `${a} + ${b} = ${result}` }
                 ],
                 mistakes: [
                     {
@@ -820,7 +820,7 @@
             
             return {
                 equation: `${a} - ${b}`,
-                solution: x,
+                solution: result,
                 steps: [
                     { step: `Subtract ${b} from ${a}`, equation: `${a} - ${b} = ${result}` }
                 ],
@@ -872,7 +872,7 @@
             
             return {
                 equation: `${a} * ${b}`,
-                solution: x,
+                solution: result,
                 steps: [
                     { step: `Multiply ${a} by ${b}`, equation: `${a} * ${b} = ${result}` }
                 ],
