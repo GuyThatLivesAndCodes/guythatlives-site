@@ -782,6 +782,12 @@
                 ],
                 mistakes: [
                     {
+                        type: "forgot_negative",
+                        description: `Forgot a negative`,
+                        work: `${a} + ${b} = ${result * -1}`,
+                        answer: `${result * -1}`
+                    },
+                    {
                         type: "subtracted_a",
                         description: `Subtracted ${b} by ${a} instead of adding`,
                         work: `${b} - ${a} = ${b - a}`,
@@ -827,6 +833,12 @@
                     { step: `Subtract ${b} from ${a}`, equation: `${result}` }
                 ],
                 mistakes: [
+                    {
+                        type: "forgot_negative",
+                        description: `Forgot a negative`,
+                        work: `${a} - ${b} = ${result * -1}`,
+                        answer: `${result * -1}`
+                    },
                     {
                         type: "added",
                         description: `Added ${a} to ${b} instead of subtracting`,
@@ -874,6 +886,12 @@
                 ],
             
                 mistakes: [
+                    {
+                        type: "forgot_negative",
+                        description: `Forgot a negative`,
+                        work: `${a} * ${b} = ${result * -1}`,
+                        answer: `${result * -1}`
+                    },
                     {
                         type: "added",
                         description: `Added ${a} to ${b} instead of multiplication`,
