@@ -636,7 +636,7 @@
 
     <div class="container">
         <header>
-            <a href="/math/calculation/standard-integer" class="logo">Lesson 1: Short Equations</a>
+            <a href="/math/calculation/standard-integer" class="logo">Lesson 1: Short Addition Equations</a>
             <div class="header-controls">
                 <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
                 <nav class="breadcrumb">
@@ -736,9 +736,7 @@
         // Procedural problem generation - LESSON 1: ADDITION/SUBTRACTION ONLY
         function generateRandomProblem() {
             const problemTypes = [
-                'addition_basic',
-                'subtraction_basic',
-                'multiplication_basic'
+                'addition_basic'
             ];
             
             const type = problemTypes[Math.floor(Math.random() * problemTypes.length)];
@@ -746,10 +744,6 @@
             switch(type) {
                 case 'addition_basic':
                     return generateAdditionProblem();
-                case 'subtraction_basic':
-                    return generateSubtractionProblem();
-                case 'multiplication_basic':
-                    return generateMultiplicationProblem();
                 default:
                     return generateAdditionProblem();
             }
