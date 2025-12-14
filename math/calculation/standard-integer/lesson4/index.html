@@ -706,11 +706,11 @@
             <div class="modal-header">
                 <div class="modal-icon">🏆</div>
                 <h2 class="modal-title">Lesson Complete!</h2>
-                <p class="modal-subtitle">You've mastered simple equations!</p>
+                <p class="modal-subtitle">You've mastered moderate addition, subtraction, and multiplication equations!</p>
             </div>
             <div class="modal-stats">
                 <div class="final-score" id="finalScore">100</div>
-                <p>Excellent work on Lesson 1!</p>
+                <p>Excellent work on Lesson 4!</p>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <span class="stat-value" id="finalAccuracy">100%</span>
@@ -725,7 +725,7 @@
             <div id="achievementsContainer"></div>
             <div class="modal-actions">
                 <a href="../" class="modal-btn">← Course Menu</a>
-                <a href="../lesson4/" class="modal-btn primary">Next Lesson →</a>
+                <a href="../../algebra/" class="modal-btn primary">Learn Algebra →</a>
             </div>
         </div>
     </div>
@@ -945,7 +945,7 @@
             const b = Math.floor(Math.random() * 10) + 1;
             const c = Math.floor(Math.random() * 10) + 2;
             const bMultiplied = b * c;
-            const result = a + bc;
+            const result = a + bMultiplied;
             
             return {
                 equation: `${a} + ${b} + ${c}`,
