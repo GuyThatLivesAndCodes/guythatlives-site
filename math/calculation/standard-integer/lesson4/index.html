@@ -739,6 +739,8 @@
                 'addition',
                 'subtraction',
                 'multiplication',
+                'addition_multiplication',
+                'addition_multiplication',
                 'addition_multiplication'
             ];
             
@@ -948,7 +950,7 @@
             const result = a + bMultiplied;
             
             return {
-                equation: `${a} + ${b} + ${c}`,
+                equation: `${a} + ${b} * ${c}`,
                 solution: result,
                 steps: [
                     { step: `Multiply ${b} and ${c} together`, equation: `${a} + (${bMultiplied})` },
@@ -975,43 +977,19 @@
                     },
                     {
                         type: "added_beforehand",
-                        description: `Added ${a} to ${b} before multiplication forgetting PEMDAS:
-                        
-                        - P = Parenthesis
-                        - E = Exponents (ignored for this lesson)
-                        - M = Multiplication
-                        - D = Division (ignored for this lesson)
-                        - A = Addition
-                        - S = Subtraction
-                        `,
+                        description: `Added ${a} to ${b} before multiplication forgetting PEMDAS`,
                         work: `${a} + ${b} * ${c} = ${a + b} * ${c}`,
                         answer: `${(a + b) * c}`
                     },
                     {
                         type: "subtracted_a_beforehand",
-                        description: `Subtracted ${a} by ${b} incorrectly before multiplication forgetting PEMDAS:
-                        
-                        - P = Parenthesis
-                        - E = Exponents (ignored for this lesson)
-                        - M = Multiplication
-                        - D = Division (ignored for this lesson)
-                        - A = Addition
-                        - S = Subtraction
-                        `,
+                        description: `Subtracted ${a} by ${b} incorrectly before multiplication forgetting PEMDAS`,
                         work: `${a} - ${b} * ${c} = ${a - b} * ${c}`,
                         answer: `${(a - b) * c}`
                     },
                     {
                         type: "subtracted_b_beforehand",
-                        description: `Subtracted ${b} by ${a} incorrectly before multiplication forgetting PEMDAS:
-                        
-                        - P = Parenthesis
-                        - E = Exponents (ignored for this lesson)
-                        - M = Multiplication
-                        - D = Division (ignored for this lesson)
-                        - A = Addition
-                        - S = Subtraction
-                        `,
+                        description: `Subtracted ${b} by ${a} incorrectly before multiplication forgetting PEMDAS`,
                         work: `${b} - ${a} * ${c} = ${b - a} * ${c}`,
                         answer: `${(b - a) * c}`
                     },
@@ -1270,6 +1248,16 @@
                             <div class="detected-mistake">
                                 <h4><strong>Common mistake: ${mistake.description}</strong></h4>
                                 <div class="mistake-explanation">Your work probably looked like: ${mistake.work}</div>
+                                <h5>Order of Operations (PEMDAS)</h5>
+                                <ul style="list-style: none; padding-left: 0;">
+                                    <li>– <strong>P</strong> = Parentheses</li>
+                                    <li>– <strong>E</strong> = Exponents <em>(ignored for this lesson)</em></li>
+                                    <li>– <strong>M</strong> = Multiplication</li>
+                                    <li>– <strong>D</strong> = Division <em>(ignored for this lesson)</em></li>
+                                    <li>– <strong>A</strong> = Addition</li>
+                                    <li>– <strong>S</strong> = Subtraction</li>
+                                </ul>
+
                                 <p style="margin-top: 1rem; color: var(--text-dim);">
                                     This is a very common error! Let me show you the correct approach:
                                 </p>
