@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 1: Simple Factoring • GuyThatLives Network</title>
+    <meta name="description" content="Master factoring simple quadratics x² + bx + c = 0 through mistake-based learning.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Crimson+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Auth UI Styles -->
+    <link rel="stylesheet" href="https://guythatlives.net/math/shared/auth-ui.css">
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://guythatlives.net/math/shared/firebase-auth.js"></script>
+    <!-- Ad System -->
+    <script src="https://guythatlives.net/math/shared/ads.js"></script>
+    <script src="https://guythatlives.net/math/shared/global-header.js"></script>
+
+    <!-- Progress tracking system -->
+    <link rel="stylesheet" href="https://guythatlives.net/math/shared/progress-ui.css">
+    <script src="https://guythatlives.net/math/shared/progress-tracker.js"></script>
+
+    <!-- App Panel System -->
+    <link rel="stylesheet" href="https://guythatlives.net/math/shared/app-panel.css">
+    <script src="https://guythatlives.net/math/shared/app-panel.js"></script>
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(100, 255, 218, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(100, 255, 218, 0.05) 0%, transparent 50%),
+                        linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 2rem;
+            animation: slideDown 1s ease-out;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .restart-btn {
+            background: transparent;
+            border: 2px solid var(--warning);
+            color: var(--warning);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .restart-btn:hover {
+            background: var(--warning);
+            color: var(--primary);
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .breadcrumb a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .problem-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .problem-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .problem-number {
+            background: var(--warning);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .problem-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .problem-statement {
+            background: rgba(241, 250, 140, 0.05);
+            border: 1px solid rgba(241, 250, 140, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .equation-display {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 1rem 0;
+            color: var(--warning);
+        }
+
+        .solve-instruction {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .math-input {
+            width: 100%;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .math-input:focus {
+            outline: none;
+            border-color: var(--warning);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--warning);
+            color: var(--warning);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--warning);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .submit-btn:hover {
+            color: var(--primary);
+        }
+
+        .submit-btn:hover::before {
+            left: 0;
+        }
+
+        .feedback-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .feedback-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feedback-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback-correct .feedback-icon {
+            background: rgba(80, 250, 123, 0.2);
+            color: var(--success);
+        }
+
+        .feedback-incorrect .feedback-icon {
+            background: rgba(255, 85, 85, 0.2);
+            color: var(--error);
+        }
+
+        .feedback-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .mistake-analysis {
+            background: rgba(255, 85, 85, 0.05);
+            border: 1px solid rgba(255, 85, 85, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .mistake-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .solution-steps {
+            background: rgba(80, 250, 123, 0.05);
+            border: 1px solid rgba(80, 250, 123, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .solution-title {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .solution-step {
+            margin: 0.8rem 0;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(80, 250, 123, 0.1);
+        }
+
+        .solution-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--success);
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .step-content {
+            font-size: 1rem;
+        }
+
+        .next-problem-btn {
+            width: 100%;
+            background: var(--success);
+            border: none;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+        }
+
+        .next-problem-btn:hover {
+            background: var(--warning);
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .header-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+
+            .breadcrumb {
+                display: none;
+            }
+
+            .equation-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-container">
+        <div class="grid-overlay"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <a href="/math/algebra/quadratic-functions" class="logo">Lesson 1: Simple Factoring</a>
+            <div class="header-controls">
+                <button class="restart-btn" onclick="restartLesson()">🔄 Restart</button>
+                <nav class="breadcrumb">
+                    <a href="/">home</a> / <a href="/math">math</a> / <a href="/math/algebra">algebra</a> / <a href="/math/algebra/quadratic-functions">quadratic functions</a> / <span>lesson 1</span>
+                </nav>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="problem-section">
+                <div class="problem-header">
+                    <div class="problem-number" id="problemNumber">Problem 1</div>
+                    <h1 class="problem-title">Factor and Solve</h1>
+                </div>
+
+                <div class="problem-statement">
+                    <div class="equation-display" id="equationDisplay">x² + 5x + 6 = 0</div>
+                    <p class="solve-instruction">Find both solutions by factoring</p>
+                </div>
+
+                <div class="input-section">
+                    <label class="input-label" for="answerInput">Your solutions (e.g., "x = -2 or x = -3"):</label>
+                    <input type="text" id="answerInput" class="math-input" placeholder="x = ... or x = ..." autocomplete="off">
+                </div>
+
+                <button class="submit-btn" id="submitBtn">Check Answer</button>
+            </div>
+
+            <div class="feedback-section" id="feedbackSection">
+                <div class="feedback-header">
+                    <div class="feedback-icon" id="feedbackIcon">🤔</div>
+                    <h2 class="feedback-title" id="feedbackTitle">Submit your answer to see feedback</h2>
+                </div>
+                <div id="feedbackContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Panel -->
+    <div class="score-panel" id="scorePanel" style="display: none;">
+        <div class="score-header">
+            <span class="score-icon">🎯</span>
+            <h3 class="score-title">// lesson score</h3>
+        </div>
+        <div class="score-display">
+            <span class="current-score" id="currentScore">0</span>
+            <span class="target-score">/ 100</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-stats">
+            <div class="stat-item">
+                <span class="stat-value" id="currentStreak">0</span>
+                <span class="stat-label">streak</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="questionCount">0</span>
+                <span class="stat-label">questions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lesson Complete Modal -->
+    <div class="lesson-complete-modal" id="lessonCompleteModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-icon">🏆</div>
+                <h2 class="modal-title">Lesson Complete!</h2>
+                <p class="modal-subtitle">You've mastered simple factoring!</p>
+            </div>
+            <div class="modal-stats">
+                <div class="final-score" id="finalScore">100</div>
+                <p>Excellent work on Lesson 1!</p>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <span class="stat-value" id="finalAccuracy">100%</span>
+                        <span class="stat-label">accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="finalTime">5:30</span>
+                        <span class="stat-label">time</span>
+                    </div>
+                </div>
+            </div>
+            <div id="achievementsContainer"></div>
+            <div class="modal-actions">
+                <a href="../" class="modal-btn">← Course Menu</a>
+                <a href="../lesson2/" class="modal-btn primary">Next Lesson →</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Problem generation for simple quadratics: x² + bx + c = 0
+        function generateRandomProblem() {
+            const variable = getRandomVariable();
+
+            // Generate two random roots between -10 and 10
+            let r1 = Math.floor(Math.random() * 21) - 10;
+            let r2 = Math.floor(Math.random() * 21) - 10;
+
+            // Avoid zero and duplicates
+            while (r1 === 0 || r2 === 0 || r1 === r2) {
+                r1 = Math.floor(Math.random() * 21) - 10;
+                r2 = Math.floor(Math.random() * 21) - 10;
+            }
+
+            // Calculate b and c from roots
+            // (x - r1)(x - r2) = x² - (r1+r2)x + r1*r2 = x² + bx + c
+            const b = -(r1 + r2);
+            const c = r1 * r2;
+
+            // Format equation
+            const bTerm = b === 0 ? '' : (b === 1 ? ` + ${variable}` : (b === -1 ? ` - ${variable}` : (b > 0 ? ` + ${b}${variable}` : ` - ${Math.abs(b)}${variable}`)));
+            const cTerm = c === 0 ? '' : (c > 0 ? ` + ${c}` : ` - ${Math.abs(c)}`);
+            const equation = `${variable}^2${bTerm}${cTerm} = 0`;
+
+            // Sort solutions for consistency
+            const solutions = [r1, r2].sort((a, b) => a - b);
+
+            return {
+                equation: equation,
+                variable: variable,
+                solutions: solutions,
+                b: b,
+                c: c,
+                steps: [
+                    { step: `Find factors of ${c} that add to ${b}`, equation: `Factors: ${r1} and ${r2}` },
+                    { step: `Factor the quadratic`, equation: `(${variable} - ${-r1})(${variable} - ${-r2}) = 0` },
+                    { step: `Set each factor to zero`, equation: `${variable} = ${r1} or ${variable} = ${r2}` }
+                ],
+                mistakes: [
+                    {
+                        type: "wrong_sign",
+                        description: "Wrong sign on one or both factors",
+                        work: `Got ${-r1} and ${-r2} instead of ${r1} and ${r2}`
+                    },
+                    {
+                        type: "forgot_zero_product",
+                        description: "Forgot to set factors equal to zero",
+                        work: `Stopped at (${variable} - ${-r1})(${variable} - ${-r2})`
+                    },
+                    {
+                        type: "added_instead_multiply",
+                        description: "Found factors that multiply to ${b} instead of ${c}",
+                        work: `Confused what should add vs multiply`
+                    }
+                ]
+            };
+        }
+
+        function getRandomVariable() {
+            const variables = ['x', 'y', 't', 'n'];
+            return variables[Math.floor(Math.random() * variables.length)];
+        }
+
+        let currentProblem = null;
+        let problemCount = 0;
+        let questionStartTime = Date.now();
+        let attempts = 0;
+        let problemAnswered = false;
+        let progressTracker = null;
+
+        function initializeProgressTracking() {
+            try {
+                if (typeof ProgressTracker !== 'undefined') {
+                    progressTracker = new ProgressTracker();
+                    progressTracker.initializeLesson('algebra_quadratics', 'quadratics_lesson1');
+                    const scorePanel = document.getElementById('scorePanel');
+                    if (scorePanel) scorePanel.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to initialize progress tracking:', error);
+                progressTracker = null;
+            }
+        }
+
+        function loadProblem() {
+            currentProblem = generateRandomProblem();
+            problemCount++;
+            questionStartTime = Date.now();
+            attempts = 0;
+            problemAnswered = false;
+
+            document.getElementById('problemNumber').textContent = `Problem ${problemCount}`;
+
+            if (progressTracker) {
+                document.getElementById('questionCount').textContent = problemCount;
+            }
+
+            katex.render(currentProblem.equation, document.getElementById('equationDisplay'), {
+                displayMode: true,
+                throwOnError: false
+            });
+
+            const answerInput = document.getElementById('answerInput');
+            answerInput.value = '';
+            answerInput.placeholder = `${currentProblem.variable} = ... or ${currentProblem.variable} = ...`;
+
+            const feedbackSection = document.getElementById('feedbackSection');
+            feedbackSection.classList.remove('show', 'feedback-correct', 'feedback-incorrect');
+            document.getElementById('feedbackIcon').textContent = '🤔';
+            document.getElementById('feedbackTitle').textContent = 'Submit your answer to see feedback';
+            document.getElementById('feedbackContent').innerHTML = '';
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Check Answer';
+        }
+
+        function parseAnswers(input) {
+            // Extract all numbers that look like solutions
+            const matches = input.match(/-?\d+\.?\d*/g);
+            if (!matches) return [];
+            return matches.map(n => parseFloat(n)).sort((a, b) => a - b);
+        }
+
+        function checkAnswer() {
+            const input = document.getElementById('answerInput').value.trim();
+            if (!input) return;
+
+            if (problemAnswered) return;
+
+            attempts++;
+            const userSolutions = parseAnswers(input);
+
+            if (userSolutions.length !== 2) {
+                alert('Please enter both solutions');
+                return;
+            }
+
+            const isCorrect = userSolutions[0] === currentProblem.solutions[0] &&
+                            userSolutions[1] === currentProblem.solutions[1];
+            problemAnswered = true;
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Answered';
+
+            if (progressTracker) {
+                const timeSpent = Date.now() - questionStartTime;
+                progressTracker.calculateScoreChange(isCorrect, timeSpent, attempts);
+
+                if (progressTracker.currentScore >= 100) {
+                    setTimeout(() => showLessonComplete(), 2000);
+                }
+            }
+
+            showFeedback(isCorrect, userSolutions);
+        }
+
+        function showFeedback(isCorrect, userSolutions) {
+            const feedbackSection = document.getElementById('feedbackSection');
+            const feedbackIcon = document.getElementById('feedbackIcon');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackContent = document.getElementById('feedbackContent');
+
+            createCoinEffect(isCorrect);
+
+            if (isCorrect) {
+                feedbackSection.className = 'feedback-section show feedback-correct';
+                feedbackIcon.textContent = '🎉';
+                feedbackTitle.textContent = 'Perfect! You factored it correctly!';
+
+                feedbackContent.innerHTML = `
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Next Problem →</button>
+                `;
+            } else {
+                feedbackSection.className = 'feedback-section show feedback-incorrect';
+                feedbackIcon.textContent = '🤯';
+                feedbackTitle.textContent = 'Not quite! Let\'s learn from this.';
+
+                feedbackContent.innerHTML = `
+                    <div class="mistake-analysis">
+                        <div class="mistake-title">// Common mistakes in factoring:</div>
+                        <p>You got: ${currentProblem.variable} = ${userSolutions[0]} and ${currentProblem.variable} = ${userSolutions[1]}</p>
+                        <p>Correct: ${currentProblem.variable} = ${currentProblem.solutions[0]} and ${currentProblem.variable} = ${currentProblem.solutions[1]}</p>
+                        <ul style="margin-top: 1rem; color: var(--text-dim);">
+                            <li>Check if your factors multiply to ${currentProblem.c}</li>
+                            <li>Check if your factors add to ${currentProblem.b}</li>
+                            <li>Watch for sign errors!</li>
+                        </ul>
+                    </div>
+                    <div class="solution-steps">
+                        <div class="solution-title">// Correct Solution Steps</div>
+                        ${currentProblem.steps.map((step, i) => `
+                            <div class="solution-step">
+                                <div class="step-number">Step ${i + 1}:</div>
+                                <div class="step-content">${step.step}: ${step.equation}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="next-problem-btn" onclick="nextProblem()">Try Another Problem →</button>
+                `;
+            }
+        }
+
+        function nextProblem() {
+            loadProblem();
+            setTimeout(() => document.getElementById('answerInput').focus(), 100);
+        }
+
+        function showLessonComplete() {
+            if (!progressTracker) return;
+
+            try {
+                const modal = document.getElementById('lessonCompleteModal');
+                const lessonData = progressTracker.completeLessonAttempt();
+
+                document.getElementById('finalScore').textContent = lessonData.score;
+                document.getElementById('finalAccuracy').textContent =
+                    Math.round(lessonData.accuracy * 100) + '%';
+                document.getElementById('finalTime').textContent =
+                    formatTime(lessonData.timeSpent);
+
+                const achievements = progressTracker.getAchievements();
+                const achievementsContainer = document.getElementById('achievementsContainer');
+
+                if (achievements.length > 0) {
+                    achievementsContainer.innerHTML = achievements.map(achievement => `
+                        <div class="achievement">
+                            <span class="achievement-icon">${achievement.icon}</span>
+                            <div class="achievement-text">
+                                <div class="achievement-title">${achievement.title}</div>
+                                <div class="achievement-description">${achievement.description}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                modal.classList.add('show');
+            } catch (error) {
+                console.error('Error showing lesson completion:', error);
+            }
+        }
+
+        function restartLesson() {
+            if (confirm('Are you sure you want to restart this lesson? All progress will be reset.')) {
+                problemCount = 0;
+                attempts = 0;
+                problemAnswered = false;
+
+                if (progressTracker) {
+                    progressTracker.currentScore = 0;
+                    progressTracker.streak = 0;
+                    progressTracker.questionCount = 0;
+                    progressTracker.correctAnswers = 0;
+                    progressTracker.incorrectAnswers = 0;
+                    progressTracker.scoreHistory = [];
+                    progressTracker.updateScoreDisplay();
+                }
+
+                loadProblem();
+                alert('Lesson restarted! Good luck! 🎯');
+            }
+        }
+
+        function formatTime(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function createCoinEffect(isCorrect) {
+            const submitBtn = document.getElementById('submitBtn');
+            const rect = submitBtn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const numCoins = isCorrect ? 8 : 4;
+            const coinSymbol = isCorrect ? '🪙' : '💔';
+
+            for (let i = 0; i < numCoins; i++) {
+                setTimeout(() => createCoin(centerX, centerY, coinSymbol, isCorrect), i * 50);
+            }
+        }
+
+        function createCoin(startX, startY, symbol, isCorrect) {
+            const coin = document.createElement('div');
+            const angle = Math.PI * 2 * Math.random();
+            const distance = 80 + Math.random() * 40;
+            const endX = startX + Math.cos(angle) * distance;
+            const endY = startY + Math.sin(angle) * distance - 30;
+
+            coin.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                font-size: 1.2rem;
+                pointer-events: none;
+                z-index: 2000;
+                animation: ${isCorrect ? 'coinSuccess' : 'coinFail'} 1s ease-out forwards;
+                --endX: ${endX}px;
+                --endY: ${endY}px;
+            `;
+
+            coin.textContent = symbol;
+
+            if (!document.querySelector('style[data-coin-animation]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-coin-animation', 'true');
+                style.textContent = `
+                    @keyframes coinSuccess {
+                        0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                        20% { transform: scale(1.2) rotate(90deg); opacity: 1; }
+                        100% { transform: scale(0.8) rotate(360deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); opacity: 0; }
+                    }
+                    @keyframes coinFail {
+                        0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                        20% { transform: scale(1) rotate(-30deg); opacity: 1; }
+                        100% { transform: scale(0.5) rotate(-180deg) translate(calc(var(--endX) - ${startX}px), calc(var(--endY) - ${startY}px)); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 1000);
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', checkAnswer);
+        document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        window.addEventListener('load', function() {
+            initializeProgressTracking();
+            loadProblem();
+        });
+    </script>
+</body>
+</html>
