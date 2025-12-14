@@ -4,7 +4,7 @@
 .app-panel {
     position: fixed;
     left: 2rem;
-    top: 20%;
+    top: 10%;
     width: 60px;
     background: var(--surface);
     border: 1px solid var(--border);

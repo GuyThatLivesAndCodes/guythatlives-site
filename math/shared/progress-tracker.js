@@ -212,32 +212,7 @@ class ProgressTracker {
         if (scorePanel) {
             const warning = document.createElement('div');
             warning.className = 'guest-mode-warning';
-            warning.innerHTML = `
-                <span>Guest Mode</span>
-                <button onclick="authSystem.showLoginModal()" style="
-                    background: transparent;
-                    border: 1px solid var(--warning);
-                    color: var(--warning);
-                    padding: 0.3rem 0.8rem;
-                    border-radius: 4px;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 0.75rem;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    margin-left: auto;
-                " onmouseover="this.style.background='rgba(241,250,140,0.1)'" onmouseout="this.style.background='transparent'">
-                    Login to Save
-                </button>
-            `;
-            warning.style.cssText = `
-                font-size: 0.75rem;
-                padding: 0.5rem 0.8rem;
-                margin-top: 0.8rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            `;
-            scorePanel.appendChild(warning);
+            warning.innerHTML = '/* Player is detected as Guest and is not signed in. */'
         }
     }
 
