@@ -253,6 +253,7 @@
         }
 
         .course-title {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1.8rem;
             font-weight: 600;
             margin: 0;
@@ -276,6 +277,12 @@
             background: rgba(241, 250, 140, 0.2);
             color: var(--warning);
             border: 1px solid rgba(241, 250, 140, 0.3);
+        }
+
+        .status-coming-soon {
+            background: rgba(188, 140, 250, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(188, 140, 250, 0.3);
         }
 
         .course-description {
@@ -524,7 +531,7 @@
                     <div class="course-header">
                         <div class="course-icon">📐</div>
                         <h3 class="course-title">Geometry</h3>
-                        <span class="course-status status-coming-soon">COMING SOON</span>
+                        <span class="course-status status-beta">BETA IN PROGRESS</span>
                     </div>
                     <p class="course-description">
                         Visualize geometric concepts and proofs. Understand spatial reasoning by analyzing common 
@@ -537,10 +544,10 @@
                         <li>Coordinate geometry</li>
                         <li>Trigonometric ratios</li>
                     </ul>
-                    <button class="course-action" disabled>
-                        <span>⏳</span>
-                        Coming Soon
-                    </button>
+                    <a href="geometry/" class="course-action">
+                        <span>🚀</span>
+                        Start Learning
+                    </a>
                 </div>
 
                 <!-- Pre-Calculus Course -->

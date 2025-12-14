@@ -146,6 +146,7 @@
         }
 
         .section-title {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
@@ -219,6 +220,7 @@
         }
 
         .topic-title {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1.4rem;
             font-weight: 600;
             margin: 0;
@@ -231,7 +233,13 @@
             border-radius: 12px;
             margin-left: auto;
         }
-
+        
+        .difficulty-none {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(250, 250, 250, 0.25);
+        }
+        
         .difficulty-beginner {
             background: rgba(80, 250, 123, 0.2);
             color: var(--success);
@@ -572,6 +580,29 @@
                         <li>domain restrictions</li>
                     </ul>
                     <a href="rationals/" class="topic-action">
+                        <span>⏳</span>
+                        Coming Soon
+                    </a>
+                </div>
+
+                <!-- Contact for more -->
+                <div class="topic-card" style="--delay: 6">
+                    <div class="topic-header">
+                        <div class="topic-icon">🔄</div>
+                        <h3 class="topic-title">Contact for more!</h3>
+                        <span class="topic-difficulty difficulty-none">YOUR CHOICE</span>
+                    </div>
+                    <p class="topic-description">
+                        Work with fractions containing variables. Learn proper simplification, common denominators, 
+                        and why cross-multiplication doesn't always work.
+                    </p>
+                    <ul class="topic-concepts">
+                        <li>simplifying rationals</li>
+                        <li>operations with rationals</li>
+                        <li>solving rational equations</li>
+                        <li>domain restrictions</li>
+                    </ul>
+                    <a href="contact/" class="topic-action">
                         <span>⏳</span>
                         Coming Soon
                     </a>
