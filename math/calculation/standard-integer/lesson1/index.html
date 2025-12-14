@@ -649,12 +649,12 @@
             <div class="problem-section">
                 <div class="problem-header">
                     <div class="problem-number" id="problemNumber">Problem 1</div>
-                    <h1 class="problem-title">Solve for x (Lesson 1)</h1>
+                    <h1 class="problem-title">Find the solution (Lesson 1)</h1>
                 </div>
 
                 <div class="problem-statement">
                     <div class="equation-display" id="equationDisplay">2 + 3</div>
-                    <p class="solve-instruction">Find the value of x that makes this equation true</p>
+                    <p class="solve-instruction">Find the solution of this equation</p>
                 </div>
 
                 <div class="input-section">
@@ -1067,7 +1067,7 @@
                 const mistake = mistakes[i];
                 
                 // Extract the likely wrong answer from the mistake work
-                let mistakeAnswer = parseFloat(mistake.answer);
+                let mistakeAnswer = parseFraction(mistake.answer);
                 
                 if (mistakeAnswer !== null) {
                     const difference = Math.abs(userAnswer - mistakeAnswer);
