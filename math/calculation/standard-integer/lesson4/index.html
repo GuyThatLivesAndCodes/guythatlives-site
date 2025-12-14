@@ -1248,7 +1248,7 @@
                             <div class="detected-mistake">
                                 <h4><strong>Common mistake: ${mistake.description}</strong></h4>
                                 <div class="mistake-explanation">Your work probably looked like: ${mistake.work}</div>
-                                <h5>Order of Operations (PEMDAS)</h5>
+                                <h5>Remember your Order of Operations (PEMDAS)</h5>
                                 <ul style="list-style: none; padding-left: 0;">
                                     <li>– <strong>P</strong> = Parentheses</li>
                                     <li>– <strong>E</strong> = Exponents <em>(ignored for this lesson)</em></li>
@@ -1284,6 +1284,17 @@
                             <p style="margin-bottom: 1rem; color: var(--text-dim); font-size: 0.9rem;">
                                 I couldn't detect your mistake pattern automatically. Can you help me understand your thinking?
                             </p>
+
+                            <h5>Remember your Order of Operations (PEMDAS)</h5>
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>– <strong>P</strong> = Parentheses</li>
+                                <li>– <strong>E</strong> = Exponents <em>(ignored for this lesson)</em></li>
+                                <li>– <strong>M</strong> = Multiplication</li>
+                                <li>– <strong>D</strong> = Division <em>(ignored for this lesson)</em></li>
+                                <li>– <strong>A</strong> = Addition</li>
+                                <li>– <strong>S</strong> = Subtraction</li>
+                            </ul>
+
                             <div class="mistake-options">
                                 ${currentProblem.mistakes.map((mistake, i) => `
                                     <div class="mistake-option" onclick="selectMistake(${i})">
@@ -1292,6 +1303,7 @@
                                     </div>
                                 `).join('')}
                             </div>
+
                         </div>
                     `;
                 }
