@@ -345,22 +345,20 @@
             z-index: -1;
         }
 
-        .course-action:hover {
+        /* Hover effect only for enabled buttons */
+        .course-action:not(:disabled):hover {
             color: var(--primary);
         }
 
-        .course-action:hover::before {
+        .course-action:not(:disabled):hover::before {
             left: 0;
         }
 
+        /* Disabled button styles */
         .course-action:disabled {
             border-color: var(--border);
             color: var(--text-dim);
             cursor: not-allowed;
-        }
-
-        .course-action:disabled:hover {
-            color: var(--text-dim);
         }
 
         .course-action:disabled::before {
