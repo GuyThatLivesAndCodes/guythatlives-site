@@ -755,6 +755,20 @@
             }
         }
 
+        function gcd(x, y) {
+            x = Math.abs(x);
+            y = Math.abs(y);
+            while (y) {
+                [x, y] = [y, x % y];
+            }
+            return x;
+        }
+
+        function toFraction(numerator, denominator) {
+            const divisor = gcd(numerator, denominator);
+            return `${numerator / divisor}/${denominator / divisor}`;
+        }
+
         function generateAdditionProblem() {
             const a = Math.floor(Math.random() * 30) + 3; // constant (3-22)
             const b = Math.floor(Math.random() * 30) + 1; // solution (1-15)
@@ -787,15 +801,15 @@
                     },
                     {
                         type: "divided_a",
-                        description: `Divided ${a} by ${b} instead of adding`,
-                        work: `${a} / ${b} = ${a/b}`,
-                        answer: `${a/b}`
+                        description: `Divided ${a} by ${b} instead of subtracting`,
+                        work: `${a}/${b} = ${toFraction(a, b)}`,
+                        answer: toFraction(a, b)
                     },
                     {
                         type: "divided_b",
-                        description: `Divided ${b} by ${a} instead of adding`,
-                        work: `${b} / ${a} = ${b/a}`,
-                        answer: `${b/a}`
+                        description: `Divided ${b} by ${a} instead of subtracting`,
+                        work: `${b}/${a} = ${toFraction(b, a)}`,
+                        answer: `${toFraction(b, a)}`
                     }
                 ]
             };
@@ -834,14 +848,14 @@
                     {
                         type: "divided_a",
                         description: `Divided ${a} by ${b} instead of subtracting`,
-                        work: `${a}/${b} = ${a/b}`,
-                        answer: `${a/b}`
+                        work: `${a}/${b} = ${toFraction(a, b)}`,
+                        answer: toFraction(a, b)
                     },
                     {
                         type: "divided_b",
                         description: `Divided ${b} by ${a} instead of subtracting`,
-                        work: `${b}/${a} = ${b/a}`,
-                        answer: `${b/a}`
+                        work: `${b}/${a} = ${toFraction(b, a)}`,
+                        answer: `${toFraction(b, a)}`
                     }
                 ]
             };
@@ -858,6 +872,7 @@
                 steps: [
                     { step: `Multiply ${a} by ${b}`, equation: `${result}` }
                 ],
+            
                 mistakes: [
                     {
                         type: "added",
@@ -880,14 +895,14 @@
                     {
                         type: "divided_a",
                         description: `Divided ${a} by ${b} instead of subtracting`,
-                        work: `${a}/${b} = ${a/b}`,
-                        answer: `${a/b}`
+                        work: `${a}/${b} = ${toFraction(a, b)}`,
+                        answer: toFraction(a, b)
                     },
                     {
                         type: "divided_b",
                         description: `Divided ${b} by ${a} instead of subtracting`,
-                        work: `${b}/${a} = ${b/a}`,
-                        answer: `${b/a}`
+                        work: `${b}/${a} = ${toFraction(b, a)}`,
+                        answer: `${toFraction(b, a)}`
                     }
                 ]
             };
