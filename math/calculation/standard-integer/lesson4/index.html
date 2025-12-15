@@ -452,7 +452,7 @@
 
         .calculator-toggle:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(100, 255, 218, 0.5);
+            box-shadow: 0 6px 30px rgba(255, 100, 100, 0.5);
         }
 
         .calculator-panel.open {
@@ -461,26 +461,15 @@
         }
 
         .calculator-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
+            display: none
         }
 
         .calculator-title {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent);
-            font-size: 0.9rem;
-            margin: 0;
+            display: none
         }
 
         .calculator-close {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.3s ease;
+            display: none
         }
 
         .calculator-close:hover {
@@ -488,15 +477,11 @@
         }
 
         .calculator-display:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+            display: none
         }
 
         .calculator-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
+            display: none
         }
 
         .calc-btn {
@@ -504,36 +489,31 @@
         }
 
         .calc-btn:hover {
-            background: var(--secondary);
-            border-color: var(--accent);
+            display: none
         }
 
         .calc-btn.operator {
-            background: rgba(100, 255, 218, 0.1);
-            color: var(--accent);
+            display: none
         }
 
         .calc-btn.operator:hover {
-            background: rgba(100, 255, 218, 0.2);
+            display: none
         }
 
         .calc-btn.equals {
-            background: var(--accent);
-            color: var(--primary);
-            font-weight: 600;
+            display: none
         }
 
         .calc-btn.equals:hover {
-            background: var(--success);
+            display: none
         }
 
         .calc-btn.clear {
-            background: rgba(255, 85, 85, 0.1);
-            color: var(--error);
+            display: none
         }
 
         .calc-btn.clear:hover {
-            background: rgba(255, 85, 85, 0.2);
+            display: none
         }
 
         @keyframes slideDown {
