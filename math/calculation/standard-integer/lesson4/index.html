@@ -448,6 +448,11 @@
             opacity: 0.4;
         }
 
+        .calculator-display {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
         .calculator-toggle:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 30px rgba(100, 255, 218, 0.5);
@@ -483,21 +488,6 @@
 
         .calculator-close:hover {
             color: var(--error);
-        }
-
-        .calculator-display {
-            width: 100%;
-            background: var(--primary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.2rem;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: right;
-            margin-bottom: 1rem;
-            min-height: 50px;
-            cursor: text;
         }
 
         .calculator-display:focus {
