@@ -439,41 +439,18 @@
 
         /* Calculator Panel Styles */
         .calculator-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: var(--error);
-            color: var(--primary);
-            border: none;
-            border-radius: 50%;
-            font-size: 1.5rem;
             cursor: not-allowed;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(255, 100, 100, 0.3);
+            opacity: 0.6;
+        }
+
+        .calculator-panel {
+            pointer-events: none;
+            opacity: 0.4;
         }
 
         .calculator-toggle:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 30px rgba(100, 255, 218, 0.5);
-        }
-
-        .calculator-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 2rem;
-            width: 280px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transform: translateY(100%) scale(0.8);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 999;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
         .calculator-panel.open {
@@ -628,6 +605,16 @@
             }
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.querySelector('.calculator-toggle');
+            if (toggle) {
+                toggle.onclick = () => {
+                    alert('🚫 Calculator disabled for this lesson.');
+                };
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="bg-container">
