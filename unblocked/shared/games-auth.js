@@ -22,12 +22,13 @@ class GamesAuthSystem {
         try {
             // Firebase config for games section
             const firebaseConfig = {
-                apiKey: "AIzaSyCnOr_R8K6r5ggB5lqgC5c2j3cYwfPg59Q",
-                authDomain: "guythatlives-math.firebaseapp.com",
-                projectId: "guythatlives-math",
-                storageBucket: "guythatlives-math.firebasestorage.app",
-                messagingSenderId: "621048909859",
-                appId: "1:621048909859:web:4d0e59e1c2cf8c94e3a4ed"
+              apiKey: "AIzaSyDgwsYD-rah3Hxn0ApLZFj6E1Ro6Uz2clY",
+              authDomain: "guythatlives-unblocked.firebaseapp.com",
+              projectId: "guythatlives-unblocked",
+              storageBucket: "guythatlives-unblocked.firebasestorage.app",
+              messagingSenderId: "309436720074",
+              appId: "1:309436720074:web:cfde766602392e2ff46533",
+              measurementId: "G-FFSQ617L77"
             };
 
             // Initialize Firebase if not already initialized
