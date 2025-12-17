@@ -24,6 +24,21 @@ service cloud.firestore {
 
       // Platform admins can manage all users
       allow read, write, delete: if isAdmin();
+
+      // User's games played subcollection
+      match /gamesPlayed/{gameId} {
+        // Users can manage their own game history
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+        // Admins can read all
+        allow read: if isAdmin();
+      }
+
+      // User's lessons subcollection (existing math platform)
+      match /lessons/{lessonId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+        allow read: if isAdmin();
+      }
     }
 
     /* ========= Schools ========= */
@@ -73,6 +88,29 @@ service cloud.firestore {
         request.auth.uid == resource.data.createdBy ||
         isAdmin()
       );
+    }
+
+    /* ========= Games ========= */
+
+    match /games/{gameId} {
+      // Anyone can read published games
+      allow read: if resource == null || resource.data.published == true;
+
+      // Admin can read all games (including unpublished)
+      allow read: if isAdmin();
+
+      // Only admin can create, update, or delete games
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* ========= Game Metadata ========= */
+
+    match /gameMetadata/{docId} {
+      // Anyone can read metadata (categories, etc.)
+      allow read: if true;
+
+      // Only admin can modify metadata
+      allow create, update, delete: if isAdmin();
     }
 
     /* ========= Default Deny ========= */

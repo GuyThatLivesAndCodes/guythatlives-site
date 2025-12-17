@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Game... - GuyThatLives</title>
+    <link rel="stylesheet" href="../shared/games-styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+
+        .game-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .game-title-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .game-title-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .fullscreen-btn {
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .fullscreen-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .game-frame-wrapper {
+            flex: 1;
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .game-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            z-index: 5;
+        }
+
+        .game-loading.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid var(--bg-tertiary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .game-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            padding: 2rem;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .game-error.visible {
+            display: flex;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-message {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Game Info Panel */
+        .game-info-panel {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: none;
+        }
+
+        .game-info-panel.visible {
+            display: block;
+        }
+
+        .game-description-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .game-tag {
+            padding: 0.25rem 0.625rem;
+            background: var(--bg-tertiary);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .game-header {
+                padding: 0.5rem 1rem;
+            }
+
+            .game-title-text {
+                font-size: 1rem;
+            }
+
+            .fullscreen-btn span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="game-title-section">
+                <button class="back-button" onclick="window.location.href='/unblocked/'" title="Back to games">
+                    ←
+                </button>
+                <h1 class="game-title-text" id="game-title">Loading...</h1>
+            </div>
+            <div class="game-controls">
+                <button class="fullscreen-btn" id="fullscreen-btn">
+                    <span>⛶</span>
+                    <span>Fullscreen</span>
+                </button>
+                <button class="fullscreen-btn" id="info-toggle-btn">
+                    <span>ℹ</span>
+                    <span>Info</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Frame -->
+        <div class="game-frame-wrapper" id="game-wrapper">
+            <iframe id="game-frame" class="game-frame" allowfullscreen></iframe>
+
+            <!-- Loading State -->
+            <div class="game-loading" id="game-loading">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading game...</div>
+            </div>
+
+            <!-- Error State -->
+            <div class="game-error" id="game-error">
+                <div class="error-icon">😞</div>
+                <div class="error-title">Game Not Found</div>
+                <div class="error-message">We couldn't load this game. It may have been removed or doesn't exist.</div>
+                <a href="/unblocked/" class="btn btn-primary">Back to Games</a>
+            </div>
+        </div>
+
+        <!-- Game Info Panel -->
+        <div class="game-info-panel" id="game-info-panel">
+            <div class="game-description-text" id="game-description"></div>
+            <div class="game-tags" id="game-tags"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Shared Modules -->
+    <script src="../shared/games-auth.js"></script>
+    <script src="../shared/game-manager.js"></script>
+
+    <!-- Game Player Script -->
+    <script>
+        let currentGame = null;
+
+        // Get game ID from URL parameter
+        function getGameId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('game');
+        }
+
+        // Load and display game
+        async function loadGame() {
+            const gameId = getGameId();
+
+            if (!gameId) {
+                showError('No game specified');
+                return;
+            }
+
+            try {
+                // Fetch game data
+                currentGame = await window.gameManager.getGame(gameId);
+
+                // Update page title and header
+                document.title = `${currentGame.title} - Unblocked Games`;
+                document.getElementById('game-title').textContent = currentGame.title;
+
+                // Update info panel
+                if (currentGame.description) {
+                    document.getElementById('game-description').textContent = currentGame.description;
+                }
+
+                if (currentGame.tags && currentGame.tags.length > 0) {
+                    const tagsContainer = document.getElementById('game-tags');
+                    tagsContainer.innerHTML = currentGame.tags
+                        .map(tag => `<span class="game-tag">${tag}</span>`)
+                        .join('');
+                }
+
+                // Load game iframe
+                const gameFrame = document.getElementById('game-frame');
+
+                if (!currentGame.gameUrl) {
+                    showError('Game URL not configured');
+                    return;
+                }
+
+                // Set iframe source
+                gameFrame.src = currentGame.gameUrl;
+
+                // Hide loading, show game
+                gameFrame.onload = () => {
+                    document.getElementById('game-loading').classList.add('hidden');
+                };
+
+                // Increment play count
+                await window.gameManager.incrementPlayCount(gameId);
+
+                // Track user play if logged in
+                const user = window.gamesAuth.getCurrentUser();
+                if (user) {
+                    await window.gameManager.trackUserPlay(gameId, user.uid);
+                }
+
+            } catch (error) {
+                console.error('Error loading game:', error);
+                showError(error.message);
+            }
+        }
+
+        // Show error state
+        function showError(message) {
+            document.getElementById('game-loading').classList.add('hidden');
+            const errorEl = document.getElementById('game-error');
+            errorEl.classList.add('visible');
+            errorEl.querySelector('.error-message').textContent = message;
+        }
+
+        // Fullscreen functionality
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('game-wrapper');
+
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(err => {
+                    console.error('Error attempting to enable fullscreen:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Info panel toggle
+        function toggleInfoPanel() {
+            const panel = document.getElementById('game-info-panel');
+            panel.classList.toggle('visible');
+        }
+
+        // Setup event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load game
+            loadGame();
+
+            // Fullscreen button
+            document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+
+            // Info toggle button
+            document.getElementById('info-toggle-btn').addEventListener('click', toggleInfoPanel);
+
+            // Update fullscreen button on fullscreen change
+            document.addEventListener('fullscreenchange', () => {
+                const btn = document.getElementById('fullscreen-btn');
+                const icon = btn.querySelector('span:first-child');
+
+                if (document.fullscreenElement) {
+                    icon.textContent = '⛶';
+                } else {
+                    icon.textContent = '⛶';
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // F for fullscreen
+                if (e.key === 'f' || e.key === 'F') {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        toggleFullscreen();
+                    }
+                }
+
+                // I for info
+                if (e.key === 'i' || e.key === 'I') {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        toggleInfoPanel();
+                    }
+                }
+
+                // Escape to exit fullscreen
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            });
+        });
+
+        // Handle navigation away (browser back button)
+        window.addEventListener('beforeunload', () => {
+            // Could save game state here if needed
+        });
+    </script>
+</body>
+</html>
