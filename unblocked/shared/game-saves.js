@@ -446,6 +446,24 @@ class GameSavesSystem {
 
             const saveData = doc.data();
 
+            // Check if we've already restored this version of the save
+            const lastRestoredKey = `gameSave_lastRestored_${this.currentGameId}`;
+            const lastRestoredTimestamp = localStorage.getItem(lastRestoredKey);
+
+            // Get cloud save timestamp (convert Firestore Timestamp to milliseconds)
+            const cloudTimestamp = saveData.lastSynced ?
+                (saveData.lastSynced.toMillis ? saveData.lastSynced.toMillis() : saveData.lastSynced) :
+                0;
+
+            // If we've already restored this exact save, skip restoration
+            if (lastRestoredTimestamp && parseInt(lastRestoredTimestamp) >= cloudTimestamp) {
+                this.updateProgressItem(checkItem, 'success', 'Local data is already up-to-date');
+                await this.sleep(1000);
+                this.hideProgressModal();
+                console.log('Local save is current - skipping restore');
+                return;
+            }
+
             // Download save data
             downloadItem = this.addProgressItem('Downloading save data...', 'loading');
             await this.sleep(500);
@@ -471,6 +489,9 @@ class GameSavesSystem {
                 this.updateProgressItem(indexedDBItem, 'success', `Restored ${dbCount} databases`);
                 await this.sleep(300);
             }
+
+            // Mark this save as restored
+            localStorage.setItem(lastRestoredKey, cloudTimestamp.toString());
 
             console.log(`Game saves restored for ${this.currentGameId}`);
 
