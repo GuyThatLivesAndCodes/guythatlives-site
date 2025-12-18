@@ -490,25 +490,71 @@ class GameSavesSystem {
                 await this.sleep(300);
             }
 
-            // Mark this save as restored
-            localStorage.setItem(lastRestoredKey, cloudTimestamp.toString());
-
             console.log(`Game saves restored for ${this.currentGameId}`);
 
-            // Show completion with reload option
-            this.showCompletion(true, 'Game data restored! Reloading game...');
+            // Show completion with user-controlled reload options
+            this.showCompletion(true, 'Game data restored! Choose how to apply changes:');
 
-            // Reload the game iframe instead of the whole page
-            const closeBtn = this.progressModal.querySelector('#save-close-btn');
-            closeBtn.textContent = 'Reload Game';
-            closeBtn.onclick = () => {
+            // Replace the single button with two options
+            const actionsEl = this.progressModal.querySelector('#save-actions');
+            actionsEl.innerHTML = `
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button id="reload-game-btn" style="
+                        padding: 0.75rem 2rem;
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    ">Reload Game Only</button>
+                    <button id="reload-page-btn" style="
+                        padding: 0.75rem 2rem;
+                        background: linear-gradient(135deg, #64748b, #475569);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    ">Reload Entire Page</button>
+                    <button id="skip-reload-btn" style="
+                        padding: 0.75rem 2rem;
+                        background: transparent;
+                        color: #94a3b8;
+                        border: 1px solid #475569;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    ">Skip (Use Later)</button>
+                </div>
+            `;
+
+            // Reload game iframe button
+            const reloadGameBtn = actionsEl.querySelector('#reload-game-btn');
+            reloadGameBtn.addEventListener('click', () => {
+                // Mark as restored ONLY when user chooses to reload
+                localStorage.setItem(lastRestoredKey, cloudTimestamp.toString());
+                this.hideProgressModal();
                 this.reloadGameIframe();
-            };
+            });
 
-            // Auto-reload the game iframe after a short delay
-            await this.sleep(1500);
-            this.reloadGameIframe();
-            this.hideProgressModal();
+            // Reload entire page button
+            const reloadPageBtn = actionsEl.querySelector('#reload-page-btn');
+            reloadPageBtn.addEventListener('click', () => {
+                // Mark as restored before reloading
+                localStorage.setItem(lastRestoredKey, cloudTimestamp.toString());
+                window.location.reload();
+            });
+
+            // Skip button
+            const skipBtn = actionsEl.querySelector('#skip-reload-btn');
+            skipBtn.addEventListener('click', () => {
+                // Don't mark as restored - user can try again later
+                this.hideProgressModal();
+            });
 
         } catch (error) {
             console.error('Error restoring saves:', error);
