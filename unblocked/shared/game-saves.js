@@ -496,14 +496,19 @@ class GameSavesSystem {
             console.log(`Game saves restored for ${this.currentGameId}`);
 
             // Show completion with reload option
-            this.showCompletion(true, 'Game data restored! Reload to apply changes.');
+            this.showCompletion(true, 'Game data restored! Reloading game...');
 
-            // Change close button to reload button
+            // Reload the game iframe instead of the whole page
             const closeBtn = this.progressModal.querySelector('#save-close-btn');
             closeBtn.textContent = 'Reload Game';
             closeBtn.onclick = () => {
-                window.location.reload();
+                this.reloadGameIframe();
             };
+
+            // Auto-reload the game iframe after a short delay
+            await this.sleep(1500);
+            this.reloadGameIframe();
+            this.hideProgressModal();
 
         } catch (error) {
             console.error('Error restoring saves:', error);
@@ -744,6 +749,25 @@ class GameSavesSystem {
             platform: navigator.platform,
             timestamp: Date.now()
         };
+    }
+
+    /**
+     * Reload the game iframe (instead of full page reload)
+     */
+    reloadGameIframe() {
+        const gameFrame = document.getElementById('game-frame');
+        if (gameFrame) {
+            console.log('Reloading game iframe...');
+            // Store the current src and reload it
+            const currentSrc = gameFrame.src;
+            gameFrame.src = 'about:blank';
+            setTimeout(() => {
+                gameFrame.src = currentSrc;
+            }, 100);
+        } else {
+            console.warn('Game iframe not found, falling back to page reload');
+            window.location.reload();
+        }
     }
 
     /**
