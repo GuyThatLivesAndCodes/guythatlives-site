@@ -14,6 +14,214 @@ class GameSavesSystem {
         this.SYNC_INTERVAL_MS = 30000; // Sync every 30 seconds
         this.lastSyncTime = 0;
         this.initialized = false;
+        this.progressModal = null;
+    }
+
+    /**
+     * Create progress modal
+     */
+    createProgressModal() {
+        if (this.progressModal) return;
+
+        const modal = document.createElement('div');
+        modal.id = 'save-progress-modal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border-radius: 16px;
+                padding: 2rem;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                border: 1px solid #334155;
+            ">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div id="save-icon" style="font-size: 3rem; margin-bottom: 0.5rem;">💾</div>
+                    <h2 id="save-title" style="color: #f1f5f9; font-size: 1.5rem; margin: 0 0 0.5rem 0;">Saving Game Data</h2>
+                    <p id="save-subtitle" style="color: #94a3b8; font-size: 0.875rem; margin: 0;">Please wait while we sync your progress...</p>
+                </div>
+
+                <div id="save-progress-list" style="
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 8px;
+                    padding: 1rem;
+                    max-height: 300px;
+                    overflow-y: auto;
+                "></div>
+
+                <div id="save-actions" style="
+                    margin-top: 1.5rem;
+                    text-align: center;
+                    display: none;
+                ">
+                    <button id="save-close-btn" style="
+                        padding: 0.75rem 2rem;
+                        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    ">Close</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        this.progressModal = modal;
+
+        // Close button handler
+        const closeBtn = modal.querySelector('#save-close-btn');
+        closeBtn.addEventListener('click', () => {
+            this.hideProgressModal();
+        });
+    }
+
+    /**
+     * Show progress modal
+     */
+    showProgressModal(title, subtitle, icon = '💾') {
+        this.createProgressModal();
+
+        const modal = this.progressModal;
+        const titleEl = modal.querySelector('#save-title');
+        const subtitleEl = modal.querySelector('#save-subtitle');
+        const iconEl = modal.querySelector('#save-icon');
+        const actionsEl = modal.querySelector('#save-actions');
+        const listEl = modal.querySelector('#save-progress-list');
+
+        titleEl.textContent = title;
+        subtitleEl.textContent = subtitle;
+        iconEl.textContent = icon;
+        listEl.innerHTML = '';
+        actionsEl.style.display = 'none';
+
+        modal.style.display = 'flex';
+    }
+
+    /**
+     * Hide progress modal
+     */
+    hideProgressModal() {
+        if (this.progressModal) {
+            this.progressModal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Add progress item
+     */
+    addProgressItem(text, status = 'loading') {
+        const listEl = this.progressModal.querySelector('#save-progress-list');
+
+        const item = document.createElement('div');
+        item.className = 'progress-item';
+        item.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s;
+        `;
+
+        const icon = document.createElement('div');
+        icon.className = 'progress-icon';
+        icon.style.cssText = `
+            font-size: 1.25rem;
+            min-width: 24px;
+        `;
+
+        const text_el = document.createElement('div');
+        text_el.className = 'progress-text';
+        text_el.style.cssText = `
+            flex: 1;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+        `;
+        text_el.textContent = text;
+
+        if (status === 'loading') {
+            icon.innerHTML = '<div style="width: 16px; height: 16px; border: 2px solid #6366f1; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+        } else if (status === 'success') {
+            icon.textContent = '✅';
+            item.style.background = 'rgba(16, 185, 129, 0.1)';
+        } else if (status === 'error') {
+            icon.textContent = '❌';
+            item.style.background = 'rgba(239, 68, 68, 0.1)';
+        }
+
+        item.appendChild(icon);
+        item.appendChild(text_el);
+        listEl.appendChild(item);
+
+        // Add spin animation
+        if (status === 'loading' && !document.querySelector('style[data-spin]')) {
+            const style = document.createElement('style');
+            style.setAttribute('data-spin', 'true');
+            style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(style);
+        }
+
+        return item;
+    }
+
+    /**
+     * Update progress item
+     */
+    updateProgressItem(item, status, newText = null) {
+        const icon = item.querySelector('.progress-icon');
+        const text = item.querySelector('.progress-text');
+
+        if (newText) {
+            text.textContent = newText;
+        }
+
+        if (status === 'success') {
+            icon.textContent = '✅';
+            item.style.background = 'rgba(16, 185, 129, 0.1)';
+        } else if (status === 'error') {
+            icon.textContent = '❌';
+            item.style.background = 'rgba(239, 68, 68, 0.1)';
+        }
+    }
+
+    /**
+     * Show completion
+     */
+    showCompletion(success, message) {
+        const iconEl = this.progressModal.querySelector('#save-icon');
+        const titleEl = this.progressModal.querySelector('#save-title');
+        const subtitleEl = this.progressModal.querySelector('#save-subtitle');
+        const actionsEl = this.progressModal.querySelector('#save-actions');
+
+        if (success) {
+            iconEl.textContent = '✅';
+            titleEl.textContent = 'Success!';
+        } else {
+            iconEl.textContent = '❌';
+            titleEl.textContent = 'Error';
+        }
+
+        subtitleEl.textContent = message;
+        actionsEl.style.display = 'block';
     }
 
     /**
@@ -91,7 +299,7 @@ class GameSavesSystem {
     /**
      * Sync current game saves to Firebase
      */
-    async syncSaves(force = false) {
+    async syncSaves(force = false, showProgress = false) {
         if (!this.currentUserId || !this.currentGameId) {
             return;
         }
@@ -101,14 +309,45 @@ class GameSavesSystem {
             return;
         }
 
-        try {
-            // Capture localStorage data
-            const localStorageData = this.captureLocalStorage();
+        let localStorageItem, indexedDBItem, uploadItem;
+        let success = true;
 
-            // Capture IndexedDB data (if needed)
+        try {
+            if (showProgress) {
+                this.showProgressModal('Saving Game Data', 'Syncing your progress to the cloud...', '💾');
+            }
+
+            // Capture localStorage data
+            if (showProgress) {
+                localStorageItem = this.addProgressItem('Capturing localStorage data...', 'loading');
+            }
+
+            const localStorageData = this.captureLocalStorage();
+            const localStorageSize = JSON.stringify(localStorageData).length;
+
+            if (showProgress) {
+                this.updateProgressItem(localStorageItem, 'success', `localStorage captured (${this.formatBytes(localStorageSize)})`);
+                await this.sleep(300);
+            }
+
+            // Capture IndexedDB data
+            if (showProgress) {
+                indexedDBItem = this.addProgressItem('Capturing IndexedDB data...', 'loading');
+            }
+
             const indexedDBData = await this.captureIndexedDB();
+            const indexedDBSize = JSON.stringify(indexedDBData).length;
+
+            if (showProgress) {
+                this.updateProgressItem(indexedDBItem, 'success', `IndexedDB captured (${this.formatBytes(indexedDBSize)})`);
+                await this.sleep(300);
+            }
 
             // Save to Firebase
+            if (showProgress) {
+                uploadItem = this.addProgressItem('Uploading to Firebase...', 'loading');
+            }
+
             const saveRef = this.db
                 .collection('users')
                 .doc(this.currentUserId)
@@ -123,11 +362,47 @@ class GameSavesSystem {
                 deviceInfo: this.getDeviceInfo()
             });
 
+            if (showProgress) {
+                this.updateProgressItem(uploadItem, 'success', 'Successfully uploaded to cloud');
+                await this.sleep(500);
+            }
+
             this.lastSyncTime = Date.now();
             console.log(`Game saves synced for ${this.currentGameId}`);
+
+            if (showProgress) {
+                this.showCompletion(true, 'Your game progress has been safely saved to the cloud!');
+            }
+
         } catch (error) {
             console.error('Error syncing saves:', error);
+            success = false;
+
+            if (showProgress) {
+                if (uploadItem) {
+                    this.updateProgressItem(uploadItem, 'error', 'Failed to upload to cloud');
+                }
+                this.showCompletion(false, 'Failed to save game data. Please try again.');
+            }
         }
+    }
+
+    /**
+     * Format bytes to human readable
+     */
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    /**
+     * Sleep helper
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**
@@ -138,7 +413,15 @@ class GameSavesSystem {
             return;
         }
 
+        let checkItem, downloadItem, localStorageItem, indexedDBItem;
+        let shouldReload = false;
+
         try {
+            // Show loading modal
+            this.showProgressModal('Loading Game Data', 'Checking for cloud saves...', '☁️');
+
+            checkItem = this.addProgressItem('Checking for saved data...', 'loading');
+
             const saveRef = this.db
                 .collection('users')
                 .doc(this.currentUserId)
@@ -148,34 +431,64 @@ class GameSavesSystem {
             const doc = await saveRef.get();
 
             if (!doc.exists) {
+                this.updateProgressItem(checkItem, 'success', 'No cloud saves found - starting fresh');
+                await this.sleep(1000);
+                this.hideProgressModal();
                 console.log('No saved data found - starting fresh');
                 return;
             }
 
+            this.updateProgressItem(checkItem, 'success', 'Cloud save found!');
+            await this.sleep(300);
+
             const saveData = doc.data();
+
+            // Download save data
+            downloadItem = this.addProgressItem('Downloading save data...', 'loading');
+            await this.sleep(500);
+
+            const totalSize = JSON.stringify(saveData).length;
+            this.updateProgressItem(downloadItem, 'success', `Downloaded ${this.formatBytes(totalSize)}`);
+            await this.sleep(300);
 
             // Restore localStorage
             if (saveData.localStorage) {
+                localStorageItem = this.addProgressItem('Restoring localStorage...', 'loading');
                 this.restoreLocalStorage(saveData.localStorage);
+                const lsCount = Object.keys(saveData.localStorage).length;
+                this.updateProgressItem(localStorageItem, 'success', `Restored ${lsCount} localStorage items`);
+                await this.sleep(300);
             }
 
             // Restore IndexedDB
-            if (saveData.indexedDB) {
+            if (saveData.indexedDB && Object.keys(saveData.indexedDB).length > 0) {
+                indexedDBItem = this.addProgressItem('Restoring IndexedDB...', 'loading');
                 await this.restoreIndexedDB(saveData.indexedDB);
+                const dbCount = Object.keys(saveData.indexedDB).length;
+                this.updateProgressItem(indexedDBItem, 'success', `Restored ${dbCount} databases`);
+                await this.sleep(300);
             }
 
             console.log(`Game saves restored for ${this.currentGameId}`);
 
-            // Reload the page to apply restored data
-            const shouldReload = confirm(
-                'Game save data found from another device! Reload the game to apply?'
-            );
+            // Show completion with reload option
+            this.showCompletion(true, 'Game data restored! Reload to apply changes.');
 
-            if (shouldReload) {
+            // Change close button to reload button
+            const closeBtn = this.progressModal.querySelector('#save-close-btn');
+            closeBtn.textContent = 'Reload Game';
+            closeBtn.onclick = () => {
                 window.location.reload();
-            }
+            };
+
         } catch (error) {
             console.error('Error restoring saves:', error);
+
+            if (downloadItem) {
+                this.updateProgressItem(downloadItem, 'error', 'Failed to download saves');
+            }
+
+            this.showCompletion(false, 'Failed to restore game data. Please try again.');
         }
     }
 
@@ -382,8 +695,7 @@ class GameSavesSystem {
      */
     async manualSync() {
         console.log('Manual sync triggered');
-        await this.syncSaves(true);
-        alert('Game saves synced to cloud!');
+        await this.syncSaves(true, true); // Force sync with progress display
     }
 
     /**
