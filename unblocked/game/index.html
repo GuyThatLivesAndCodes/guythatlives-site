@@ -234,6 +234,10 @@
             <div class="game-controls">
                 <button class="disguise-toggle-btn" title="Disguise page as Google Docs">🕶️</button>
                 <button class="panic-btn" title="Quick hide - Press any key to return">🚨</button>
+                <button class="fullscreen-btn" id="cloud-save-btn" title="Sync saves to cloud" style="display: none;">
+                    <span>☁️</span>
+                    <span>Save to Cloud</span>
+                </button>
                 <button class="fullscreen-btn" id="fullscreen-btn">
                     <span>⛶</span>
                     <span>Fullscreen</span>
@@ -280,6 +284,7 @@
     <script src="../shared/games-auth.js"></script>
     <script src="../shared/game-manager.js"></script>
     <script src="../shared/disguise.js"></script>
+    <script src="../shared/game-saves.js"></script>
 
     <!-- Game Player Script -->
     <script>
@@ -388,6 +393,22 @@
 
             // Info toggle button
             document.getElementById('info-toggle-btn').addEventListener('click', toggleInfoPanel);
+
+            // Cloud save button (only show when logged in)
+            const cloudSaveBtn = document.getElementById('cloud-save-btn');
+            window.gamesAuth.onAuthStateChanged((user) => {
+                if (user) {
+                    cloudSaveBtn.style.display = '';
+                } else {
+                    cloudSaveBtn.style.display = 'none';
+                }
+            });
+
+            cloudSaveBtn.addEventListener('click', async () => {
+                if (window.gameSavesSystem) {
+                    await window.gameSavesSystem.manualSync();
+                }
+            });
 
             // Update fullscreen button on fullscreen change
             document.addEventListener('fullscreenchange', () => {

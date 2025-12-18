@@ -39,6 +39,15 @@ service cloud.firestore {
         allow read, write: if isSignedIn() && request.auth.uid == userId;
         allow read: if isAdmin();
       }
+
+      // User's game saves subcollection (cross-device sync)
+      match /gameSaves/{gameId} {
+        // Users can manage their own game saves
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+        // Admins can read all
+        allow read: if isAdmin();
+      }
     }
 
     /* ========= Schools ========= */
