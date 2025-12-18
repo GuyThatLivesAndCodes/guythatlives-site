@@ -354,13 +354,16 @@ class GameSavesSystem {
                 .collection('gameSaves')
                 .doc(this.currentGameId);
 
-            await saveRef.set({
+            // Clean undefined values before saving (Firebase doesn't support undefined)
+            const cleanedData = {
                 gameId: this.currentGameId,
-                localStorage: localStorageData,
-                indexedDB: indexedDBData,
+                localStorage: this.cleanUndefined(localStorageData),
+                indexedDB: this.cleanUndefined(indexedDBData),
                 lastSynced: firebase.firestore.FieldValue.serverTimestamp(),
                 deviceInfo: this.getDeviceInfo()
-            });
+            };
+
+            await saveRef.set(cleanedData);
 
             if (showProgress) {
                 this.updateProgressItem(uploadItem, 'success', 'Successfully uploaded to cloud');
@@ -503,14 +506,46 @@ class GameSavesSystem {
                 const key = localStorage.key(i);
                 const value = localStorage.getItem(key);
 
-                // Store all localStorage data
-                data[key] = value;
+                // Only store defined values
+                if (value !== null && value !== undefined) {
+                    data[key] = value;
+                }
             }
         } catch (error) {
             console.error('Error capturing localStorage:', error);
         }
 
         return data;
+    }
+
+    /**
+     * Clean undefined values from object (Firebase doesn't support undefined)
+     */
+    cleanUndefined(obj) {
+        if (obj === null || obj === undefined) {
+            return null;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj
+                .map(item => this.cleanUndefined(item))
+                .filter(item => item !== undefined);
+        }
+
+        if (typeof obj === 'object') {
+            const cleaned = {};
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const value = this.cleanUndefined(obj[key]);
+                    if (value !== undefined) {
+                        cleaned[key] = value;
+                    }
+                }
+            }
+            return cleaned;
+        }
+
+        return obj;
     }
 
     /**
