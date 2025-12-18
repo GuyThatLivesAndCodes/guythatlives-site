@@ -199,29 +199,89 @@ class DisguiseSystem {
             height: 100%;
             background: white;
             z-index: 999999;
-            overflow: hidden;
+            overflow: auto;
+            font-family: 'Google Sans', Arial, sans-serif;
         `;
 
         overlay.innerHTML = `
-            <iframe
-                src="https://docs.google.com/document/u/0/"
-                style="width: 100%; height: 100%; border: none;"
-                frameborder="0"
-            ></iframe>
-            <div style="
-                position: absolute;
-                bottom: 20px;
-                right: 20px;
-                padding: 10px 20px;
-                background: rgba(0, 0, 0, 0.7);
-                color: white;
-                border-radius: 8px;
-                font-family: Arial, sans-serif;
-                font-size: 14px;
-                pointer-events: none;
-            ">
-                Press any key to return
+            <!-- Fake Google Docs UI -->
+            <div style="width: 100%; height: 100%; background: #f9fbfd;">
+                <!-- Header -->
+                <div style="background: white; border-bottom: 1px solid #e0e0e0; padding: 8px 16px; display: flex; align-items: center; gap: 16px;">
+                    <img src="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" style="width: 40px; height: 40px;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 18px; color: #202124;">Untitled document</div>
+                        <div style="font-size: 12px; color: #5f6368; margin-top: 2px;">
+                            <span>File</span>
+                            <span style="margin: 0 8px;">Edit</span>
+                            <span style="margin: 0 8px;">View</span>
+                            <span style="margin: 0 8px;">Insert</span>
+                            <span style="margin: 0 8px;">Format</span>
+                            <span style="margin: 0 8px;">Tools</span>
+                            <span style="margin: 0 8px;">Extensions</span>
+                            <span style="margin: 0 8px;">Help</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #1a73e8; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                            U
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div style="background: #f9fbfd; border-bottom: 1px solid #e0e0e0; padding: 8px 16px; display: flex; gap: 4px;">
+                    <button style="padding: 6px 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; color: #444;">
+                        ↶ Undo
+                    </button>
+                    <button style="padding: 6px 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; color: #444;">
+                        ↷ Redo
+                    </button>
+                    <div style="width: 1px; background: #e0e0e0; margin: 0 8px;"></div>
+                    <button style="padding: 6px 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; color: #444;">
+                        🖨️ Print
+                    </button>
+                    <button style="padding: 6px 12px; border: none; background: transparent; cursor: pointer; border-radius: 4px; color: #444;">
+                        📋 Formatting
+                    </button>
+                </div>
+
+                <!-- Document Area -->
+                <div style="max-width: 816px; margin: 40px auto; background: white; min-height: calc(100vh - 200px); padding: 96px 72px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    <div style="color: #202124; font-size: 11pt; line-height: 1.6; font-family: Arial, sans-serif;">
+                        <p style="margin: 0 0 12px 0;">
+
+                        </p>
+                        <p style="margin: 0 0 12px 0; color: #ccc;">
+                            <span style="animation: blink 1s infinite;">|</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Exit Hint -->
+                <div style="
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    border-radius: 8px;
+                    font-family: Arial, sans-serif;
+                    font-size: 13px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    z-index: 10;
+                ">
+                    💡 Click anywhere or press any key to return
+                </div>
             </div>
+
+            <style>
+                @keyframes blink {
+                    0%, 50% { opacity: 1; }
+                    51%, 100% { opacity: 0; }
+                }
+            </style>
         `;
 
         document.body.appendChild(overlay);
@@ -231,19 +291,41 @@ class DisguiseSystem {
      * Setup panic mode keyboard listener
      */
     setupPanicListener() {
+        // Keyboard listener - press any key to exit
         document.addEventListener('keydown', (e) => {
             if (this.isPanicMode) {
                 e.preventDefault();
+                e.stopPropagation();
                 this.exitPanicMode();
             }
-        });
+        }, true); // Use capture phase to ensure we catch it
 
-        // Also allow clicking to exit
+        // Click listener - click anywhere to exit
         document.addEventListener('click', (e) => {
-            if (this.isPanicMode && e.target.closest('#panic-overlay')) {
+            if (this.isPanicMode) {
+                e.preventDefault();
+                e.stopPropagation();
                 this.exitPanicMode();
             }
-        });
+        }, true); // Use capture phase to ensure we catch it
+
+        // Also listen for mousedown as backup
+        document.addEventListener('mousedown', (e) => {
+            if (this.isPanicMode) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.exitPanicMode();
+            }
+        }, true);
+
+        // Touch support for mobile
+        document.addEventListener('touchstart', (e) => {
+            if (this.isPanicMode) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.exitPanicMode();
+            }
+        }, true);
     }
 
     /**
