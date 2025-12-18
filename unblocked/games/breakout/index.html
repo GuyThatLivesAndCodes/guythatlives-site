@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout - GuyThatLives Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f1f5f9;
+        }
+
+        .canvas-wrapper {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #a5b4fc;
+        }
+
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            padding: 2rem 3rem;
+            border-radius: 16px;
+            border: 2px solid #6366f1;
+            display: none;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .game-message.visible {
+            display: block;
+        }
+
+        .game-message h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .power-up-info {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 Breakout</h1>
+        <p class="subtitle">Break all the bricks and catch power-ups!</p>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">High Score</div>
+                <div class="stat-value" id="highScore">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Lives</div>
+                <div class="stat-value" id="lives">3</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="600" height="500"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="btn-primary" id="startBtn" onclick="startGame()">Start Game</button>
+            <button class="btn-secondary" id="pauseBtn" onclick="togglePause()" disabled>Pause</button>
+            <button class="btn-secondary" onclick="resetHighScore()">Reset High Score</button>
+        </div>
+
+        <div class="instructions">
+            <p>Move paddle with <kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd> or Mouse</p>
+            <p style="margin-top: 0.5rem;">🟢 Expand Paddle | 🔵 Multi-Ball | 🔴 Fire Ball</p>
+        </div>
+    </div>
+
+    <div class="game-message" id="gameMessage">
+        <h2 id="messageTitle">Ready?</h2>
+        <p id="messageText">Click Start Game to begin!</p>
+        <div id="powerUpInfo" class="power-up-info" style="display: none;"></div>
+        <button class="btn-primary" onclick="handleMessageButton()" id="messageButton" style="margin-top: 1rem;">OK</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('breakout_highScore') || 0);
+        let lives = 3;
+        let level = 1;
+
+        // Paddle
+        let paddle = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 30,
+            width: 100,
+            height: 15,
+            speed: 8
+        };
+
+        // Balls
+        let balls = [];
+
+        // Bricks
+        let bricks = [];
+        const brickRows = 5;
+        const brickCols = 10;
+        const brickWidth = 55;
+        const brickHeight = 20;
+        const brickPadding = 5;
+        const brickOffsetTop = 50;
+        const brickOffsetLeft = 15;
+
+        // Power-ups
+        let powerUps = [];
+        let activePowerUps = [];
+
+        // Input
+        let keys = {};
+        let mouseX = canvas.width / 2;
+
+        document.getElementById('highScore').textContent = highScore;
+
+        // Event listeners
+        document.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+        });
+
+        function initGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            updateStats();
+            initLevel();
+        }
+
+        function initLevel() {
+            balls = [{
+                x: canvas.width / 2,
+                y: canvas.height - 50,
+                dx: 3 * (Math.random() > 0.5 ? 1 : -1),
+                dy: -3,
+                radius: 8,
+                fireBall: false
+            }];
+
+            bricks = [];
+            powerUps = [];
+            activePowerUps = [];
+            paddle.width = 100;
+
+            const colors = [
+                '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'
+            ];
+
+            for (let r = 0; r < brickRows; r++) {
+                bricks[r] = [];
+                for (let c = 0; c < brickCols; c++) {
+                    bricks[r][c] = {
+                        x: c * (brickWidth + brickPadding) + brickOffsetLeft,
+                        y: r * (brickHeight + brickPadding) + brickOffsetTop,
+                        width: brickWidth,
+                        height: brickHeight,
+                        color: colors[r],
+                        hits: Math.min(level, 3),
+                        maxHits: Math.min(level, 3),
+                        visible: true
+                    };
+                }
+            }
+        }
+
+        function startGame() {
+            initGame();
+            gameRunning = true;
+            gamePaused = false;
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('gameMessage').classList.remove('visible');
+            gameLoop();
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+            gamePaused = !gamePaused;
+            document.getElementById('pauseBtn').textContent = gamePaused ? 'Resume' : 'Pause';
+            if (!gamePaused) gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameRunning || gamePaused) return;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // Move paddle
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                paddle.x = Math.max(0, paddle.x - paddle.speed);
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                paddle.x = Math.min(canvas.width - paddle.width, paddle.x + paddle.speed);
+            }
+
+            // Mouse control
+            paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, mouseX - paddle.width / 2));
+
+            // Move balls
+            balls.forEach((ball, ballIndex) => {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                // Wall collision
+                if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                    ball.dx *= -1;
+                }
+                if (ball.y - ball.radius < 0) {
+                    ball.dy *= -1;
+                }
+
+                // Paddle collision
+                if (ball.y + ball.radius > paddle.y &&
+                    ball.x > paddle.x &&
+                    ball.x < paddle.x + paddle.width &&
+                    ball.dy > 0) {
+
+                    const hitPos = (ball.x - paddle.x) / paddle.width;
+                    ball.dx = (hitPos - 0.5) * 8;
+                    ball.dy *= -1;
+                }
+
+                // Bottom collision (lose life)
+                if (ball.y + ball.radius > canvas.height) {
+                    balls.splice(ballIndex, 1);
+                    if (balls.length === 0) {
+                        lives--;
+                        updateStats();
+
+                        if (lives > 0) {
+                            setTimeout(() => {
+                                balls.push({
+                                    x: canvas.width / 2,
+                                    y: canvas.height - 50,
+                                    dx: 3 * (Math.random() > 0.5 ? 1 : -1),
+                                    dy: -3,
+                                    radius: 8,
+                                    fireBall: false
+                                });
+                            }, 500);
+                        } else {
+                            endGame(false);
+                        }
+                    }
+                }
+
+                // Brick collision
+                for (let r = 0; r < brickRows; r++) {
+                    for (let c = 0; c < brickCols; c++) {
+                        const brick = bricks[r][c];
+                        if (brick.visible) {
+                            if (ball.x > brick.x &&
+                                ball.x < brick.x + brick.width &&
+                                ball.y > brick.y &&
+                                ball.y < brick.y + brick.height) {
+
+                                if (!ball.fireBall) {
+                                    ball.dy *= -1;
+                                }
+
+                                brick.hits--;
+                                if (brick.hits <= 0) {
+                                    brick.visible = false;
+                                    score += 10 * level;
+                                    updateStats();
+
+                                    // Random power-up drop (20% chance)
+                                    if (Math.random() < 0.2) {
+                                        spawnPowerUp(brick.x + brick.width / 2, brick.y);
+                                    }
+
+                                    // Check level complete
+                                    if (bricks.every(row => row.every(b => !b.visible))) {
+                                        levelComplete();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Move power-ups
+            powerUps.forEach((powerUp, index) => {
+                powerUp.y += 2;
+
+                // Paddle collision
+                if (powerUp.y + powerUp.radius > paddle.y &&
+                    powerUp.x > paddle.x &&
+                    powerUp.x < paddle.x + paddle.width) {
+
+                    activatePowerUp(powerUp.type);
+                    powerUps.splice(index, 1);
+                }
+
+                // Remove if off screen
+                if (powerUp.y > canvas.height) {
+                    powerUps.splice(index, 1);
+                }
+            });
+
+            // Update active power-ups
+            activePowerUps.forEach((powerUp, index) => {
+                powerUp.duration--;
+                if (powerUp.duration <= 0) {
+                    deactivatePowerUp(powerUp.type);
+                    activePowerUps.splice(index, 1);
+                }
+            });
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw bricks
+            bricks.forEach(row => {
+                row.forEach(brick => {
+                    if (brick.visible) {
+                        const alpha = brick.hits / brick.maxHits;
+                        ctx.fillStyle = brick.color;
+                        ctx.globalAlpha = 0.3 + (alpha * 0.7);
+                        ctx.fillRect(brick.x, brick.y, brick.width, brick.height);
+                        ctx.globalAlpha = 1;
+
+                        // Border
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.strokeRect(brick.x, brick.y, brick.width, brick.height);
+
+                        // Hit indicator
+                        if (brick.maxHits > 1) {
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 12px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(brick.hits, brick.x + brick.width / 2, brick.y + brick.height / 2 + 4);
+                        }
+                    }
+                });
+            });
+
+            // Draw paddle
+            const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x + paddle.width, paddle.y);
+            gradient.addColorStop(0, '#6366f1');
+            gradient.addColorStop(1, '#8b5cf6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+
+            // Draw balls
+            balls.forEach(ball => {
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fillStyle = ball.fireBall ? '#ef4444' : '#f1f5f9';
+                ctx.fill();
+                ctx.closePath();
+
+                if (ball.fireBall) {
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            });
+
+            // Draw power-ups
+            powerUps.forEach(powerUp => {
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
+                ctx.fillStyle = powerUp.color;
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        function spawnPowerUp(x, y) {
+            const types = [
+                { type: 'expand', color: '#10b981' },
+                { type: 'multiball', color: '#3b82f6' },
+                { type: 'fireball', color: '#ef4444' }
+            ];
+
+            const powerUp = types[Math.floor(Math.random() * types.length)];
+            powerUps.push({
+                x,
+                y,
+                radius: 10,
+                ...powerUp
+            });
+        }
+
+        function activatePowerUp(type) {
+            if (type === 'expand') {
+                paddle.width = Math.min(200, paddle.width + 50);
+                activePowerUps.push({ type: 'expand', duration: 600 });
+            } else if (type === 'multiball') {
+                const newBalls = balls.map(ball => ({
+                    ...ball,
+                    x: ball.x + 20,
+                    dx: ball.dx * 1.1
+                }));
+                balls.push(...newBalls);
+            } else if (type === 'fireball') {
+                balls.forEach(ball => ball.fireBall = true);
+                activePowerUps.push({ type: 'fireball', duration: 600 });
+            }
+        }
+
+        function deactivatePowerUp(type) {
+            if (type === 'expand') {
+                paddle.width = 100;
+            } else if (type === 'fireball') {
+                balls.forEach(ball => ball.fireBall = false);
+            }
+        }
+
+        function levelComplete() {
+            gameRunning = false;
+            level++;
+            score += 100 * level;
+            updateStats();
+
+            const messageEl = document.getElementById('gameMessage');
+            document.getElementById('messageTitle').textContent = '🎉 Level Complete!';
+            document.getElementById('messageText').textContent = `Get ready for Level ${level}!`;
+            document.getElementById('messageButton').textContent = 'Next Level';
+            messageEl.classList.add('visible');
+        }
+
+        function handleMessageButton() {
+            const messageEl = document.getElementById('gameMessage');
+            messageEl.classList.remove('visible');
+            initLevel();
+            gameRunning = true;
+            gameLoop();
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('level').textContent = level;
+
+            if (score > highScore) {
+                highScore = score;
+                document.getElementById('highScore').textContent = highScore;
+                localStorage.setItem('breakout_highScore', highScore);
+            }
+        }
+
+        function endGame(won) {
+            gameRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+
+            const messageEl = document.getElementById('gameMessage');
+            document.getElementById('messageTitle').textContent = won ? '🎉 You Win!' : 'Game Over!';
+            document.getElementById('messageText').textContent = `Final Score: ${score}`;
+            document.getElementById('messageButton').textContent = 'Play Again';
+            document.getElementById('messageButton').onclick = startGame;
+            messageEl.classList.add('visible');
+
+            localStorage.setItem('breakout_lastScore', score);
+            localStorage.setItem('breakout_gamesPlayed',
+                (parseInt(localStorage.getItem('breakout_gamesPlayed') || 0) + 1));
+        }
+
+        function resetHighScore() {
+            if (confirm('Reset your high score?')) {
+                highScore = 0;
+                localStorage.setItem('breakout_highScore', 0);
+                document.getElementById('highScore').textContent = 0;
+            }
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
