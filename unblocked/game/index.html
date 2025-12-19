@@ -468,13 +468,129 @@
                     return;
                 }
 
-                // Set iframe source
-                gameFrame.src = currentGame.gameUrl;
+                // Fetch game HTML to inject storage isolation
+                try {
+                    const response = await fetch(currentGame.gameUrl);
+                    const html = await response.text();
 
-                // Hide loading, show game
-                gameFrame.onload = () => {
-                    document.getElementById('game-loading').classList.add('hidden');
-                };
+                    // Create storage isolation script
+                    const storageIsolationScript = `
+                        <script>
+                        (function() {
+                            const gameId = '${gameId}';
+                            const prefix = 'game_' + gameId + '_';
+
+                            // Wrap localStorage
+                            const originalLocalStorage = window.localStorage;
+                            const localStorageProxy = {
+                                getItem: function(key) {
+                                    return originalLocalStorage.getItem(prefix + key);
+                                },
+                                setItem: function(key, value) {
+                                    return originalLocalStorage.setItem(prefix + key, value);
+                                },
+                                removeItem: function(key) {
+                                    return originalLocalStorage.removeItem(prefix + key);
+                                },
+                                clear: function() {
+                                    // Only clear this game's data
+                                    const keys = Object.keys(originalLocalStorage);
+                                    keys.forEach(key => {
+                                        if (key.startsWith(prefix)) {
+                                            originalLocalStorage.removeItem(key);
+                                        }
+                                    });
+                                },
+                                key: function(index) {
+                                    const keys = Object.keys(originalLocalStorage).filter(k => k.startsWith(prefix));
+                                    const key = keys[index];
+                                    return key ? key.substring(prefix.length) : null;
+                                },
+                                get length() {
+                                    return Object.keys(originalLocalStorage).filter(k => k.startsWith(prefix)).length;
+                                }
+                            };
+
+                            // Wrap sessionStorage
+                            const originalSessionStorage = window.sessionStorage;
+                            const sessionStorageProxy = {
+                                getItem: function(key) {
+                                    return originalSessionStorage.getItem(prefix + key);
+                                },
+                                setItem: function(key, value) {
+                                    return originalSessionStorage.setItem(prefix + key, value);
+                                },
+                                removeItem: function(key) {
+                                    return originalSessionStorage.removeItem(prefix + key);
+                                },
+                                clear: function() {
+                                    const keys = Object.keys(originalSessionStorage);
+                                    keys.forEach(key => {
+                                        if (key.startsWith(prefix)) {
+                                            originalSessionStorage.removeItem(key);
+                                        }
+                                    });
+                                },
+                                key: function(index) {
+                                    const keys = Object.keys(originalSessionStorage).filter(k => k.startsWith(prefix));
+                                    const key = keys[index];
+                                    return key ? key.substring(prefix.length) : null;
+                                },
+                                get length() {
+                                    return Object.keys(originalSessionStorage).filter(k => k.startsWith(prefix)).length;
+                                }
+                            };
+
+                            // Replace localStorage and sessionStorage
+                            Object.defineProperty(window, 'localStorage', {
+                                value: localStorageProxy,
+                                writable: false,
+                                configurable: false
+                            });
+
+                            Object.defineProperty(window, 'sessionStorage', {
+                                value: sessionStorageProxy,
+                                writable: false,
+                                configurable: false
+                            });
+
+                            console.log('Storage isolation enabled for game: ' + gameId);
+                        })();
+                        </script>
+                    `;
+
+                    // Inject the script at the beginning of the HTML (after <head> or <html>)
+                    let modifiedHtml = html;
+                    if (html.includes('<head>')) {
+                        modifiedHtml = html.replace('<head>', '<head>' + storageIsolationScript);
+                    } else if (html.includes('<html>')) {
+                        modifiedHtml = html.replace('<html>', '<html>' + storageIsolationScript);
+                    } else {
+                        modifiedHtml = storageIsolationScript + html;
+                    }
+
+                    // Set the game frame content with isolated storage
+                    gameFrame.srcdoc = modifiedHtml;
+
+                    // Update base URL so relative paths work correctly
+                    gameFrame.onload = () => {
+                        try {
+                            const base = gameFrame.contentDocument.createElement('base');
+                            base.href = currentGame.gameUrl.substring(0, currentGame.gameUrl.lastIndexOf('/') + 1);
+                            gameFrame.contentDocument.head.insertBefore(base, gameFrame.contentDocument.head.firstChild);
+                        } catch (e) {
+                            console.warn('Could not set base URL:', e);
+                        }
+                        document.getElementById('game-loading').classList.add('hidden');
+                    };
+                } catch (error) {
+                    console.error('Error loading game with storage isolation:', error);
+                    // Fallback to direct loading if fetch fails
+                    gameFrame.src = currentGame.gameUrl;
+                    gameFrame.onload = () => {
+                        document.getElementById('game-loading').classList.add('hidden');
+                    };
+                }
 
                 // Increment play count
                 await window.gameManager.incrementPlayCount(gameId);
