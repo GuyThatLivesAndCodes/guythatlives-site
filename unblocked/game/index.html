@@ -123,6 +123,47 @@
             height: 100vh;
         }
 
+        /* Fullscreen Exit Overlay */
+        .fullscreen-exit-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            padding: 1rem;
+            display: none;
+            z-index: 10000;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .fullscreen-exit-overlay.visible {
+            display: flex;
+        }
+
+        .fullscreen-exit-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-exit-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .fullscreen-hint {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.875rem;
+        }
+
         .game-loading {
             position: absolute;
             top: 0;
@@ -296,6 +337,10 @@
 
         <!-- School Controls -->
         <div class="game-controls school-controls">
+            <button class="control-btn" id="shuffle-btn" title="Play a random game">
+                <span>🎲</span>
+                <span>Shuffle</span>
+            </button>
             <button class="control-btn disguise-toggle-btn" title="Disguise page as Google Docs">
                 <span>🕶️</span>
                 <span>Disguise</span>
@@ -330,6 +375,12 @@
                 <div class="error-title">Game Not Found</div>
                 <div class="error-message">We couldn't load this game. It may have been removed or doesn't exist.</div>
                 <a href="/unblocked/" class="btn btn-primary">Back to Games</a>
+            </div>
+
+            <!-- Fullscreen Exit Overlay -->
+            <div class="fullscreen-exit-overlay" id="fullscreen-overlay">
+                <div class="fullscreen-hint">Press ESC or click Exit to leave fullscreen</div>
+                <button class="fullscreen-exit-btn" id="fullscreen-exit-btn">Exit Fullscreen</button>
             </div>
         </div>
 
@@ -452,20 +503,38 @@
         function toggleFullscreen() {
             const wrapper = document.getElementById('game-wrapper');
             const btn = document.getElementById('fullscreen-btn');
+            const overlay = document.getElementById('fullscreen-overlay');
 
             if (wrapper.classList.contains('fullscreen-mode')) {
                 // Exit fullscreen
                 wrapper.classList.remove('fullscreen-mode');
                 btn.innerHTML = '<span>⛶</span><span>Fullscreen</span>';
                 document.body.style.overflow = 'auto';
+                overlay.classList.remove('visible');
             } else {
                 // Enter fullscreen
                 wrapper.classList.add('fullscreen-mode');
                 btn.innerHTML = '<span>⛶</span><span>Exit Fullscreen</span>';
                 document.body.style.overflow = 'hidden';
+                overlay.classList.add('visible');
 
                 // Scroll to top so fullscreen is visible
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Get random game
+        async function goToRandomGame() {
+            try {
+                const games = await window.gameManager.getAllGames();
+                if (games && games.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * games.length);
+                    const randomGame = games[randomIndex];
+                    window.location.href = `/unblocked/game/?game=${randomGame.id}`;
+                }
+            } catch (error) {
+                console.error('Error loading random game:', error);
+                alert('Could not load a random game. Please try again.');
             }
         }
 
@@ -476,6 +545,12 @@
 
             // Fullscreen button
             document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+
+            // Fullscreen exit overlay button
+            document.getElementById('fullscreen-exit-btn').addEventListener('click', toggleFullscreen);
+
+            // Shuffle button
+            document.getElementById('shuffle-btn').addEventListener('click', goToRandomGame);
 
             // Cloud save button (only show when logged in)
             const cloudSaveBtn = document.getElementById('cloud-save-btn');

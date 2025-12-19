@@ -151,6 +151,7 @@
             <div class="search-bar">
                 <input type="text" class="search-input" id="search-input" placeholder="Search for games...">
                 <button class="btn btn-primary" id="search-btn">Search</button>
+                <button class="btn btn-secondary" id="random-game-btn" title="Play a random game">🎲 Random Game</button>
             </div>
         </div>
     </section>
@@ -358,6 +359,9 @@
             // Setup category filter
             setupCategoryFilter();
 
+            // Setup random game button
+            setupRandomGameButton();
+
             // Listen for auth state changes
             window.gamesAuth.onAuthStateChanged(async (user) => {
                 if (user) {
@@ -538,6 +542,25 @@
                     document.querySelector('#new-games').closest('.section').style.display = 'none';
                 } catch (error) {
                     console.error('Category filter error:', error);
+                }
+            });
+        }
+
+        // Setup random game button
+        function setupRandomGameButton() {
+            const randomGameBtn = document.getElementById('random-game-btn');
+
+            randomGameBtn.addEventListener('click', async () => {
+                try {
+                    const games = await window.gameManager.getAllGames();
+                    if (games && games.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * games.length);
+                        const randomGame = games[randomIndex];
+                        window.location.href = `/unblocked/game/?game=${randomGame.id}`;
+                    }
+                } catch (error) {
+                    console.error('Error loading random game:', error);
+                    alert('Could not load a random game. Please try again.');
                 }
             });
         }
