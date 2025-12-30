@@ -89,20 +89,29 @@ async function registerWithDiscovery() {
     if (!ENABLE_DISCOVERY) return;
 
     try {
-        const networkInterfaces = os.networkInterfaces();
-        let ipAddress = 'localhost';
+        let address;
 
-        // Try to find the local network IP
-        for (const name of Object.keys(networkInterfaces)) {
-            for (const net of networkInterfaces[name]) {
-                if (net.family === 'IPv4' && !net.internal) {
-                    ipAddress = net.address;
-                    break;
+        // If PUBLIC_URL is set (for ngrok/tunneling), use that
+        if (process.env.PUBLIC_URL && process.env.PUBLIC_URL.trim()) {
+            address = process.env.PUBLIC_URL.trim();
+            console.log(`[${new Date().toISOString()}] Using public URL: ${address}`);
+        } else {
+            // Otherwise, auto-detect local network IP
+            const networkInterfaces = os.networkInterfaces();
+            let ipAddress = 'localhost';
+
+            // Try to find the local network IP
+            for (const name of Object.keys(networkInterfaces)) {
+                for (const net of networkInterfaces[name]) {
+                    if (net.family === 'IPv4' && !net.internal) {
+                        ipAddress = net.address;
+                        break;
+                    }
                 }
             }
-        }
 
-        const address = `ws://${ipAddress}:${PORT}`;
+            address = `ws://${ipAddress}:${PORT}`;
+        }
 
         const response = await fetch(`${DISCOVERY_SERVER}/register`, {
             method: 'POST',
