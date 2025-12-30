@@ -1,0 +1,26 @@
+{
+  "name": "remote-pc-server",
+  "version": "1.0.0",
+  "description": "Server for remote PC control via browser",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "remote-desktop",
+    "websocket",
+    "screen-capture"
+  ],
+  "author": "GuyThatLives",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2",
+    "screenshot-desktop": "^1.15.0",
+    "robotjs": "^0.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

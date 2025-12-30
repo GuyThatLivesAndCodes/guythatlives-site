@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote PC Control • GuyThatLives Network</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+            --error: #ff6b6b;
+            --success: #51cf66;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--primary);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Auth Screen */
+        #auth-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .auth-container {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 3rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            color: var(--accent);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .form-group input {
+            background: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .auth-button {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(100, 255, 218, 0.3);
+        }
+
+        .auth-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--error);
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Control Screen */
+        #control-screen {
+            display: none;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+        }
+
+        #control-screen.active {
+            display: block;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .status-bar.hidden {
+            transform: translateY(-100%);
+        }
+
+        .status-left {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--error);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .control-button {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .control-button.disconnect {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .control-button.disconnect:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        /* Remote Display */
+        #remote-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            cursor: none;
+        }
+
+        /* Loading Screen */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+            z-index: 999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Connection Info Overlay */
+        .info-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(21, 25, 50, 0.98);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            z-index: 2000;
+            display: none;
+        }
+
+        .info-overlay.show {
+            display: block;
+        }
+
+        .info-overlay h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .info-overlay p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-overlay code {
+            background: var(--primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div id="auth-screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🖥️ Remote PC Access</h1>
+                <p>Enter credentials to connect to your home PC</p>
+            </div>
+
+            <form class="auth-form" id="auth-form">
+                <div class="error-message" id="error-message"></div>
+
+                <div class="form-group">
+                    <label for="password">Access Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="server-address">Server Address (Optional)</label>
+                    <input
+                        type="text"
+                        id="server-address"
+                        name="server-address"
+                        placeholder="ws://localhost:8080"
+                        value="ws://localhost:8080"
+                    >
+                </div>
+
+                <button type="submit" class="auth-button" id="connect-button">
+                    Connect to PC
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Control Screen -->
+    <div id="control-screen">
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Establishing connection...</div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="status-bar">
+            <div class="status-left">
+                <div class="connection-status">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Disconnected</span>
+                </div>
+                <div class="connection-info" id="connection-info">
+                    <span style="color: var(--text-dim); font-size: 0.8rem;">No server connected</span>
+                </div>
+            </div>
+
+            <div class="status-right">
+                <button class="control-button" id="fullscreen-button">Fullscreen</button>
+                <button class="control-button" id="lock-mouse-button">Lock Mouse</button>
+                <button class="control-button disconnect" id="disconnect-button">Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Remote Display Canvas -->
+        <canvas id="remote-display"></canvas>
+
+        <!-- Info Overlay -->
+        <div class="info-overlay" id="info-overlay">
+            <h3>Server Setup Required</h3>
+            <p>To use remote PC control, you need to run the server application on your home PC.</p>
+            <p><strong>Installation:</strong></p>
+            <p>1. Download the server from the repository</p>
+            <p>2. Run: <code>npm install</code></p>
+            <p>3. Start server: <code>node server.js</code></p>
+            <p>4. Connect using the address shown in the terminal</p>
+        </div>
+    </div>
+
+    <!-- Remote Control Client Script -->
+    <script src="remote-client.js"></script>
+</body>
+</html>
