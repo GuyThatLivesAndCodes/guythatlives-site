@@ -4,40 +4,91 @@ Control your home PC directly from your browser at `guythatlives.net/homepc`. Fe
 
 ## ✨ Features
 
+- **Computer Discovery**: Automatically find and select from multiple PCs
 - **Full Mouse Control**: Direct mouse movements with pointer lock API
 - **Keyboard Input**: Complete keyboard support including modifiers and special keys
 - **Real-time Streaming**: Low-latency screen streaming via WebSocket
-- **Password Authentication**: Secure access with password protection
+- **Password Authentication**: Secure access with password protection per computer
 - **Fullscreen Mode**: Immersive remote desktop experience
 - **Connection Status**: Live FPS counter and connection monitoring
+- **Ignore List**: Temporarily hide computers you don't want to connect to
 
 ## 🚀 Quick Start
 
-### 1. Server Setup (Run on your PC)
+### Option A: With Discovery Server (Recommended - Multiple PCs)
 
-Navigate to the server directory:
+This setup allows you to see all available computers in a nice UI and select which one to connect to.
+
+#### 1. Start Discovery Server (Run once, anywhere)
+
+The discovery server acts as a registry for all your PCs.
 
 ```bash
 cd homepc/server
-```
-
-Install dependencies:
-
-```bash
 npm install
+npm run discovery
 ```
 
-Create a `.env` file from the example:
+The discovery server will start on port 8081. Keep this running.
+
+#### 2. Start PC Server on Each Computer
+
+On each PC you want to control:
 
 ```bash
+cd homepc/server
+npm install
 cp .env.example .env
+# Edit .env - set password and computer name
 ```
 
-Edit `.env` and set your password:
+Edit your `.env` file:
 
 ```env
 PORT=8080
 PASSWORD=your-secure-password-here
+COMPUTER_NAME=My Gaming PC
+ENABLE_DISCOVERY=true
+DISCOVERY_SERVER=http://localhost:8081
+SCREEN_FPS=30
+SCREEN_QUALITY=60
+```
+
+Start the server:
+
+```bash
+npm start
+```
+
+#### 3. Access from Browser
+
+1. Go to `guythatlives.net/homepc`
+2. You'll see a list of all available computers
+3. Click "Connect" on the computer you want to control
+4. Enter the password for that computer
+5. Enjoy remote control!
+
+You can click "Ignore" to hide computers temporarily (until page reload).
+
+### Option B: Direct Connection (Single PC, No Discovery)
+
+If you only have one PC or don't want to use the discovery server:
+
+#### 1. Server Setup (Run on your PC)
+
+```bash
+cd homepc/server
+npm install
+cp .env.example .env
+```
+
+Edit `.env` and set `ENABLE_DISCOVERY=false`:
+
+```env
+PORT=8080
+PASSWORD=your-secure-password-here
+COMPUTER_NAME=My PC
+ENABLE_DISCOVERY=false
 SCREEN_FPS=30
 SCREEN_QUALITY=60
 ```
@@ -64,16 +115,16 @@ Screen Quality: 60%
    Network:  ws://[your-ip]:8080
 ```
 
-### 2. Access from Browser
+#### 2. Access from Browser
 
 1. Go to `guythatlives.net/homepc`
-2. Enter your password (set in `.env`)
-3. Enter server address:
-   - Local: `ws://localhost:8080`
-   - Remote: `ws://YOUR_PC_IP:8080` (find your IP with `ipconfig` or `ifconfig`)
-4. Click "Connect to PC"
+2. You'll see "No computers available" (since discovery is disabled)
+3. Click the ⚙️ settings button and change the discovery URL to a fake address
+4. Manually add your server by connecting directly (future feature)
 
-### 3. Using the Remote Desktop
+**Note**: Without discovery, you'll need to manually manage connections. Discovery mode is recommended!
+
+## 🎮 Using the Remote Desktop
 
 Once connected:
 
@@ -91,6 +142,9 @@ Once connected:
 |----------|-------------|---------|
 | `PORT` | WebSocket server port | `8080` |
 | `PASSWORD` | Authentication password | `changeme` |
+| `COMPUTER_NAME` | Display name for this PC | hostname |
+| `ENABLE_DISCOVERY` | Register with discovery server | `true` |
+| `DISCOVERY_SERVER` | Discovery server URL | `http://localhost:8081` |
 | `SCREEN_FPS` | Screen capture framerate | `30` |
 | `SCREEN_QUALITY` | JPEG quality (1-100) | `60` |
 
@@ -151,12 +205,20 @@ Use the provided `https://` URL in the browser connection.
   sudo apt-get install libxtst-dev libpng++-dev
   ```
 
+### No computers showing in list
+
+1. **Check discovery server**: Make sure it's running (`npm run discovery`)
+2. **Check PC server**: Should see "Registered with discovery server" message
+3. **Check discovery URL**: Click ⚙️ in browser and verify the URL
+4. **Check network**: Discovery server and PC should be accessible from browser
+5. **Try refresh**: Click the 🔄 Refresh button
+
 ### Connection fails
 
-1. **Check firewall**: Allow port 8080
+1. **Check firewall**: Allow ports 8080 (PC server) and 8081 (discovery server)
 2. **Check server is running**: Should see "Server listening" message
-3. **Try localhost first**: Use `ws://localhost:8080`
-4. **Check password**: Make sure it matches `.env` file
+3. **Check password**: Make sure it matches the `.env` file for that PC
+4. **Check network**: Make sure browser can reach the WebSocket address shown
 
 ### Mouse movements are jerky
 
