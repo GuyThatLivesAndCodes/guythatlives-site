@@ -7,6 +7,15 @@ echo   Remote PC Control Server - Easy Setup
 echo ================================================
 echo.
 
+REM Check if running in System32 - if so, switch to user directory
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo WARNING: Running from System32 directory!
+    echo Switching to your Documents folder...
+    cd /d "%USERPROFILE%\Documents"
+    echo Now in: %cd%
+    echo.
+)
+
 REM Check if Node.js is installed
 where node >nul 2>nul
 if %errorlevel% neq 0 (
