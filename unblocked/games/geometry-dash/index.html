@@ -1,0 +1,200 @@
+<html lang="tr"><head><base target="_blank">
+
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun Başlatıcı</title>
+  <style>
+    .play-button {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001; /* Butonun oyun üzerinde olmasını sağla */
+    }
+    
+    .play-button:hover {
+      background-color: #4a148c !important;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    
+    .fullscreen-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002; /* Fullscreen butonu her zaman en üstte */
+    }
+    
+    .fullscreen-button:hover {
+      background-color: #4a148c !important;
+      transform: scale(1.05);
+    }
+    
+    .content-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+      z-index: 1000; /* Oyun iframe'i fullscreen butonunun altında */
+      background-color: #000;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  
+  
+  <div id="contentContainer" class="content-container" style="display: block;"><iframe src="blob:https://100480050-atari-embeds.googleusercontent.com/f58eea1b-9931-4a3b-90f4-162cd065fa2b" style="width: 100%; height: 100%; border: medium; margin: 0px; padding: 0px;"></iframe></div>
+
+  <script>
+    // Oyun HTML'si
+    const gameHTML = `
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/yrgen73/GDC@5f6fb6329a03aecf95c6db186ff6410c6b0330c9/style.css" type="text/css">
+
+</head>
+<body>
+<div id="fb-root"></div>
+
+ <script src="https://cdn.jsdelivr.net/gh/yrgen73/GDC@64d92b5d448ee74c27904841ebbe9c3ef787c443/c2runtime.js"><\/script>
+ <script src="https://cdn.jsdelivr.net/gh/yrgen73/GDC@5f6fb6329a03aecf95c6db186ff6410c6b0330c9/start.js"><\/script>
+ <script src="https://cdn.jsdelivr.net/gh/yrgen73/GDC@5f6fb6329a03aecf95c6db186ff6410c6b0330c9/register-sw.js"><\/script>
+</body>
+</html>
+
+
+    `.trim();
+
+    // Butona olay dinleyicisi ekle
+    document.addEventListener('DOMContentLoaded', function() {
+      const playButton = document.getElementById('playButton');
+      const fullscreenButton = document.getElementById('fullscreenButton');
+      
+      if (playButton) {
+        playButton.addEventListener('click', showContent);
+      } else {
+        console.error('Play butonu bulunamadı.');
+      }
+      
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', openFullscreen);
+      } else {
+        console.error('Fullscreen butonu bulunamadı.');
+      }
+    });
+
+    function showContent() {
+      try {
+        // Sadece play butonunu gizle
+        document.getElementById('playButton').style.display = 'none';
+        
+        // İçerik konteynırını göster
+        const container = document.getElementById('contentContainer');
+        container.style.display = 'block';
+
+        // Blob oluştur
+        const blob = new Blob([gameHTML], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Mevcut iframe varsa temizle
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
+        // Yeni iframe oluştur
+        const iframe = document.createElement('iframe');
+        iframe.src = blobUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+
+        // Iframe'i ekle
+        container.appendChild(iframe);
+
+        // Hata ayıklama
+        iframe.onload = () => console.log('Oyun yüklendi');
+        iframe.onerror = (e) => console.error('Oyun yüklenirken hata:', e);
+      } catch (error) {
+        console.error('Hata oluştu:', error);
+        alert('Oyun yüklenemedi. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+
+    function openFullscreen() {
+      try {
+        // Yeni sekme aç
+        const newWin = window.open("about:blank", "_blank");
+        if (newWin) {
+          newWin.document.open();
+          newWin.document.write(gameHTML);
+          newWin.document.close();
+
+          // Tam ekran modunu ayarla (isteğe bağlı, tarayıcıya bağlı olarak çalışmayabilir)
+          setTimeout(() => {
+            if (newWin.document.documentElement.requestFullscreen) {
+              newWin.document.documentElement.requestFullscreen();
+            } else if (newWin.document.documentElement.mozRequestFullScreen) {
+              newWin.document.documentElement.mozRequestFullScreen();
+            } else if (newWin.document.documentElement.webkitRequestFullscreen) {
+              newWin.document.documentElement.webkitRequestFullscreen();
+            } else if (newWin.document.documentElement.msRequestFullscreen) {
+              newWin.document.documentElement.msRequestFullscreen();
+            }
+          }, 500);
+        } else {
+          alert("Yeni sekme açma engellendi. Lütfen tarayıcı ayarlarını kontrol edin.");
+        }
+      } catch (error) {
+        console.error('Fullscreen hata:', error);
+        alert('Tam ekran modu çalışmadı. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+  </script>
+
+</body></html>

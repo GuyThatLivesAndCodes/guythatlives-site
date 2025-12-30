@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "guythatlives-site"
+    "default": "guythatlives-site",
+    "math": "guythatlives-math",
+    "unblocked": "guythatlives-unblocked"
   }
 }

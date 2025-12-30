@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unblocked Games - GuyThatLives</title>
+    <link rel="stylesheet" href="shared/games-styles.css">
+    <style>
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1), transparent 70%);
+            z-index: -1;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">GuyThatLives</a>
+            <nav class="nav">
+                <a href="/">Home</a>
+                <a href="/math/">Math</a>
+                <a href="/unblocked/">Games</a>
+                <a href="/unblocked/editor" class="admin-only">Editor</a>
+            </nav>
+            <div class="school-controls">
+                <button class="disguise-toggle-btn">🕶️ Disguise Page</button>
+                <button class="panic-btn">🚨 Panic</button>
+            </div>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <span id="user-avatar-text"></span>
+                    </div>
+                    <div>
+                        <div class="user-name"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary auth-button" data-action="sign-in">Sign In</button>
+                <button class="btn btn-ghost auth-button" data-action="sign-out" style="display: none;">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="hero-title">Unblocked Games</h1>
+            <p class="hero-subtitle">
+                Play the best collection of unblocked games. No downloads, no restrictions, just pure fun.
+            </p>
+            <div class="search-bar">
+                <input type="text" class="search-input" id="search-input" placeholder="Search for games...">
+                <button class="btn btn-primary" id="search-btn">Search</button>
+                <button class="btn btn-secondary" id="random-game-btn" title="Play a random game">🎲 Random Game</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Recently Played (for logged-in users) -->
+        <section id="recent-section" class="section" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Continue Playing</h2>
+                    <p class="section-subtitle">Pick up where you left off</p>
+                </div>
+            </div>
+            <div id="recent-games" class="games-grid"></div>
+        </section>
+
+        <!-- Featured Games -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Featured Games</h2>
+                    <p class="section-subtitle">Our top picks for you</p>
+                </div>
+            </div>
+            <div id="featured-games" class="games-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading games...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Filter -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Browse by Category</h2>
+                    <p class="section-subtitle">Find games you'll love</p>
+                </div>
+            </div>
+            <div class="category-filter">
+                <label for="category-select" style="color: var(--text-secondary); font-weight: 500;">Category:</label>
+                <select id="category-select" class="category-select">
+                    <option value="">All Games</option>
+                </select>
+            </div>
+            <div id="category-games" class="games-grid"></div>
+        </section>
+
+        <!-- Most Played Games -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Most Played</h2>
+                    <p class="section-subtitle">Join the fun with these popular games</p>
+                </div>
+            </div>
+            <div id="most-played-games" class="games-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading games...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newly Added Games -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Newly Added</h2>
+                    <p class="section-subtitle">Check out the latest additions</p>
+                </div>
+            </div>
+            <div id="new-games" class="games-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading games...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="section">
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-card-value" id="total-games-count">0</div>
+                    <div class="stat-card-label">Total Games</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value" id="total-plays-count">0</div>
+                    <div class="stat-card-label">Times Played</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-value" id="categories-count">0</div>
+                    <div class="stat-card-label">Categories</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <h2 class="modal-title">Sign In</h2>
+
+            <!-- Sign In Form -->
+            <form id="sign-in-form">
+                <div class="error-message"></div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+                <div class="form-divider">or</div>
+                <button type="button" id="google-sign-in" class="btn btn-secondary" style="width: 100%;">
+                    Sign in with Google
+                </button>
+                <div class="form-footer">
+                    <a href="#" id="reset-password-btn">Forgot password?</a>
+                    <br>
+                    Don't have an account? <a href="#" id="show-sign-up">Sign up</a>
+                </div>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="sign-up-form" style="display: none;">
+                <div class="error-message"></div>
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" name="displayName" class="form-input" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-input" placeholder="••••••••" required minlength="6">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign Up</button>
+                <div class="form-divider">or</div>
+                <button type="button" id="google-sign-up" class="btn btn-secondary" style="width: 100%;">
+                    Sign up with Google
+                </button>
+                <div class="form-footer">
+                    Already have an account? <a href="#" id="show-sign-in">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Shared Modules -->
+    <script src="shared/games-auth.js"></script>
+    <script src="shared/game-manager.js"></script>
+    <script src="shared/disguise.js"></script>
+
+    <!-- Page Script -->
+    <script>
+        // Page initialization
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Initializing Unblocked Games page...');
+
+            // Setup modal toggle
+            document.getElementById('show-sign-up')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('sign-in-form').style.display = 'none';
+                document.getElementById('sign-up-form').style.display = 'block';
+                document.querySelector('.modal-title').textContent = 'Sign Up';
+            });
+
+            document.getElementById('show-sign-in')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('sign-in-form').style.display = 'block';
+                document.getElementById('sign-up-form').style.display = 'none';
+                document.querySelector('.modal-title').textContent = 'Sign In';
+            });
+
+            // Setup Google sign up button
+            document.getElementById('google-sign-up')?.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await window.gamesAuth.signInWithGoogle();
+                    window.gamesAuth.hideAuthModal();
+                } catch (error) {
+                    alert('Error signing up with Google: ' + error.message);
+                }
+            });
+
+            // Load all games data
+            await loadAllGames();
+
+            // Setup search
+            setupSearch();
+
+            // Setup category filter
+            setupCategoryFilter();
+
+            // Setup random game button
+            setupRandomGameButton();
+
+            // Listen for auth state changes
+            window.gamesAuth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    // Update user avatar
+                    const avatarText = document.getElementById('user-avatar-text');
+                    if (avatarText) {
+                        avatarText.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+                    }
+
+                    // Load recent games
+                    await loadRecentGames(user.uid);
+                } else {
+                    // Hide recent section
+                    document.getElementById('recent-section').style.display = 'none';
+                }
+            });
+        });
+
+        // Load all games sections
+        async function loadAllGames() {
+            try {
+                const [featured, mostPlayed, newGames, categories] = await Promise.all([
+                    window.gameManager.getFeaturedGames(6),
+                    window.gameManager.getMostPlayedGames(12),
+                    window.gameManager.getNewGames(12),
+                    window.gameManager.getCategories()
+                ]);
+
+                renderGames('featured-games', featured);
+                renderGames('most-played-games', mostPlayed);
+                renderGames('new-games', newGames);
+
+                // Populate category select
+                const categorySelect = document.getElementById('category-select');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+
+                // Update stats
+                const allGames = await window.gameManager.getAllGames();
+                document.getElementById('total-games-count').textContent = allGames.length;
+                document.getElementById('categories-count').textContent = categories.length;
+
+                const totalPlays = allGames.reduce((sum, game) => sum + (game.playCount || 0), 0);
+                document.getElementById('total-plays-count').textContent = totalPlays.toLocaleString();
+
+            } catch (error) {
+                console.error('Error loading games:', error);
+                showError('Failed to load games. Please refresh the page.');
+            }
+        }
+
+        // Load recent games for logged-in user
+        async function loadRecentGames(userId) {
+            try {
+                const recentGames = await window.gameManager.getUserRecentGames(userId, 6);
+                if (recentGames.length > 0) {
+                    document.getElementById('recent-section').style.display = 'block';
+                    renderGames('recent-games', recentGames);
+                }
+            } catch (error) {
+                console.error('Error loading recent games:', error);
+            }
+        }
+
+        // Render games to a container
+        function renderGames(containerId, games) {
+            const container = document.getElementById(containerId);
+
+            if (!games || games.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎮</div>
+                        <div class="empty-state-title">No games found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = games.map(game => createGameCard(game)).join('');
+        }
+
+        // Create game card HTML
+        function createGameCard(game) {
+            const thumbnail = game.thumbnail || '';
+            const isNew = game.addedDate && isNewGame(game.addedDate);
+            const badges = [];
+
+            if (game.featured) badges.push('<span class="game-badge featured">Featured</span>');
+            if (isNew) badges.push('<span class="game-badge new">New</span>');
+
+            return `
+                <a href="/unblocked/game/?game=${game.id}" class="game-card">
+                    <div class="game-thumbnail">
+                        ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '<div class="game-thumbnail-placeholder">🎮</div>'}
+                        ${badges.join('')}
+                    </div>
+                    <div class="game-info">
+                        <h3 class="game-title">${game.title}</h3>
+                        <p class="game-description">${game.description || 'No description available'}</p>
+                        <div class="game-meta">
+                            <span class="game-meta-item">▶ ${game.playCount || 0} plays</span>
+                        </div>
+                        ${game.tags && game.tags.length > 0 ? `
+                            <div class="game-tags">
+                                ${game.tags.slice(0, 3).map(tag => `<span class="game-tag">${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </a>
+            `;
+        }
+
+        // Check if game is new (added in last 7 days)
+        function isNewGame(addedDate) {
+            if (!addedDate) return false;
+            const date = addedDate.toDate ? addedDate.toDate() : new Date(addedDate);
+            const daysDiff = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
+            return daysDiff <= 7;
+        }
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+
+            const performSearch = async () => {
+                const query = searchInput.value.trim();
+                if (!query) {
+                    await loadAllGames();
+                    return;
+                }
+
+                try {
+                    const results = await window.gameManager.searchGames(query);
+                    renderGames('featured-games', results.slice(0, 6));
+                    renderGames('most-played-games', []);
+                    renderGames('new-games', []);
+
+                    // Hide sections if no results
+                    document.querySelector('#most-played-games').closest('.section').style.display = 'none';
+                    document.querySelector('#new-games').closest('.section').style.display = 'none';
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            };
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+        }
+
+        // Setup category filter
+        function setupCategoryFilter() {
+            const categorySelect = document.getElementById('category-select');
+
+            categorySelect.addEventListener('change', async (e) => {
+                const category = e.target.value;
+
+                if (!category) {
+                    // Show all sections
+                    document.querySelector('#most-played-games').closest('.section').style.display = 'block';
+                    document.querySelector('#new-games').closest('.section').style.display = 'block';
+                    document.getElementById('category-games').innerHTML = '';
+                    return;
+                }
+
+                try {
+                    const games = await window.gameManager.getGamesByCategory(category);
+                    renderGames('category-games', games);
+
+                    // Hide other sections
+                    document.querySelector('#most-played-games').closest('.section').style.display = 'none';
+                    document.querySelector('#new-games').closest('.section').style.display = 'none';
+                } catch (error) {
+                    console.error('Category filter error:', error);
+                }
+            });
+        }
+
+        // Setup random game button
+        function setupRandomGameButton() {
+            const randomGameBtn = document.getElementById('random-game-btn');
+
+            randomGameBtn.addEventListener('click', async () => {
+                try {
+                    const games = await window.gameManager.getAllGames();
+                    if (games && games.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * games.length);
+                        const randomGame = games[randomIndex];
+                        window.location.href = `/unblocked/game/?game=${randomGame.id}`;
+                    }
+                } catch (error) {
+                    console.error('Error loading random game:', error);
+                    alert('Could not load a random game. Please try again.');
+                }
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            const container = document.querySelector('.container');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = message;
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+    </script>
+</body>
+</html>

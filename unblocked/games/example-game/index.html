@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Master - Example Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .score {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 2rem 0;
+        }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 2rem auto;
+            display: block;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-box {
+            background: #f7f7f7;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            color: #333;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .reset-button {
+            margin-top: 2rem;
+            padding: 0.75rem 2rem;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .click-animation {
+            position: fixed;
+            pointer-events: none;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .score {
+                font-size: 3rem;
+            }
+
+            .click-button {
+                width: 150px;
+                height: 150px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Click Master</h1>
+        <div class="score" id="score">0</div>
+        <button class="click-button" id="clickButton">Click Me!</button>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-label">Clicks per Second</div>
+                <div class="stat-value" id="cps">0.0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Clicks</div>
+                <div class="stat-value" id="totalClicks">0</div>
+            </div>
+        </div>
+
+        <button class="reset-button" id="resetButton">Reset Game</button>
+    </div>
+
+    <script>
+        // Game state
+        let score = 0;
+        let totalClicks = 0;
+        let clickTimes = [];
+        let clickPower = 1;
+
+        // DOM elements
+        const scoreEl = document.getElementById('score');
+        const cpsEl = document.getElementById('cps');
+        const totalClicksEl = document.getElementById('totalClicks');
+        const clickButton = document.getElementById('clickButton');
+        const resetButton = document.getElementById('resetButton');
+
+        // Load saved game state
+        function loadGame() {
+            const saved = localStorage.getItem('clickMasterSave');
+            if (saved) {
+                const data = JSON.parse(saved);
+                score = data.score || 0;
+                totalClicks = data.totalClicks || 0;
+                updateUI();
+            }
+        }
+
+        // Save game state
+        function saveGame() {
+            const data = {
+                score,
+                totalClicks,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('clickMasterSave', JSON.stringify(data));
+        }
+
+        // Handle click
+        function handleClick(e) {
+            // Increment score
+            score += clickPower;
+            totalClicks++;
+
+            // Track click time for CPS calculation
+            const now = Date.now();
+            clickTimes.push(now);
+
+            // Keep only last second of clicks
+            clickTimes = clickTimes.filter(time => now - time < 1000);
+
+            // Update UI
+            updateUI();
+
+            // Save game
+            saveGame();
+
+            // Create click animation
+            createClickAnimation(e.clientX, e.clientY);
+
+            // Add button animation
+            clickButton.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                clickButton.style.transform = '';
+            }, 100);
+        }
+
+        // Update UI
+        function updateUI() {
+            scoreEl.textContent = score.toLocaleString();
+            totalClicksEl.textContent = totalClicks.toLocaleString();
+            cpsEl.textContent = clickTimes.length.toFixed(1);
+        }
+
+        // Create floating +1 animation
+        function createClickAnimation(x, y) {
+            const animation = document.createElement('div');
+            animation.className = 'click-animation';
+            animation.textContent = '+' + clickPower;
+            animation.style.left = x + 'px';
+            animation.style.top = y + 'px';
+            document.body.appendChild(animation);
+
+            setTimeout(() => {
+                animation.remove();
+            }, 1000);
+        }
+
+        // Reset game
+        function resetGame() {
+            if (confirm('Are you sure you want to reset your progress?')) {
+                score = 0;
+                totalClicks = 0;
+                clickTimes = [];
+                updateUI();
+                saveGame();
+            }
+        }
+
+        // Event listeners
+        clickButton.addEventListener('click', handleClick);
+        resetButton.addEventListener('click', resetGame);
+
+        // Initialize game
+        loadGame();
+
+        // Update CPS every 100ms
+        setInterval(() => {
+            const now = Date.now();
+            clickTimes = clickTimes.filter(time => now - time < 1000);
+            cpsEl.textContent = clickTimes.length.toFixed(1);
+        }, 100);
+
+        // Milestones
+        function checkMilestones() {
+            if (score >= 100 && clickPower === 1) {
+                clickPower = 2;
+                alert('Achievement Unlocked! Click power increased to 2!');
+            }
+            if (score >= 500 && clickPower === 2) {
+                clickPower = 5;
+                alert('Achievement Unlocked! Click power increased to 5!');
+            }
+            if (score >= 1000 && clickPower === 5) {
+                clickPower = 10;
+                alert('Achievement Unlocked! Click power increased to 10!');
+            }
+        }
+
+        // Check milestones on score change
+        const originalHandleClick = handleClick;
+        handleClick = function(e) {
+            originalHandleClick(e);
+            checkMilestones();
+        };
+    </script>
+</body>
+</html>
