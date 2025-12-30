@@ -205,17 +205,17 @@ echo ================================================
 echo.
 
 set /p START_NOW="Would you like to start the servers now? (Y/N): "
-if /i "%START_NOW%"=="Y" (
+if /i "!START_NOW!"=="Y" (
     echo.
     echo Starting servers...
     echo.
 
     REM Start discovery server in new window
     echo [1/4] Starting Discovery Server...
-    start "Discovery Server" cmd /k "cd /d "%cd%" && npm run discovery"
+    start "Discovery Server" cmd /k "cd /d "!cd!" && npm run discovery"
     timeout /t 2 /nobreak >nul
 
-    if /i "%USE_NGROK%"=="Y" (
+    if /i "!USE_NGROK!"=="Y" (
         REM Check if ngrok is installed
         where ngrok >nul 2>nul
         if errorlevel 1 (
@@ -264,7 +264,7 @@ if /i "%START_NOW%"=="Y" (
     )
 
     echo [4/4] Starting PC Server...
-    start "PC Server" cmd /k "cd /d "%cd%" && npm start"
+    start "PC Server" cmd /k "cd /d "!cd!" && npm start"
 
     echo.
     echo ================================================
@@ -273,25 +273,25 @@ if /i "%START_NOW%"=="Y" (
     echo.
     echo Check the opened windows:
     echo   - Discovery Server (port 8081)
-    if /i "%USE_NGROK%"=="Y" (
+    if /i "!USE_NGROK!"=="Y" (
         echo   - Discovery Tunnel (ngrok)
         echo   - PC Server Tunnel (ngrok)
     )
     echo   - PC Server (port 8080)
     echo.
-    if /i "%USE_NGROK%"=="Y" (
+    if /i "!USE_NGROK!"=="Y" (
         echo To connect remotely:
         echo 1. Go to https://guythatlives.net/homepc
-        echo 2. Click ⚙️ and enter your ngrok discovery URL
+        echo 2. Click the settings button and enter your ngrok discovery URL
         echo 3. Click Refresh
-        echo 4. Click Connect and enter password: %PASSWORD%
+        echo 4. Click Connect and enter password: !PASSWORD!
     ) else (
         echo To connect locally:
-        echo 1. Go to http://localhost:8081 (verify your PC is listed)
+        echo 1. Go to http://localhost:8081 (verify your PC is listed^)
         echo 2. Go to https://guythatlives.net/homepc
-        echo 3. Click ⚙️ and enter: http://localhost:8081
+        echo 3. Click the settings button and enter: http://localhost:8081
         echo 4. Click Refresh
-        echo 5. Click Connect and enter password: %PASSWORD%
+        echo 5. Click Connect and enter password: !PASSWORD!
     )
     echo.
     echo Keep all windows open while using remote control!
@@ -310,7 +310,7 @@ if /i "%START_NOW%"=="Y" (
     echo 2. PC Server:
     echo    npm start
     echo.
-    if /i "%USE_NGROK%"=="Y" (
+    if /i "!USE_NGROK!"=="Y" (
         echo 3. For remote access, also run:
         echo    ngrok http 8081
         echo    ngrok http 8080
