@@ -36,96 +36,201 @@
             width: 100vw;
         }
 
-        /* Auth Screen */
-        #auth-screen {
+        /* Selection Screen */
+        #selection-screen {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 2rem;
         }
 
-        .auth-container {
+        .selection-container {
             background: var(--surface);
             border: 2px solid var(--border);
             border-radius: 16px;
-            padding: 3rem;
-            max-width: 400px;
-            width: 90%;
+            padding: 2rem;
+            max-width: 700px;
+            width: 100%;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        .auth-header {
+        .selection-header {
             text-align: center;
             margin-bottom: 2rem;
         }
 
-        .auth-header h1 {
+        .selection-header h1 {
             color: var(--accent);
             font-size: 1.8rem;
             margin-bottom: 0.5rem;
         }
 
-        .auth-header p {
+        .selection-header p {
             color: var(--text-dim);
             font-size: 0.9rem;
         }
 
-        .auth-form {
+        .controls-row {
             display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            color: var(--text-dim);
-            font-size: 0.85rem;
-        }
-
-        .form-group input {
+        .refresh-button, .settings-button {
             background: var(--primary);
             border: 2px solid var(--border);
+            color: var(--text-dim);
+            padding: 0.5rem 1rem;
             border-radius: 8px;
-            padding: 0.75rem;
-            color: var(--text);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .auth-button {
-            background: var(--accent);
-            color: var(--primary);
-            border: none;
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .auth-button:hover {
+        .refresh-button:hover, .settings-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .refresh-button.loading {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .discovery-url {
+            flex: 1;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .computer-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .computer-item {
+            background: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .computer-item.ignored {
+            opacity: 0.4;
+            order: 999;
+        }
+
+        .computer-item:hover:not(.ignored) {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .computer-info {
+            flex: 1;
+        }
+
+        .computer-name {
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .computer-address {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .computer-metadata {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        .computer-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .connect-button, .ignore-button {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connect-button {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .connect-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 16px rgba(100, 255, 218, 0.3);
         }
 
-        .auth-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .ignore-button {
+            background: var(--surface);
+            color: var(--text-dim);
+            border: 2px solid var(--border);
+        }
+
+        .ignore-button:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-dim);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
         }
 
         .error-message {
@@ -135,11 +240,88 @@
             padding: 0.75rem;
             color: var(--error);
             font-size: 0.85rem;
+            margin-bottom: 1rem;
             display: none;
         }
 
         .error-message.show {
             display: block;
+        }
+
+        /* Password Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-button.primary {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .modal-button.secondary {
+            background: var(--primary);
+            color: var(--text-dim);
+            border: 2px solid var(--border);
         }
 
         /* Control Screen */
@@ -200,11 +382,6 @@
 
         .status-dot.connected {
             background: var(--success);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
 
         .status-right {
@@ -288,84 +465,54 @@
             color: var(--text-dim);
             font-size: 0.9rem;
         }
-
-        /* Connection Info Overlay */
-        .info-overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(21, 25, 50, 0.98);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 500px;
-            z-index: 2000;
-            display: none;
-        }
-
-        .info-overlay.show {
-            display: block;
-        }
-
-        .info-overlay h3 {
-            color: var(--accent);
-            margin-bottom: 1rem;
-        }
-
-        .info-overlay p {
-            color: var(--text-dim);
-            line-height: 1.6;
-            margin-bottom: 0.5rem;
-        }
-
-        .info-overlay code {
-            background: var(--primary);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            color: var(--accent);
-        }
     </style>
 </head>
 <body>
-    <!-- Authentication Screen -->
-    <div id="auth-screen">
-        <div class="auth-container">
-            <div class="auth-header">
-                <h1>🖥️ Remote PC Access</h1>
-                <p>Enter credentials to connect to your home PC</p>
+    <!-- Computer Selection Screen -->
+    <div id="selection-screen">
+        <div class="selection-container">
+            <div class="selection-header">
+                <h1>🖥️ Remote PC Control</h1>
+                <p>Select a computer to connect</p>
             </div>
 
-            <form class="auth-form" id="auth-form">
-                <div class="error-message" id="error-message"></div>
+            <div class="error-message" id="error-message"></div>
 
-                <div class="form-group">
-                    <label for="password">Access Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        required
-                    >
+            <div class="controls-row">
+                <button class="refresh-button" id="refresh-button">🔄 Refresh</button>
+                <div class="discovery-url" id="discovery-url">http://localhost:8081</div>
+                <button class="settings-button" id="settings-button">⚙️</button>
+            </div>
+
+            <div class="computer-list" id="computer-list">
+                <!-- Computers will be loaded here -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Searching for computers...</h3>
+                    <p>Make sure the discovery server is running</p>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="form-group">
-                    <label for="server-address">Server Address (Optional)</label>
-                    <input
-                        type="text"
-                        id="server-address"
-                        name="server-address"
-                        placeholder="ws://localhost:8080"
-                        value="ws://localhost:8080"
-                    >
-                </div>
-
-                <button type="submit" class="auth-button" id="connect-button">
-                    Connect to PC
-                </button>
-            </form>
+    <!-- Password Modal -->
+    <div class="modal-overlay" id="password-modal">
+        <div class="modal">
+            <h3>Enter Password</h3>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem;">
+                Connecting to: <span id="modal-computer-name"></span>
+            </p>
+            <input
+                type="password"
+                class="modal-input"
+                id="password-input"
+                placeholder="Enter password"
+                autocomplete="current-password"
+            >
+            <div class="modal-buttons">
+                <button class="modal-button secondary" id="cancel-button">Cancel</button>
+                <button class="modal-button primary" id="submit-password-button">Connect</button>
+            </div>
         </div>
     </div>
 
@@ -398,17 +545,6 @@
 
         <!-- Remote Display Canvas -->
         <canvas id="remote-display"></canvas>
-
-        <!-- Info Overlay -->
-        <div class="info-overlay" id="info-overlay">
-            <h3>Server Setup Required</h3>
-            <p>To use remote PC control, you need to run the server application on your home PC.</p>
-            <p><strong>Installation:</strong></p>
-            <p>1. Download the server from the repository</p>
-            <p>2. Run: <code>npm install</code></p>
-            <p>3. Start server: <code>node server.js</code></p>
-            <p>4. Connect using the address shown in the terminal</p>
-        </div>
     </div>
 
     <!-- Remote Control Client Script -->

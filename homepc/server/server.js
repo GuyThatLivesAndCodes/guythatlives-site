@@ -7,14 +7,22 @@ const WebSocket = require('ws');
 const screenshot = require('screenshot-desktop');
 const robot = require('robotjs');
 const http = require('http');
+const os = require('os');
+const crypto = require('crypto');
 require('dotenv').config();
 
 // Configuration
 const PORT = process.env.PORT || 8080;
 const PASSWORD = process.env.PASSWORD || 'changeme';
+const COMPUTER_NAME = process.env.COMPUTER_NAME || os.hostname();
+const DISCOVERY_SERVER = process.env.DISCOVERY_SERVER || 'http://localhost:8081';
+const ENABLE_DISCOVERY = process.env.ENABLE_DISCOVERY === 'true';
 const SCREEN_FPS = parseInt(process.env.SCREEN_FPS) || 30;
 const SCREEN_QUALITY = parseInt(process.env.SCREEN_QUALITY) || 60;
 const FRAME_INTERVAL = 1000 / SCREEN_FPS;
+
+// Generate unique computer ID based on hostname and network
+const COMPUTER_ID = crypto.createHash('md5').update(os.hostname()).digest('hex').substring(0, 8);
 
 // Create HTTP server
 const server = http.createServer((req, res) => {
@@ -66,10 +74,81 @@ const wss = new WebSocket.Server({ server });
 console.log('═══════════════════════════════════════════════');
 console.log('🖥️  Remote PC Control Server');
 console.log('═══════════════════════════════════════════════');
+console.log(`Computer ID: ${COMPUTER_ID}`);
+console.log(`Computer Name: ${COMPUTER_NAME}`);
 console.log(`Port: ${PORT}`);
 console.log(`Screen FPS: ${SCREEN_FPS}`);
 console.log(`Screen Quality: ${SCREEN_QUALITY}%`);
+if (ENABLE_DISCOVERY) {
+    console.log(`Discovery Server: ${DISCOVERY_SERVER}`);
+}
 console.log('═══════════════════════════════════════════════');
+
+// Discovery Server Integration
+async function registerWithDiscovery() {
+    if (!ENABLE_DISCOVERY) return;
+
+    try {
+        const networkInterfaces = os.networkInterfaces();
+        let ipAddress = 'localhost';
+
+        // Try to find the local network IP
+        for (const name of Object.keys(networkInterfaces)) {
+            for (const net of networkInterfaces[name]) {
+                if (net.family === 'IPv4' && !net.internal) {
+                    ipAddress = net.address;
+                    break;
+                }
+            }
+        }
+
+        const address = `ws://${ipAddress}:${PORT}`;
+
+        const response = await fetch(`${DISCOVERY_SERVER}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: COMPUTER_ID,
+                name: COMPUTER_NAME,
+                address: address,
+                metadata: {
+                    platform: os.platform(),
+                    hostname: os.hostname()
+                }
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            console.log(`[${new Date().toISOString()}] ✅ Registered with discovery server`);
+        } else {
+            console.error(`[${new Date().toISOString()}] ❌ Failed to register:`, data.error);
+        }
+    } catch (error) {
+        console.error(`[${new Date().toISOString()}] ❌ Discovery server unavailable:`, error.message);
+    }
+}
+
+async function unregisterFromDiscovery() {
+    if (!ENABLE_DISCOVERY) return;
+
+    try {
+        await fetch(`${DISCOVERY_SERVER}/unregister`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: COMPUTER_ID })
+        });
+        console.log(`[${new Date().toISOString()}] Unregistered from discovery server`);
+    } catch (error) {
+        // Ignore errors on shutdown
+    }
+}
+
+// Send heartbeat every 15 seconds
+let heartbeatInterval;
+if (ENABLE_DISCOVERY) {
+    heartbeatInterval = setInterval(registerWithDiscovery, 15000);
+}
 
 // Store authenticated clients
 const authenticatedClients = new Set();
@@ -315,8 +394,14 @@ function handleKeyboard(message) {
 }
 
 // Graceful shutdown
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
     console.log('\n\nShutting down server...');
+
+    // Unregister from discovery
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+    }
+    await unregisterFromDiscovery();
 
     // Stop all streams
     streamingClients.forEach((interval) => clearInterval(interval));
@@ -334,10 +419,15 @@ process.on('SIGINT', () => {
 });
 
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
     console.log(`\n✅ Server listening on:`);
     console.log(`   Local:    ws://localhost:${PORT}`);
     console.log(`   Network:  ws://[your-ip]:${PORT}`);
     console.log('\n💡 Set PASSWORD in .env file for security');
     console.log('Press Ctrl+C to stop\n');
+
+    // Register with discovery server
+    if (ENABLE_DISCOVERY) {
+        await registerWithDiscovery();
+    }
 });
