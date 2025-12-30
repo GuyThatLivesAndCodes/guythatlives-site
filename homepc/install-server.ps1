@@ -6,6 +6,15 @@ Write-Host "  Remote PC Control Server - Easy Setup" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Check if running in System32 - if so, switch to user directory
+if ($PWD.Path -like "*System32*") {
+    Write-Host "WARNING: Running from System32 directory!" -ForegroundColor Yellow
+    Write-Host "Switching to your Documents folder..." -ForegroundColor Yellow
+    Set-Location -Path ([Environment]::GetFolderPath("MyDocuments"))
+    Write-Host "Now in: $PWD" -ForegroundColor Green
+    Write-Host ""
+}
+
 # Check if Node.js is installed
 try {
     $nodeVersion = node --version
