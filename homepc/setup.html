@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote PC Server Setup • GuyThatLives Network</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0a0e27;
+            --accent: #64ffda;
+            --secondary: #1a1f3a;
+            --text: #e1e5f2;
+            --text-dim: #8892b0;
+            --surface: #151932;
+            --border: #233554;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            color: var(--accent);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card h2 {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: var(--accent);
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 2px solid var(--accent);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.3);
+        }
+
+        .download-btn.secondary {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--accent);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .steps li strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        code {
+            background: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .warning p {
+            color: #ffc107;
+            margin: 0;
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--text-dim);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="./" class="back-link">← Back to Remote PC Control</a>
+
+        <div class="header">
+            <h1>🖥️ Server Setup</h1>
+            <p>Download and install the Remote PC Control server</p>
+        </div>
+
+        <div class="card">
+            <h2>📥 Easy Installation</h2>
+            <p>
+                Download one of these installers to automatically set up the server on your PC.
+                The installer will download all necessary files and configure everything for you.
+            </p>
+
+            <div class="download-buttons">
+                <a href="install-server.bat" download class="download-btn">
+                    <span class="icon">⚡</span>
+                    <span>Download .BAT Installer</span>
+                </a>
+                <a href="install-server.ps1" download class="download-btn secondary">
+                    <span class="icon">💻</span>
+                    <span>Download PowerShell Installer</span>
+                </a>
+            </div>
+
+            <div class="warning">
+                <p><strong>⚠️ Prerequisites:</strong> You must have Node.js installed first! Download from <a href="https://nodejs.org" style="color: #ffc107; text-decoration: underline;">nodejs.org</a></p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Installation Steps</h2>
+            <ol class="steps">
+                <li>
+                    <strong>Install Node.js</strong>
+                    <span style="color: var(--text-dim);">
+                        Download and install Node.js LTS from <a href="https://nodejs.org" style="color: var(--accent);">nodejs.org</a>
+                    </span>
+                </li>
+                <li>
+                    <strong>Download the installer</strong>
+                    <span style="color: var(--text-dim);">
+                        Choose either the .BAT or PowerShell installer above
+                    </span>
+                </li>
+                <li>
+                    <strong>Run the installer</strong>
+                    <span style="color: var(--text-dim);">
+                        Right-click the downloaded file and select "Run as Administrator"<br>
+                        (For PowerShell: Right-click → "Run with PowerShell")
+                    </span>
+                </li>
+                <li>
+                    <strong>Configure your settings</strong>
+                    <span style="color: var(--text-dim);">
+                        Edit the <code>.env</code> file to set your password and computer name
+                    </span>
+                </li>
+                <li>
+                    <strong>Start the servers</strong>
+                    <span style="color: var(--text-dim);">
+                        Run <code>npm run discovery</code> in one window and <code>npm start</code> in another
+                    </span>
+                </li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Manual Installation</h2>
+            <p>
+                If you prefer to install manually or the automatic installer doesn't work:
+            </p>
+
+            <div class="download-buttons">
+                <a href="https://github.com/GuyThatLivesAndCodes/guythatlives-site/tree/claude/remote-pc-web-control-YblmU/homepc/server"
+                   target="_blank"
+                   class="download-btn secondary">
+                    <span class="icon">📁</span>
+                    <span>View Server Files on GitHub</span>
+                </a>
+                <a href="../README.md" class="download-btn secondary">
+                    <span class="icon">📖</span>
+                    <span>Read Full Documentation</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>❓ Troubleshooting</h2>
+            <p><strong>Installer won't run:</strong></p>
+            <ul style="color: var(--text-dim); margin-left: 2rem; margin-bottom: 1rem;">
+                <li>Make sure you're running as Administrator</li>
+                <li>Check that Node.js is installed: open Command Prompt and run <code>node --version</code></li>
+            </ul>
+
+            <p><strong>RobotJS installation fails:</strong></p>
+            <ul style="color: var(--text-dim); margin-left: 2rem; margin-bottom: 1rem;">
+                <li>You need Windows build tools</li>
+                <li>Run as Administrator: <code>npm install -g windows-build-tools</code></li>
+            </ul>
+
+            <p><strong>Need help?</strong></p>
+            <p style="color: var(--text-dim);">
+                Check the <a href="https://github.com/GuyThatLivesAndCodes/guythatlives-site/tree/claude/remote-pc-web-control-YblmU/homepc"
+                   style="color: var(--accent);">full documentation</a> or
+                <a href="https://github.com/GuyThatLivesAndCodes/guythatlives-site/issues" style="color: var(--accent);">open an issue</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
