@@ -94,7 +94,7 @@ echo.
 
 REM Password Setup
 :PASSWORD_SETUP
-echo [STEP 1/5] Password Configuration
+echo [STEP 1/4] Password Configuration
 echo.
 echo Enter a password for remote access
 echo (or type "generate" to auto-generate a secure password)
@@ -124,14 +124,14 @@ if /i "%USER_PASSWORD%"=="generate" (
 )
 
 echo.
-echo [STEP 2/5] Computer Name
+echo [STEP 2/4] Computer Name
 echo.
 echo Enter a friendly name for this PC (default: %COMPUTERNAME%)
 set /p COMPUTER_NAME="Computer Name: "
 if "%COMPUTER_NAME%"=="" set "COMPUTER_NAME=%COMPUTERNAME%"
 
 echo.
-echo [STEP 3/5] Screen Capture Settings
+echo [STEP 3/4] Screen Capture Settings
 echo.
 echo Screen FPS (frames per second, default: 30)
 echo   Lower (20-25) = Better for slow connections
@@ -147,18 +147,7 @@ set /p SCREEN_QUALITY="Screen Quality: "
 if "%SCREEN_QUALITY%"=="" set "SCREEN_QUALITY=60"
 
 echo.
-echo [STEP 4/5] Remote Access Setup
-echo.
-echo Do you want to enable REMOTE ACCESS from outside your network?
-echo This requires ngrok for secure tunneling.
-echo.
-set /p ENABLE_REMOTE="Enable remote access? (Y/N, default: N): "
-
-set "USE_NGROK=N"
-if /i "%ENABLE_REMOTE%"=="Y" set "USE_NGROK=Y"
-
-echo.
-echo [STEP 5/5] Writing configuration...
+echo [STEP 4/4] Writing configuration...
 
 REM Create .env file
 (
@@ -194,7 +183,6 @@ echo Computer Name: %COMPUTER_NAME%
 echo Password: %PASSWORD%
 echo Screen FPS: %SCREEN_FPS%
 echo Screen Quality: %SCREEN_QUALITY%
-echo Remote Access: %USE_NGROK%
 echo.
 echo Configuration file: %cd%\.env
 echo.
@@ -207,94 +195,49 @@ echo.
 set /p START_NOW="Would you like to start the servers now? (Y/N): "
 if /i "!START_NOW!"=="Y" (
     echo.
+    echo Downloading frontend files...
+    call download-frontend.bat
+
+    echo.
     echo Starting servers...
     echo.
 
     REM Start discovery server in new window
-    echo [1/4] Starting Discovery Server...
+    echo [1/2] Starting Discovery Server...
     start "Discovery Server" cmd /k "cd /d "!cd!" && npm run discovery"
     timeout /t 2 /nobreak >nul
 
-    if /i "!USE_NGROK!"=="Y" (
-        REM Check if ngrok is installed
-        where ngrok >nul 2>nul
-        if errorlevel 1 (
-            echo.
-            echo Installing ngrok...
-            call npm install -g ngrok
-        )
-
-        echo [2/4] Starting Discovery Tunnel (ngrok)...
-        start "Discovery Tunnel - ngrok" cmd /k "ngrok http 8081"
-        timeout /t 3 /nobreak >nul
-
-        echo [3/4] Starting PC Server Tunnel (ngrok)...
-        start "PC Server Tunnel - ngrok" cmd /k "ngrok http 8080"
-        timeout /t 3 /nobreak >nul
-
-        echo.
-        echo ================================================
-        echo   IMPORTANT: Remote Access Setup
-        echo ================================================
-        echo.
-        echo Three windows have opened with ngrok tunnels.
-        echo.
-        echo Please follow these steps:
-        echo.
-        echo 1. Find the "Discovery Tunnel" window
-        echo    Copy the HTTPS URL (like https://xxxx.ngrok-free.app)
-        echo.
-        echo 2. Find the "PC Server Tunnel" window
-        echo    Copy the HTTPS URL and CHANGE https to wss
-        echo    (Example: wss://yyyy.ngrok-free.app)
-        echo.
-        echo 3. Edit .env file and add:
-        echo    DISCOVERY_SERVER=https://xxxx.ngrok-free.app
-        echo    PUBLIC_URL=wss://yyyy.ngrok-free.app
-        echo.
-        echo 4. Press any key here to start the PC server...
-        pause >nul
-
-        echo.
-        echo Opening .env file for you to add ngrok URLs...
-        notepad .env
-        echo.
-        echo After saving .env, press any key to start PC server...
-        pause >nul
-    )
-
-    echo [4/4] Starting PC Server...
+    echo [2/2] Starting PC Server...
     start "PC Server" cmd /k "cd /d "!cd!" && npm start"
+    timeout /t 2 /nobreak >nul
 
     echo.
     echo ================================================
     echo   All Servers Started!
     echo ================================================
     echo.
-    echo Check the opened windows:
+    echo Two windows have opened:
     echo   - Discovery Server (port 8081)
-    if /i "!USE_NGROK!"=="Y" (
-        echo   - Discovery Tunnel (ngrok)
-        echo   - PC Server Tunnel (ngrok)
-    )
     echo   - PC Server (port 8080)
     echo.
-    if /i "!USE_NGROK!"=="Y" (
-        echo To connect remotely:
-        echo 1. Go to https://guythatlives.net/homepc
-        echo 2. Click the settings button and enter your ngrok discovery URL
-        echo 3. Click Refresh
-        echo 4. Click Connect and enter password: !PASSWORD!
-    ) else (
-        echo To connect locally:
-        echo 1. Go to http://localhost:8081 (verify your PC is listed^)
-        echo 2. Go to https://guythatlives.net/homepc
-        echo 3. Click the settings button and enter: http://localhost:8081
-        echo 4. Click Refresh
-        echo 5. Click Connect and enter password: !PASSWORD!
-    )
+    echo To connect:
     echo.
-    echo Keep all windows open while using remote control!
+    echo LOCAL ACCESS:
+    echo   1. Open: http://localhost:8080
+    echo   2. Password: !PASSWORD!
+    echo.
+    echo REMOTE ACCESS (from another device on your network):
+    echo   1. Find your IP with: ipconfig
+    echo   2. Open: http://YOUR_IP:8080
+    echo   3. Password: !PASSWORD!
+    echo.
+    echo REMOTE ACCESS (from outside your network):
+    echo   1. Port forward 8080 and 8081 on your router
+    echo   2. Find your public IP: https://whatismyip.com
+    echo   3. Open: http://YOUR_PUBLIC_IP:8080
+    echo   4. Password: !PASSWORD!
+    echo.
+    echo Keep both windows open while using remote control!
     echo.
 ) else (
     echo.
@@ -302,21 +245,19 @@ if /i "!START_NOW!"=="Y" (
     echo   Manual Start Instructions
     echo ================================================
     echo.
-    echo To start servers later, run these commands:
+    echo To start servers later:
     echo.
-    echo 1. Discovery Server:
+    echo 1. Download frontend files:
+    echo    download-frontend.bat
+    echo.
+    echo 2. Start Discovery Server (in one window):
     echo    npm run discovery
     echo.
-    echo 2. PC Server:
+    echo 3. Start PC Server (in another window):
     echo    npm start
     echo.
-    if /i "!USE_NGROK!"=="Y" (
-        echo 3. For remote access, also run:
-        echo    ngrok http 8081
-        echo    ngrok http 8080
-        echo.
-        echo    Then update .env with the ngrok URLs
-    )
+    echo 4. Access at: http://localhost:8080
+    echo    Password: !PASSWORD!
     echo.
 )
 
