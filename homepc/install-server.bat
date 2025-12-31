@@ -62,6 +62,20 @@ powershell -Command "Invoke-WebRequest -Uri '%BASE_URL%/.gitignore' -OutFile '.g
 
 echo.
 echo Files downloaded successfully!
+
+REM Download frontend files
+echo.
+echo Downloading frontend files...
+if not exist "frontend" mkdir frontend
+
+echo [6/7] Downloading frontend index.html...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GuyThatLivesAndCodes/guythatlives-site/claude/remote-pc-web-control-YblmU/homepc/index.html' -OutFile 'frontend/index.html'"
+
+echo [7/7] Downloading frontend remote-client.js...
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/GuyThatLivesAndCodes/guythatlives-site/claude/remote-pc-web-control-YblmU/homepc/remote-client.js' -OutFile 'frontend/remote-client.js'"
+
+echo.
+echo Frontend files downloaded successfully!
 echo.
 
 REM Install dependencies
@@ -194,10 +208,6 @@ echo.
 
 set /p START_NOW="Would you like to start the servers now? (Y/N): "
 if /i "!START_NOW!"=="Y" (
-    echo.
-    echo Downloading frontend files...
-    call download-frontend.bat
-
     echo.
     echo Starting servers...
     echo.
