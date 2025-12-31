@@ -9,6 +9,8 @@ const robot = require('robotjs');
 const http = require('http');
 const os = require('os');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 // Configuration
@@ -24,48 +26,147 @@ const FRAME_INTERVAL = 1000 / SCREEN_FPS;
 // Generate unique computer ID based on hostname and network
 const COMPUTER_ID = crypto.createHash('md5').update(os.hostname()).digest('hex').substring(0, 8);
 
-// Create HTTP server
+// Create HTTP server that serves the frontend
 const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Remote PC Server</title>
-            <style>
-                body {
-                    font-family: monospace;
-                    background: #0a0e27;
-                    color: #64ffda;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                    margin: 0;
+    // Serve static files
+    let filePath = '.' + req.url;
+    if (filePath === './') {
+        filePath = './frontend/index.html';
+    } else if (filePath === './remote-client.js') {
+        filePath = './frontend/remote-client.js';
+    }
+
+    // Determine content type
+    const extname = String(path.extname(filePath)).toLowerCase();
+    const mimeTypes = {
+        '.html': 'text/html',
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.wav': 'audio/wav',
+        '.mp4': 'video/mp4',
+        '.woff': 'application/font-woff',
+        '.ttf': 'application/font-ttf',
+        '.eot': 'application/vnd.ms-fontobject',
+        '.otf': 'application/font-otf',
+        '.wasm': 'application/wasm'
+    };
+
+    const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+    // Check if file exists
+    if (filePath.includes('frontend/')) {
+        fs.readFile(filePath, (error, content) => {
+            if (error) {
+                if (error.code == 'ENOENT') {
+                    // File not found - serve a simple status page
+                    res.writeHead(200, { 'Content-Type': 'text/html' });
+                    res.end(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Remote PC Server</title>
+                            <style>
+                                body {
+                                    font-family: monospace;
+                                    background: #0a0e27;
+                                    color: #64ffda;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    height: 100vh;
+                                    margin: 0;
+                                }
+                                .status {
+                                    text-align: center;
+                                    padding: 2rem;
+                                    border: 2px solid #64ffda;
+                                    border-radius: 12px;
+                                    background: #151932;
+                                }
+                                h1 { margin-top: 0; }
+                                .info { color: #8892b0; margin: 1rem 0; }
+                                .active { color: #51cf66; }
+                                a { color: #64ffda; text-decoration: none; }
+                                a:hover { text-decoration: underline; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="status">
+                                <h1>🖥️ Remote PC Server</h1>
+                                <p class="info">Computer: <strong>${COMPUTER_NAME}</strong></p>
+                                <p class="info">Status: <span class="active">Active</span></p>
+                                <p class="info">Port: ${PORT}</p>
+                                <p class="info">
+                                    To use remote control, download the frontend files or<br>
+                                    access the discovery server at:
+                                    <a href="${DISCOVERY_SERVER}">${DISCOVERY_SERVER}</a>
+                                </p>
+                            </div>
+                        </body>
+                        </html>
+                    `, 'utf-8');
+                } else {
+                    res.writeHead(500);
+                    res.end('Server Error: ' + error.code);
                 }
-                .status {
-                    text-align: center;
-                    padding: 2rem;
-                    border: 2px solid #64ffda;
-                    border-radius: 12px;
-                    background: #151932;
-                }
-                h1 { margin-top: 0; }
-                .info { color: #8892b0; margin: 1rem 0; }
-                .active { color: #51cf66; }
-            </style>
-        </head>
-        <body>
-            <div class="status">
-                <h1>🖥️ Remote PC Server</h1>
-                <p class="info">Server is running on port ${PORT}</p>
-                <p class="info">Status: <span class="active">Active</span></p>
-                <p class="info">Connect from: <code>ws://localhost:${PORT}</code></p>
-                <p class="info">or <code>ws://[your-ip]:${PORT}</code></p>
-            </div>
-        </body>
-        </html>
-    `);
+            } else {
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content, 'utf-8');
+            }
+        });
+    } else {
+        // Default status page
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Remote PC Server</title>
+                <style>
+                    body {
+                        font-family: monospace;
+                        background: #0a0e27;
+                        color: #64ffda;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 100vh;
+                        margin: 0;
+                    }
+                    .status {
+                        text-align: center;
+                        padding: 2rem;
+                        border: 2px solid #64ffda;
+                        border-radius: 12px;
+                        background: #151932;
+                    }
+                    h1 { margin-top: 0; }
+                    .info { color: #8892b0; margin: 1rem 0; }
+                    .active { color: #51cf66; }
+                    a { color: #64ffda; text-decoration: none; }
+                    a:hover { text-decoration: underline; }
+                </style>
+            </head>
+            <body>
+                <div class="status">
+                    <h1>🖥️ Remote PC Server</h1>
+                    <p class="info">Computer: <strong>${COMPUTER_NAME}</strong></p>
+                    <p class="info">Status: <span class="active">Active</span></p>
+                    <p class="info">Port: ${PORT}</p>
+                    <p class="info">
+                        To use remote control, download the frontend files or<br>
+                        access the discovery server.
+                    </p>
+                </div>
+            </body>
+            </html>
+        `, 'utf-8');
+    }
 });
 
 // Create WebSocket server
@@ -89,29 +190,20 @@ async function registerWithDiscovery() {
     if (!ENABLE_DISCOVERY) return;
 
     try {
-        let address;
+        const networkInterfaces = os.networkInterfaces();
+        let ipAddress = 'localhost';
 
-        // If PUBLIC_URL is set (for ngrok/tunneling), use that
-        if (process.env.PUBLIC_URL && process.env.PUBLIC_URL.trim()) {
-            address = process.env.PUBLIC_URL.trim();
-            console.log(`[${new Date().toISOString()}] Using public URL: ${address}`);
-        } else {
-            // Otherwise, auto-detect local network IP
-            const networkInterfaces = os.networkInterfaces();
-            let ipAddress = 'localhost';
-
-            // Try to find the local network IP
-            for (const name of Object.keys(networkInterfaces)) {
-                for (const net of networkInterfaces[name]) {
-                    if (net.family === 'IPv4' && !net.internal) {
-                        ipAddress = net.address;
-                        break;
-                    }
+        // Try to find the local network IP
+        for (const name of Object.keys(networkInterfaces)) {
+            for (const net of networkInterfaces[name]) {
+                if (net.family === 'IPv4' && !net.internal) {
+                    ipAddress = net.address;
+                    break;
                 }
             }
-
-            address = `ws://${ipAddress}:${PORT}`;
         }
+
+        const address = `ws://${ipAddress}:${PORT}`;
 
         const response = await fetch(`${DISCOVERY_SERVER}/register`, {
             method: 'POST',
