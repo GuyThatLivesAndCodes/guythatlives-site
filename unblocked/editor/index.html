@@ -284,6 +284,93 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Import Modal Styles */
+        .import-status {
+            margin: 1.5rem 0;
+        }
+
+        .import-progress {
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .import-summary {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        .import-summary h3 {
+            margin-bottom: 1rem;
+            color: var(--success-color);
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-around;
+        }
+
+        .stats-row .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-light);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        #import-errors {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: var(--border-radius-sm);
+            border-left: 3px solid var(--danger-color);
+        }
+
+        #import-error-list {
+            list-style: none;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #import-error-list li {
+            padding: 0.25rem 0;
+        }
     </style>
 </head>
 <body>
@@ -333,6 +420,7 @@
                 <h1 class="editor-title">Game Editor</h1>
                 <div class="editor-actions">
                     <button class="btn btn-primary" id="add-game-btn">+ Add New Game</button>
+                    <button class="btn btn-secondary" id="import-games-btn">📥 Import Games</button>
                     <button class="btn btn-secondary" id="manage-categories-btn">Manage Categories</button>
                 </div>
             </div>
@@ -493,6 +581,59 @@
         </div>
     </div>
 
+    <!-- Import Games Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close">&times;</button>
+            <h2 class="modal-title">Import Games from CDN</h2>
+
+            <div id="import-status" class="import-status">
+                <p id="import-message">Preparing to import games...</p>
+                <div class="import-progress">
+                    <div class="progress-bar">
+                        <div id="import-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">
+                        <span id="import-current">0</span> / <span id="import-total">0</span> games processed
+                    </p>
+                </div>
+            </div>
+
+            <div id="import-results" style="display: none;">
+                <div class="import-summary">
+                    <h3>Import Complete</h3>
+                    <div class="stats-row">
+                        <div class="stat">
+                            <span class="stat-number" id="import-success-count">0</span>
+                            <span class="stat-label">Imported</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="import-skip-count">0</span>
+                            <span class="stat-label">Skipped (duplicates)</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="import-fail-count">0</span>
+                            <span class="stat-label">Failed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="import-errors" style="display: none;">
+                    <h4>Errors:</h4>
+                    <ul id="import-error-list"></ul>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn btn-primary" id="start-import-btn">Start Import</button>
+                <button class="btn btn-danger" id="cancel-import-btn" style="display: none;">Cancel</button>
+                <button class="btn btn-secondary" id="close-import-btn" style="display: none;">Close</button>
+            </div>
+
+            <div class="error-message" id="import-error"></div>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -501,6 +642,7 @@
     <!-- Shared Modules -->
     <script src="../shared/games-auth.js"></script>
     <script src="../shared/game-manager.js"></script>
+    <script src="../shared/game-importer.js"></script>
     <script src="../shared/disguise.js"></script>
 
     <!-- Editor Script -->
