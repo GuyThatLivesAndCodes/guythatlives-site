@@ -122,6 +122,53 @@ function setupEventListeners() {
             document.getElementById('categories-modal').style.display = 'none';
         }
     });
+
+    // Import games button
+    document.getElementById('import-games-btn')?.addEventListener('click', () => {
+        showImportModal();
+    });
+
+    // Import modal close button
+    document.querySelector('#import-modal .modal-close')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to close? Import may still be in progress.')) {
+            if (window.gameImporter) {
+                window.gameImporter.cancel();
+            }
+            document.getElementById('import-modal').style.display = 'none';
+        }
+    });
+
+    // Start import button
+    document.getElementById('start-import-btn')?.addEventListener('click', () => {
+        handleStartImport();
+    });
+
+    // Cancel import button
+    document.getElementById('cancel-import-btn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel the import?')) {
+            if (window.gameImporter) {
+                window.gameImporter.cancel();
+            }
+        }
+    });
+
+    // Close import button
+    document.getElementById('close-import-btn')?.addEventListener('click', () => {
+        document.getElementById('import-modal').style.display = 'none';
+        resetImportModal();
+    });
+
+    // Close import modal on backdrop click
+    document.getElementById('import-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'import-modal') {
+            if (confirm('Are you sure you want to close? Import may still be in progress.')) {
+                if (window.gameImporter) {
+                    window.gameImporter.cancel();
+                }
+                document.getElementById('import-modal').style.display = 'none';
+            }
+        }
+    });
 }
 
 // Switch tabs
@@ -482,4 +529,125 @@ function showFormError(message) {
     const errorEl = document.getElementById('form-error');
     errorEl.textContent = message;
     errorEl.style.display = 'block';
+}
+
+// Import Games Functions
+
+/**
+ * Show import modal
+ */
+function showImportModal() {
+    const modal = document.getElementById('import-modal');
+    resetImportModal();
+    modal.style.display = 'flex';
+}
+
+/**
+ * Reset import modal to initial state
+ */
+function resetImportModal() {
+    document.getElementById('import-status').style.display = 'block';
+    document.getElementById('import-results').style.display = 'none';
+    document.getElementById('import-message').textContent = 'Preparing to import games...';
+    document.getElementById('import-progress-fill').style.width = '0%';
+    document.getElementById('import-current').textContent = '0';
+    document.getElementById('import-total').textContent = '0';
+    document.getElementById('import-error').style.display = 'none';
+
+    document.getElementById('start-import-btn').style.display = 'inline-block';
+    document.getElementById('cancel-import-btn').style.display = 'none';
+    document.getElementById('close-import-btn').style.display = 'none';
+}
+
+/**
+ * Handle start import
+ */
+async function handleStartImport() {
+    const startBtn = document.getElementById('start-import-btn');
+    const cancelBtn = document.getElementById('cancel-import-btn');
+    const errorEl = document.getElementById('import-error');
+
+    startBtn.style.display = 'none';
+    cancelBtn.style.display = 'inline-block';
+    errorEl.style.display = 'none';
+
+    try {
+        const user = window.gamesAuth.getCurrentUser();
+
+        // Initialize importer
+        if (!window.gameImporter) {
+            window.gameImporter = new GameImporter(window.gameManager);
+        }
+
+        // Start import with progress callback
+        await window.gameImporter.importGames(user.uid, (progress) => {
+            updateImportProgress(progress);
+        });
+
+    } catch (error) {
+        console.error('Import failed:', error);
+        errorEl.textContent = 'Import failed: ' + error.message;
+        errorEl.style.display = 'block';
+
+        startBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Update import progress UI
+ */
+function updateImportProgress(progress) {
+    const messageEl = document.getElementById('import-message');
+    const progressFill = document.getElementById('import-progress-fill');
+    const currentEl = document.getElementById('import-current');
+    const totalEl = document.getElementById('import-total');
+    const statusDiv = document.getElementById('import-status');
+    const resultsDiv = document.getElementById('import-results');
+    const cancelBtn = document.getElementById('cancel-import-btn');
+    const closeBtn = document.getElementById('close-import-btn');
+
+    switch (progress.stage) {
+        case 'fetching':
+            messageEl.textContent = progress.message;
+            break;
+
+        case 'ready':
+            messageEl.textContent = progress.message;
+            totalEl.textContent = progress.total;
+            break;
+
+        case 'importing':
+            messageEl.textContent = progress.message;
+            currentEl.textContent = progress.current;
+            totalEl.textContent = progress.total;
+            const percent = (progress.current / progress.total) * 100;
+            progressFill.style.width = percent + '%';
+            break;
+
+        case 'complete':
+            statusDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            cancelBtn.style.display = 'none';
+            closeBtn.style.display = 'inline-block';
+
+            // Update result stats
+            document.getElementById('import-success-count').textContent = progress.results.success.length;
+            document.getElementById('import-skip-count').textContent = progress.results.skipped.length;
+            document.getElementById('import-fail-count').textContent = progress.results.failed.length;
+
+            // Show errors if any
+            if (progress.results.failed.length > 0) {
+                const errorList = document.getElementById('import-error-list');
+                errorList.innerHTML = progress.results.failed.map(fail =>
+                    `<li>${fail.name}: ${fail.reason}</li>`
+                ).join('');
+                document.getElementById('import-errors').style.display = 'block';
+            }
+
+            // Reload games list
+            loadAllGames();
+            updateStats();
+            break;
+    }
 }
