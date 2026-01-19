@@ -739,3 +739,109 @@ body {
         gap: 0.75rem;
     }
 }
+
+/* ==============================================
+   GOOGLE ADSENSE INTEGRATION STYLES
+   ============================================== */
+
+/* Ad Container Base Styling */
+.ad-container {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.ad-container:hover {
+    background: var(--bg-tertiary);
+}
+
+/* AdSense Responsive Container */
+ins.adsbygoogle {
+    display: block;
+    background: var(--bg-secondary);
+    min-height: 250px; /* Prevent layout shift */
+}
+
+/* Game Page - Desktop Layout with Sidebars */
+@media (min-width: 1200px) {
+    .game-wrapper-with-ads {
+        display: grid;
+        grid-template-columns: 300px 1fr 300px;
+        gap: 2rem;
+        align-items: start;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .game-main-content {
+        grid-column: 2;
+        min-width: 0;
+    }
+
+    .ad-sidebar {
+        position: sticky;
+        top: 120px;
+        height: fit-content;
+    }
+
+    .ad-sidebar.left {
+        grid-column: 1;
+    }
+
+    .ad-sidebar.right {
+        grid-column: 3;
+    }
+}
+
+/* Tablet/Mobile - Sidebars disappear */
+@media (max-width: 1199px) {
+    .ad-sidebar {
+        display: none;
+    }
+
+    .game-wrapper-with-ads {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile Optimization */
+@media (max-width: 768px) {
+    .ad-container {
+        margin: 1rem 0;
+        padding: 0.75rem;
+        min-height: 60px;
+    }
+
+    ins.adsbygoogle {
+        min-height: 60px;
+    }
+
+    /* Hide some ads on mobile to reduce clutter */
+    #ad-top,
+    #ad-bottom-mid {
+        display: none;
+    }
+}
+
+/* Ad Fade In Animation */
+@keyframes adFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ad-container {
+    animation: adFadeIn 0.5s ease-out;
+}

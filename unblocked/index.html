@@ -110,6 +110,10 @@
             }
         }
     </style>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+         crossorigin="anonymous"></script>
 </head>
 <body>
     <!-- Header -->
@@ -157,6 +161,16 @@
     </section>
 
     <div class="container">
+        <!-- Ad Unit 1: Top Banner -->
+        <div id="ad-top" class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+        </div>
+
         <!-- Recently Played (for logged-in users) -->
         <section id="recent-section" class="section" style="display: none;">
             <div class="section-header">
@@ -201,6 +215,16 @@
             <div id="category-games" class="games-grid"></div>
         </section>
 
+        <!-- Ad Unit 2: Mid-Page Rectangle -->
+        <div id="ad-mid" class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="rectangle"
+                 data-full-width-responsive="true"></ins>
+        </div>
+
         <!-- Most Played Games -->
         <section class="section">
             <div class="section-header">
@@ -216,6 +240,16 @@
                 </div>
             </div>
         </section>
+
+        <!-- Ad Unit 3: Bottom Mid Banner -->
+        <div id="ad-bottom-mid" class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+        </div>
 
         <!-- Newly Added Games -->
         <section class="section">
@@ -250,6 +284,16 @@
                 </div>
             </div>
         </section>
+
+        <!-- Ad Unit 4: Footer Banner -->
+        <div id="ad-footer" class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+        </div>
     </div>
 
     <!-- Auth Modal -->
@@ -574,6 +618,12 @@
             errorDiv.textContent = message;
             container.insertBefore(errorDiv, container.firstChild);
         }
+
+        // Initialize AdSense ads
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        (adsbygoogle = window.adsbygoogle || []).push({});
     </script>
 </body>
 </html>
