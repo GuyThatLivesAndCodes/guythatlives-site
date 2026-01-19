@@ -35,7 +35,7 @@ class ClaudeAPIHandler {
         const prompt = this.generateAnalysisPrompt(testData);
 
         try {
-            // Initialize if not already done
+            // Try Firebase Functions first (most secure)
             if (!this.analyzeTestFunction) {
                 const initialized = await this.init();
                 if (!initialized) {
@@ -53,18 +53,52 @@ class ClaudeAPIHandler {
             }
 
         } catch (error) {
-            console.error('Claude API error:', error);
+            console.log('Firebase Functions not available, trying local config...');
 
-            // If Firebase Functions not configured, use fallback
-            if (error.message.includes('not configured') ||
-                error.code === 'unauthenticated' ||
-                error.code === 'failed-precondition') {
-                console.log('Using fallback analysis (Firebase Functions not configured)');
-                return this.getFallbackAnalysis(testData);
+            // Try local development config if available
+            if (typeof window !== 'undefined' && window.LOCAL_CONFIG?.claudeApiKey) {
+                console.log('Using local API key for development');
+                try {
+                    return await this.callClaudeDirectly(prompt, window.LOCAL_CONFIG.claudeApiKey);
+                } catch (directError) {
+                    console.error('Direct API call failed:', directError);
+                }
             }
 
-            throw error;
+            // If both methods fail, use basic fallback analysis
+            console.log('Using fallback analysis (no API access configured)');
+            return this.getFallbackAnalysis(testData);
         }
+    }
+
+    /**
+     * Direct API call to Claude (for local development only)
+     */
+    async callClaudeDirectly(prompt, apiKey) {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-5-20250429',
+                max_tokens: 4000,
+                messages: [{
+                    role: 'user',
+                    content: prompt
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`API error ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
     }
 
     /**

@@ -184,9 +184,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-functions-compat.js"></script>
 
     <!-- Shared modules -->
     <script src="../shared/firebase-auth.js"></script>
+
+    <!-- Local development config (gitignored, optional) -->
+    <script src="config.local.js" onerror="console.log('Local config not found - using Firebase Functions')"></script>
 
     <!-- Test modules -->
     <script src="simple-calculator.js"></script>
