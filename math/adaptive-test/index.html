@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Math Test | GuyThatLives Math</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <a href="../index.html">
+                    <span class="logo-icon">📐</span>
+                    <span class="logo-text">GuyThatLives Math</span>
+                </a>
+            </div>
+            <nav class="breadcrumb">
+                <a href="../index.html">Math Hub</a>
+                <span class="separator">›</span>
+                <span>Adaptive Test</span>
+            </nav>
+            <div id="auth-status"></div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Test Container -->
+        <div id="test-container" class="test-container" style="display: none;">
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        Question <span id="current-q">1</span> of <span id="total-q">25</span>
+                    </div>
+                </div>
+
+                <div class="difficulty-indicator">
+                    <span class="difficulty-label">Difficulty:</span>
+                    <span id="diff-level" class="diff-dots">●●●●●○○○○○</span>
+                    <span class="diff-number">Level <span id="diff-number">5</span></span>
+                </div>
+            </div>
+
+            <!-- Question Section -->
+            <div class="question-section">
+                <div class="question-header">
+                    <span class="question-topic" id="topic-tag">Topic</span>
+                    <span class="question-timer" id="timer">0:00</span>
+                </div>
+
+                <div class="question-content" id="question-content">
+                    <!-- Question text will be rendered here -->
+                </div>
+
+                <div id="question-visual" class="question-visual" style="display: none;">
+                    <!-- Canvas/SVG will be rendered here -->
+                </div>
+
+                <!-- Answer area (dynamic based on question type) -->
+                <div id="answer-area" class="answer-area">
+                    <!-- Multiple choice, drag-drop, or text input rendered here -->
+                </div>
+
+                <!-- Submit button -->
+                <button id="submit-btn" class="btn btn-primary" disabled>Submit Answer</button>
+            </div>
+
+            <!-- App panel container (conditional) -->
+            <div id="app-panel-container"></div>
+        </div>
+
+        <!-- Welcome Modal -->
+        <div id="welcome-modal" class="modal active">
+            <div class="modal-content welcome-content">
+                <div class="welcome-header">
+                    <h1>📊 Adaptive Math Test</h1>
+                    <p class="subtitle">Discover your math skill level with an intelligent assessment</p>
+                </div>
+
+                <div class="welcome-body">
+                    <div class="feature-grid">
+                        <div class="feature">
+                            <div class="feature-icon">🎯</div>
+                            <h3>Adaptive Difficulty</h3>
+                            <p>Questions adjust to your skill level in real-time</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">📈</div>
+                            <h3>RIT Score</h3>
+                            <p>Get a score similar to NWEA MAP testing (140-300)</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">🤖</div>
+                            <h3>AI Feedback</h3>
+                            <p>Personalized analysis powered by Claude AI</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">💾</div>
+                            <h3>Auto-Save</h3>
+                            <p>Progress saved automatically - resume anytime</p>
+                        </div>
+                    </div>
+
+                    <div class="test-info">
+                        <h3>What to Expect:</h3>
+                        <ul>
+                            <li><strong>25 questions</strong> across various math topics</li>
+                            <li>Starts at <strong>medium difficulty</strong>, adjusts based on your answers</li>
+                            <li>Mix of <strong>multiple choice, text input, and drag-and-drop</strong> questions</li>
+                            <li>Calculator provided for calculation-heavy problems</li>
+                            <li>Takes approximately <strong>15-25 minutes</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="saved-test-notice" id="saved-test-notice" style="display: none;">
+                        <div class="notice-icon">💾</div>
+                        <div class="notice-content">
+                            <strong>Resume Previous Test?</strong>
+                            <p>You have a test in progress (Question <span id="saved-question">1</span>/25)</p>
+                            <div class="notice-actions">
+                                <button id="resume-test-btn" class="btn btn-primary">Resume Test</button>
+                                <button id="new-test-btn" class="btn btn-secondary">Start Fresh</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="start-test-btn" class="btn btn-primary btn-large">
+                        Start Adaptive Test
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p id="loading-message">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+    <!-- Firebase SDKs (optional - for logged-in users) -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <!-- Shared modules -->
+    <script src="../shared/firebase-auth.js"></script>
+    <script src="../shared/app-panel.js"></script>
+
+    <!-- Test modules -->
+    <script src="test-engine.js"></script>
+    <script src="question-bank.js"></script>
+    <script src="question-renderer.js"></script>
+    <script src="api-handler.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

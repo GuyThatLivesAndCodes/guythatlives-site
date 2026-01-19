@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results | Adaptive Math Test</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Results-specific styles */
+        .results-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .results-header h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .rit-score-display {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .rit-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .rit-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .grade-level {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        #difficulty-chart {
+            width: 100%;
+            height: 300px;
+        }
+
+        .topic-performance {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: var(--surface-light);
+            border-radius: 8px;
+        }
+
+        .topic-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .topic-bar-container {
+            flex: 2;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 0 1rem;
+        }
+
+        .topic-bar {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.5s ease;
+            border-radius: 12px;
+        }
+
+        .topic-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .ai-analysis {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .ai-analysis h2 {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-analysis h3 {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            margin: 2rem 0 1rem 0;
+            font-size: 1.2rem;
+        }
+
+        .ai-analysis p {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .ai-analysis ul {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .ai-analysis li {
+            margin-bottom: 0.5rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                padding: 1rem;
+            }
+
+            .results-header h1 {
+                font-size: 2rem;
+            }
+
+            .rit-score {
+                font-size: 3.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <a href="../index.html">
+                    <span class="logo-icon">📐</span>
+                    <span class="logo-text">GuyThatLives Math</span>
+                </a>
+            </div>
+            <nav class="breadcrumb">
+                <a href="../index.html">Math Hub</a>
+                <span class="separator">›</span>
+                <a href="index.html">Adaptive Test</a>
+                <span class="separator">›</span>
+                <span>Results</span>
+            </nav>
+            <div id="auth-status"></div>
+        </div>
+    </header>
+
+    <!-- Results Container -->
+    <div class="results-container">
+        <div class="results-header">
+            <h1>🎉 Test Complete!</h1>
+            <p class="subtitle">Here's your personalized performance analysis</p>
+        </div>
+
+        <!-- RIT Score Display -->
+        <div class="rit-score-display">
+            <div class="rit-score" id="rit-score">---</div>
+            <div class="rit-label">RIT Score</div>
+            <div class="grade-level" id="grade-level">---</div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="accuracy">--</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="correct-count">--</div>
+                <div class="stat-label">Correct Answers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="final-difficulty">--</div>
+                <div class="stat-label">Final Difficulty</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-time">--</div>
+                <div class="stat-label">Avg Time (sec)</div>
+            </div>
+        </div>
+
+        <!-- Difficulty Progression Chart -->
+        <div class="chart-container">
+            <h3 class="chart-title">Difficulty Progression</h3>
+            <canvas id="difficulty-chart"></canvas>
+        </div>
+
+        <!-- Topic Performance -->
+        <div class="topic-performance">
+            <h3 class="chart-title">Performance by Topic</h3>
+            <div id="topic-list"></div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div class="ai-analysis">
+            <h2>📊 Personalized Analysis</h2>
+            <div id="claude-analysis">
+                <p>Loading AI analysis...</p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <a href="index.html" class="btn btn-primary">Retake Test</a>
+            <a href="../index.html" class="btn btn-secondary">Return to Math Hub</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="results.js"></script>
+</body>
+</html>
