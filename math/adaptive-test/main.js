@@ -11,7 +11,7 @@ let apiHandler = null;
 let currentQuestion = null;
 let timerInterval = null;
 let questionStartTime = 0;
-let appPanel = null;
+let testAppPanel = null;
 
 // DOM Elements
 const elements = {
@@ -254,10 +254,10 @@ function toggleCalculator(show) {
     if (!container) return;
 
     if (show && typeof AppPanel !== 'undefined') {
-        if (!appPanel) {
+        if (!testAppPanel) {
             // Initialize app panel with calculator only
             container.innerHTML = '<div id="app-panel"></div>';
-            appPanel = new AppPanel('app-panel', ['calculator']);
+            testAppPanel = new AppPanel('app-panel', ['calculator']);
         }
         container.style.display = 'block';
     } else {
