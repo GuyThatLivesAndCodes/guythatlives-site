@@ -4,7 +4,7 @@
  */
 
 // TODO: Replace with actual API key
-const CLAUDE_API_KEY = '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';
+const CLAUDE_API_KEY = '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';
 
 class ClaudeAPIHandler {
     constructor(apiKey = CLAUDE_API_KEY) {
