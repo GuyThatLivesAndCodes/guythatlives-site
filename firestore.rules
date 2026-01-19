@@ -19,8 +19,15 @@ service cloud.firestore {
     /* ========= Users ========= */
 
     match /users/{userId} {
-      // Users can manage their own profile
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      // Users can read their own profile
+      allow read: if isSignedIn() && request.auth.uid == userId;
+
+      // Users can update their profile (except tokens)
+      allow update: if isSignedIn() && request.auth.uid == userId
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['tokens']));
+
+      // Only admins can modify tokens directly (normal users get tokens via cloud functions)
+      allow update: if isAdmin();
 
       // Platform admins can manage all users
       allow read, write, delete: if isAdmin();
@@ -43,6 +50,24 @@ service cloud.firestore {
       // User's game saves subcollection (cross-device sync)
       match /gameSaves/{gameId} {
         // Users can manage their own game saves
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+        // Admins can read all
+        allow read: if isAdmin();
+      }
+
+      // User's adaptive test states (in-progress tests)
+      match /test-states/{subject} {
+        // Users can manage their own test states
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+
+        // Admins can read all
+        allow read: if isAdmin();
+      }
+
+      // User's completed adaptive tests
+      match /adaptive-tests/{testId} {
+        // Users can read and write their own test results
         allow read, write: if isSignedIn() && request.auth.uid == userId;
 
         // Admins can read all
