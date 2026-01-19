@@ -214,10 +214,13 @@ function updateProgress() {
 
 /**
  * Update difficulty indicator
+ * Now supports 30 levels (1-30) displayed as 10 dots
  */
 function updateDifficultyIndicator(difficulty) {
-    const filled = '●'.repeat(difficulty);
-    const empty = '○'.repeat(10 - difficulty);
+    // Map 30 levels to 10 dots (each dot represents 3 levels)
+    const normalizedDifficulty = Math.ceil(difficulty / 3);
+    const filled = '●'.repeat(Math.max(0, Math.min(10, normalizedDifficulty)));
+    const empty = '○'.repeat(Math.max(0, 10 - normalizedDifficulty));
     elements.diffLevel.textContent = filled + empty;
     elements.diffNumber.textContent = difficulty;
 }
