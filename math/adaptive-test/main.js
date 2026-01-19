@@ -15,6 +15,7 @@ let questionStartTime = 0;
 let currentSubject = null; // NEW: Track current subject (math/science/english)
 // Calculator is initialized in simple-calculator.js
 // TokenManager is initialized in firebase-auth.js (global: tokenManager)
+// TestStateManager is initialized here (global: testStateManager - declared in test-state-manager.js)
 
 // DOM Elements
 const elements = {
@@ -108,13 +109,105 @@ function setupEventListeners() {
 /**
  * Show subject selection modal
  */
-function showSubjectSelection() {
+async function showSubjectSelection() {
     if (elements.subjectSelectionModal) {
         elements.subjectSelectionModal.classList.add('active');
     }
 
     // Load and display any active tests
-    // checkForActiveTests(); // TODO: Implement in Sprint 3
+    await checkForActiveTests();
+}
+
+/**
+ * Check for and display active tests
+ */
+async function checkForActiveTests() {
+    const activeTestsSection = document.getElementById('active-tests-section');
+    const activeTestsList = document.getElementById('active-tests-list');
+
+    if (!activeTestsSection || !activeTestsList) {
+        console.log('Active tests UI elements not found');
+        return;
+    }
+
+    // Initialize TestStateManager if needed
+    if (!testStateManager) {
+        testStateManager = new TestStateManager();
+    }
+
+    // Load all active tests
+    const activeTests = await testStateManager.loadAllTests();
+
+    // Hide section if no active tests
+    if (activeTests.size === 0) {
+        activeTestsSection.style.display = 'none';
+        return;
+    }
+
+    // Show section and populate with active test cards
+    activeTestsSection.style.display = 'block';
+    activeTestsList.innerHTML = '';
+
+    activeTests.forEach((testState, subject) => {
+        const displayInfo = testStateManager.getTestDisplayInfo(subject);
+        if (displayInfo) {
+            const card = createActiveTestCard(displayInfo);
+            activeTestsList.appendChild(card);
+        }
+    });
+}
+
+/**
+ * Create active test card element
+ */
+function createActiveTestCard(info) {
+    const card = document.createElement('div');
+    card.className = 'active-test-card';
+    card.dataset.subject = info.subject;
+
+    card.innerHTML = `
+        <div class="test-icon">${info.icon}</div>
+        <div class="test-info">
+            <h4>${info.subjectName}</h4>
+            <p class="progress-text">${info.progressText}</p>
+            <span class="test-time">${info.timeSince}</span>
+        </div>
+        <button class="btn btn-resume" data-subject="${info.subject}">Resume</button>
+    `;
+
+    // Add click handler for resume button
+    const resumeBtn = card.querySelector('.btn-resume');
+    resumeBtn.addEventListener('click', () => resumeActiveTest(info.subject));
+
+    return card;
+}
+
+/**
+ * Resume an active test
+ */
+function resumeActiveTest(subject) {
+    currentSubject = subject;
+    hideAllModals();
+    elements.testContainer.style.display = 'block';
+
+    // Initialize test engine with saved state
+    const subjectConfig = SUBJECT_CONFIG[subject];
+    testEngine = new AdaptiveTestEngine({
+        totalQuestions: subjectConfig.questionCount.target,
+        minQuestions: subjectConfig.questionCount.min,
+        maxQuestions: subjectConfig.questionCount.max
+    }, subject);
+
+    // Restore progress
+    if (testEngine.restoreProgress()) {
+        console.log(`Resumed ${subject} test at question ${testEngine.currentQuestion + 1}`);
+        questionBank = getQuestionBankForSubject(subject);
+        loadNextQuestion();
+    } else {
+        console.error('Failed to restore test progress');
+        alert('Could not resume test. Starting fresh.');
+        startNewTest();
+    }
 }
 
 /**
@@ -318,6 +411,21 @@ function showTokenInfo() {
  * Hide token info modal
  */
 function hideTokenInfo() {
+    if (elements.tokenInfoModal) {
+        elements.tokenInfoModal.classList.remove('active');
+    }
+}
+
+/**
+ * Hide all modals
+ */
+function hideAllModals() {
+    if (elements.subjectSelectionModal) {
+        elements.subjectSelectionModal.classList.remove('active');
+    }
+    if (elements.welcomeModal) {
+        elements.welcomeModal.classList.remove('active');
+    }
     if (elements.tokenInfoModal) {
         elements.tokenInfoModal.classList.remove('active');
     }
@@ -733,13 +841,23 @@ function initAuthDisplay() {
 /**
  * Callback when user authenticates (called from firebase-auth.js)
  */
-window.onUserAuthenticated = function(user) {
+window.onUserAuthenticated = async function(user) {
     console.log('User authenticated in adaptive test:', user.email);
     // TokenManager is already initialized in firebase-auth.js
+
+    // Initialize TestStateManager
+    if (!testStateManager) {
+        testStateManager = new TestStateManager();
+    }
+    await testStateManager.initialize(user.uid);
+
+    // Load from Firebase to sync across devices
+    await testStateManager.loadFromFirebase();
+
     // Refresh the subject selection view if needed
     if (elements.subjectSelectionModal && elements.subjectSelectionModal.classList.contains('active')) {
-        // Could refresh active tests list here
-        console.log('User logged in, token system ready');
+        await checkForActiveTests();
+        console.log('User logged in, token and test state systems ready');
     }
 };
 
