@@ -881,3 +881,337 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* ==============================================
+   TOKEN DISPLAY
+   ============================================== */
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.token-display {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.token-icon {
+    font-size: 1.25rem;
+}
+
+.token-count {
+    font-weight: 700;
+    color: var(--accent-primary);
+    font-size: 1.1rem;
+}
+
+.token-max {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.token-info-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.token-info-btn:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* ==============================================
+   SUBJECT SELECTION MODAL
+   ============================================== */
+
+.subject-selection-content {
+    max-width: 900px;
+    padding: 2.5rem;
+}
+
+.subject-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.subject-header h1 {
+    font-size: 2.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.subject-header .subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.subject-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.subject-card {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.subject-card.available:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.subject-card.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.subject-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.available-badge {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.coming-soon-badge {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
+.subject-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.subject-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.subject-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    min-height: 2.5rem;
+}
+
+.subject-details {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.token-cost {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.token-icon-small {
+    font-size: 1rem;
+}
+
+.subject-card .btn {
+    width: 100%;
+}
+
+/* Active Tests Section */
+.active-tests-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.active-tests-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.active-tests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.active-test-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.25rem;
+    transition: var(--transition);
+}
+
+.active-test-card:hover {
+    border-color: var(--accent-primary);
+}
+
+.active-test-card .test-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.active-test-card .test-info {
+    flex-grow: 1;
+}
+
+.active-test-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+}
+
+.active-test-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.active-test-card .test-time {
+    color: var(--text-tertiary);
+    font-size: 0.8rem;
+}
+
+.active-test-card .btn-resume {
+    flex-shrink: 0;
+}
+
+/* ==============================================
+   TOKEN INFO MODAL
+   ============================================== */
+
+.token-info-content {
+    max-width: 500px;
+    padding: 2rem;
+}
+
+.token-info-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.token-icon-large {
+    font-size: 3rem;
+}
+
+.token-info-header h2 {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+}
+
+.token-info-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.token-info-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.token-info-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.token-info-list li:last-child {
+    border-bottom: none;
+}
+
+.token-info-status {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.token-info-status p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+.token-info-status strong {
+    color: var(--text-primary);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .header-right {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .token-display {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .subject-selection-content {
+        padding: 1.5rem;
+    }
+
+    .subject-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .subject-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .subject-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .active-test-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .token-info-content {
+        padding: 1.5rem;
+    }
+}

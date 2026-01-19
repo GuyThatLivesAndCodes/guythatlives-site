@@ -25,7 +25,16 @@
                 <span class="separator">›</span>
                 <span>Adaptive Test</span>
             </nav>
-            <div id="auth-status"></div>
+            <div class="header-right">
+                <!-- Token Display -->
+                <div class="token-display" id="token-display" style="display: none;">
+                    <span class="token-icon">🪙</span>
+                    <span class="token-count" id="token-count">3</span>
+                    <span class="token-max">/ 10</span>
+                    <button class="token-info-btn" id="token-info-btn" title="Token Info">ⓘ</button>
+                </div>
+                <div id="auth-status"></div>
+            </div>
         </div>
     </header>
 
@@ -108,8 +117,90 @@
             </div>
         </div>
 
+        <!-- Subject Selection Modal -->
+        <div id="subject-selection-modal" class="modal active">
+            <div class="modal-content subject-selection-content">
+                <div class="subject-header">
+                    <h1>Choose Your Subject</h1>
+                    <p class="subtitle">Select a subject to begin your adaptive test</p>
+                </div>
+
+                <div class="subject-grid">
+                    <!-- Math - Available -->
+                    <div class="subject-card available" data-subject="math">
+                        <div class="subject-badge available-badge">Available</div>
+                        <div class="subject-icon">📐</div>
+                        <h3>Mathematics</h3>
+                        <p class="subject-description">5th Grade to Pre-Calculus</p>
+                        <div class="subject-details">
+                            <span class="token-cost"><span class="token-icon-small">🪙</span> 1 Token</span>
+                            <span class="question-count">~40 Questions</span>
+                        </div>
+                        <button class="btn btn-primary">Start Math Test</button>
+                    </div>
+
+                    <!-- Science - Coming Soon -->
+                    <div class="subject-card locked" data-subject="science">
+                        <div class="subject-badge coming-soon-badge">Coming Soon</div>
+                        <div class="subject-icon">🔬</div>
+                        <h3>Science</h3>
+                        <p class="subject-description">Biology, Chemistry, Physics</p>
+                        <div class="subject-details">
+                            <span class="token-cost"><span class="token-icon-small">🪙</span> 1 Token</span>
+                            <span class="question-count">~40 Questions</span>
+                        </div>
+                        <button class="btn btn-disabled" disabled>Locked</button>
+                    </div>
+
+                    <!-- English - Coming Soon -->
+                    <div class="subject-card locked" data-subject="english">
+                        <div class="subject-badge coming-soon-badge">Coming Soon</div>
+                        <div class="subject-icon">📚</div>
+                        <h3>English</h3>
+                        <p class="subject-description">Reading & Grammar</p>
+                        <div class="subject-details">
+                            <span class="token-cost"><span class="token-icon-small">🪙</span> 1 Token</span>
+                            <span class="question-count">~40 Questions</span>
+                        </div>
+                        <button class="btn btn-disabled" disabled>Locked</button>
+                    </div>
+                </div>
+
+                <!-- Active Tests Section -->
+                <div id="active-tests-section" class="active-tests-section" style="display: none;">
+                    <h3>Resume Active Tests</h3>
+                    <div id="active-tests-list" class="active-tests-list">
+                        <!-- Dynamically populated with active test cards -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Info Modal -->
+        <div id="token-info-modal" class="modal">
+            <div class="modal-content token-info-content">
+                <button class="modal-close" id="token-modal-close">×</button>
+                <div class="token-info-header">
+                    <span class="token-icon-large">🪙</span>
+                    <h2>Test Tokens</h2>
+                </div>
+                <p class="token-info-description">Tokens are used to take adaptive tests. Use them wisely!</p>
+                <ul class="token-info-list">
+                    <li>✅ Start with <strong>3 tokens</strong></li>
+                    <li>✅ Earn <strong>1 token daily</strong> at 12pm ET</li>
+                    <li>✅ Maximum capacity: <strong>10 tokens</strong></li>
+                    <li>💰 Regular test: <strong>1 token</strong></li>
+                    <li>💰 Master test: <strong>5 tokens</strong> (coming soon)</li>
+                </ul>
+                <div class="token-info-status">
+                    <p><strong>Your Balance:</strong> <span id="token-balance-display">3</span> / 10 tokens</p>
+                    <p><strong>Next Refill:</strong> <span id="next-refill-time">Loading...</span></p>
+                </div>
+            </div>
+        </div>
+
         <!-- Welcome Modal -->
-        <div id="welcome-modal" class="modal active">
+        <div id="welcome-modal" class="modal">
             <div class="modal-content welcome-content">
                 <div class="welcome-header">
                     <h1>📊 Adaptive Math Test</h1>
@@ -193,6 +284,8 @@
     <script src="config.local.js" onerror="console.log('Local config not found - using Firebase Functions')"></script>
 
     <!-- Test modules -->
+    <script src="subject-config.js"></script>
+    <script src="token-manager.js"></script>
     <script src="simple-calculator.js"></script>
     <script src="test-engine.js"></script>
     <script src="question-bank.js"></script>
