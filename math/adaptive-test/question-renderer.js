@@ -330,7 +330,7 @@ class QuestionRenderer {
         const graphHeight = height - 2 * padding;
 
         // Clear canvas
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#e3eaf2';
         ctx.fillRect(0, 0, width, height);
 
         // Draw axes
@@ -432,7 +432,7 @@ class QuestionRenderer {
      */
     drawGeometry(ctx, data, width, height) {
         // Clear canvas
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = '#e3eaf2';
         ctx.fillRect(0, 0, width, height);
 
         ctx.strokeStyle = '#64ffda';

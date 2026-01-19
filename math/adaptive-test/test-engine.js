@@ -5,10 +5,11 @@
 
 const TEST_CONFIG = {
     totalQuestions: 25,        // Default number of questions
-    startDifficulty: 5,        // Always start at level 5
-    minDifficulty: 1,
-    maxDifficulty: 10,
-    visualQuestionPercent: 35  // 35% have visual components
+    startDifficulty: 15,       // Start at level 15 (middle of 1-30 range)
+    minDifficulty: 1,          // 5th grade level
+    maxDifficulty: 30,         // Pre-calculus level
+    visualQuestionPercent: 35, // 35% have visual components
+    difficultyBuffer: 2        // ±2 levels for question variety
 };
 
 class AdaptiveTestEngine {
@@ -24,6 +25,8 @@ class AdaptiveTestEngine {
         this.startTime = null;
         this.questionStartTime = null;
         this.lastTopic = null;      // For topic variety
+        this.consecutiveCorrect = 0; // Track consecutive correct answers
+        this.consecutiveIncorrect = 0; // Track consecutive incorrect answers
         this.testComplete = false;
     }
 
@@ -40,9 +43,15 @@ class AdaptiveTestEngine {
      * Select next question based on adaptive algorithm
      */
     selectNextQuestion(questionBank) {
+        // Add variety by selecting from a range around current difficulty (±2 levels)
+        const buffer = this.config.difficultyBuffer;
+        const minDiff = Math.max(this.config.minDifficulty, this.currentDifficulty - buffer);
+        const maxDiff = Math.min(this.config.maxDifficulty, this.currentDifficulty + buffer);
+        const questionDifficulty = Math.floor(Math.random() * (maxDiff - minDiff + 1)) + minDiff;
+
         // Don't allow consecutive same topics
         const question = questionBank.generateQuestion(
-            this.currentDifficulty,
+            questionDifficulty,
             null,  // Let QuestionBank pick random topic
             this.lastTopic
         );
@@ -71,15 +80,25 @@ class AdaptiveTestEngine {
             difficulty: this.currentDifficulty
         });
 
-        // Adjust difficulty: +1 if correct, -1 if incorrect
+        // Exponential difficulty adjustment based on consecutive correct/incorrect
         if (isCorrect) {
+            this.consecutiveCorrect++;
+            this.consecutiveIncorrect = 0;
+
+            // Increase difficulty exponentially: 1 correct = +1, 2 correct = +2, etc.
+            const difficultyIncrease = this.consecutiveCorrect;
             this.currentDifficulty = Math.min(
-                this.currentDifficulty + 1,
+                this.currentDifficulty + difficultyIncrease,
                 this.config.maxDifficulty
             );
         } else {
+            this.consecutiveIncorrect++;
+            this.consecutiveCorrect = 0;
+
+            // Decrease difficulty exponentially: 1 incorrect = -1, 2 incorrect = -2, etc.
+            const difficultyDecrease = this.consecutiveIncorrect;
             this.currentDifficulty = Math.max(
-                this.currentDifficulty - 1,
+                this.currentDifficulty - difficultyDecrease,
                 this.config.minDifficulty
             );
         }
