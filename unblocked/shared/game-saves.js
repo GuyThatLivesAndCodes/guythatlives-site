@@ -355,13 +355,49 @@ class GameSavesSystem {
                 .doc(this.currentGameId);
 
             // Clean undefined values before saving (Firebase doesn't support undefined)
-            const cleanedData = {
+            let cleanedData = {
                 gameId: this.currentGameId,
                 localStorage: this.cleanUndefined(localStorageData),
                 indexedDB: this.cleanUndefined(indexedDBData),
                 lastSynced: firebase.firestore.FieldValue.serverTimestamp(),
                 deviceInfo: this.getDeviceInfo()
             };
+
+            // Check size and compress if needed (Firestore has 1MB limit)
+            let dataSize = JSON.stringify(cleanedData).length;
+            const MAX_SIZE = 900000; // 900KB to leave buffer
+
+            if (dataSize > MAX_SIZE) {
+                console.warn(`Save data too large (${this.formatBytes(dataSize)}), compressing...`);
+
+                // Try removing IndexedDB data first (usually larger and less critical)
+                if (indexedDBSize > localStorageSize) {
+                    cleanedData.indexedDB = {};
+                    dataSize = JSON.stringify(cleanedData).length;
+                    console.log(`Removed IndexedDB data, new size: ${this.formatBytes(dataSize)}`);
+                }
+
+                // If still too large, keep only recent localStorage keys
+                if (dataSize > MAX_SIZE) {
+                    const allKeys = Object.keys(cleanedData.localStorage || {});
+                    const maxKeys = 50; // Keep only 50 most recent keys
+
+                    if (allKeys.length > maxKeys) {
+                        const reducedLocalStorage = {};
+                        allKeys.slice(0, maxKeys).forEach(key => {
+                            reducedLocalStorage[key] = cleanedData.localStorage[key];
+                        });
+                        cleanedData.localStorage = reducedLocalStorage;
+                        dataSize = JSON.stringify(cleanedData).length;
+                        console.log(`Reduced localStorage keys, new size: ${this.formatBytes(dataSize)}`);
+                    }
+                }
+
+                // Last resort: skip sync if still too large
+                if (dataSize > MAX_SIZE) {
+                    throw new Error(`Save data too large (${this.formatBytes(dataSize)}). Please clear some game data.`);
+                }
+            }
 
             await saveRef.set(cleanedData);
 
@@ -385,7 +421,13 @@ class GameSavesSystem {
                 if (uploadItem) {
                     this.updateProgressItem(uploadItem, 'error', 'Failed to upload to cloud');
                 }
-                this.showCompletion(false, 'Failed to save game data. Please try again.');
+
+                // Check if it's a size error
+                if (error.message && error.message.includes('size')) {
+                    this.showCompletion(false, 'Save data too large. Try clearing old game progress from settings.');
+                } else {
+                    this.showCompletion(false, 'Failed to save game data. Please try again.');
+                }
             }
         }
     }
