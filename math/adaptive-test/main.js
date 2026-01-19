@@ -11,7 +11,7 @@ let apiHandler = null;
 let currentQuestion = null;
 let timerInterval = null;
 let questionStartTime = 0;
-let testAppPanel = null;
+// Calculator is initialized in simple-calculator.js
 
 // DOM Elements
 const elements = {
@@ -247,21 +247,19 @@ function stopQuestionTimer() {
 }
 
 /**
- * Toggle calculator panel
+ * Toggle calculator visibility
  */
 function toggleCalculator(show) {
-    const container = document.getElementById('app-panel-container');
-    if (!container) return;
+    if (typeof simpleCalculator === 'undefined' || !simpleCalculator) {
+        // Calculator not yet initialized, wait a bit
+        setTimeout(() => toggleCalculator(show), 100);
+        return;
+    }
 
-    if (show && typeof AppPanel !== 'undefined') {
-        if (!testAppPanel) {
-            // Initialize app panel with calculator only
-            container.innerHTML = '<div id="app-panel"></div>';
-            testAppPanel = new AppPanel('app-panel', ['calculator']);
-        }
-        container.style.display = 'block';
+    if (show) {
+        simpleCalculator.show();
     } else {
-        container.style.display = 'none';
+        simpleCalculator.hide();
     }
 }
 

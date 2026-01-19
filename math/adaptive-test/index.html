@@ -44,7 +44,8 @@
                     </div>
                 </div>
 
-                <div class="difficulty-indicator">
+                <!-- Difficulty indicator hidden for better user engagement -->
+                <div class="difficulty-indicator" style="display: none;">
                     <span class="difficulty-label">Difficulty:</span>
                     <span id="diff-level" class="diff-dots">●●●●●○○○○○</span>
                     <span class="diff-number">Level <span id="diff-number">5</span></span>
@@ -53,7 +54,8 @@
 
             <!-- Question Section -->
             <div class="question-section">
-                <div class="question-header">
+                <!-- Question header hidden for better engagement -->
+                <div class="question-header" style="display: none;">
                     <span class="question-topic" id="topic-tag">Topic</span>
                     <span class="question-timer" id="timer">0:00</span>
                 </div>
@@ -74,9 +76,36 @@
                 <!-- Submit button -->
                 <button id="submit-btn" class="btn btn-primary" disabled>Submit Answer</button>
             </div>
+        </div>
 
-            <!-- App panel container (conditional) -->
-            <div id="app-panel-container"></div>
+        <!-- Simple Calculator (conditional) -->
+        <div id="simple-calculator" class="simple-calculator">
+            <div class="calculator-header" id="calc-header">
+                <span class="calculator-title">Calculator</span>
+                <button class="calculator-close" id="calc-close">×</button>
+            </div>
+            <div class="calculator-body">
+                <div class="calculator-display" id="calc-display">0</div>
+                <div class="calculator-buttons">
+                    <button class="calc-btn clear" data-action="clear">C</button>
+                    <button class="calc-btn operator" data-action="operator" data-value="/">÷</button>
+                    <button class="calc-btn operator" data-action="operator" data-value="*">×</button>
+                    <button class="calc-btn" data-action="number" data-value="7">7</button>
+                    <button class="calc-btn" data-action="number" data-value="8">8</button>
+                    <button class="calc-btn" data-action="number" data-value="9">9</button>
+                    <button class="calc-btn operator" data-action="operator" data-value="-">−</button>
+                    <button class="calc-btn" data-action="number" data-value="4">4</button>
+                    <button class="calc-btn" data-action="number" data-value="5">5</button>
+                    <button class="calc-btn" data-action="number" data-value="6">6</button>
+                    <button class="calc-btn operator" data-action="operator" data-value="+">+</button>
+                    <button class="calc-btn" data-action="number" data-value="1">1</button>
+                    <button class="calc-btn" data-action="number" data-value="2">2</button>
+                    <button class="calc-btn" data-action="number" data-value="3">3</button>
+                    <button class="calc-btn" data-action="decimal" data-value=".">.</button>
+                    <button class="calc-btn" data-action="number" data-value="0">0</button>
+                    <button class="calc-btn equals" data-action="equals">=</button>
+                </div>
+            </div>
         </div>
 
         <!-- Welcome Modal -->
@@ -158,9 +187,9 @@
 
     <!-- Shared modules -->
     <script src="../shared/firebase-auth.js"></script>
-    <script src="../shared/app-panel.js"></script>
 
     <!-- Test modules -->
+    <script src="simple-calculator.js"></script>
     <script src="test-engine.js"></script>
     <script src="question-bank.js"></script>
     <script src="question-renderer.js"></script>

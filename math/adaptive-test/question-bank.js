@@ -147,7 +147,7 @@ class QuestionBank {
             "linear-equations": [
                 {
                     minDifficulty: 3,
-                    maxDifficulty: 7,
+                    maxDifficulty: 10,
                     type: "text-input",
                     needsCalculator: (diff) => diff >= 5,
                     hasVisual: false,
@@ -157,7 +157,7 @@ class QuestionBank {
             "quadratic-equations": [
                 {
                     minDifficulty: 6,
-                    maxDifficulty: 9,
+                    maxDifficulty: 15,
                     type: "multiple-choice",
                     needsCalculator: () => true,
                     hasVisual: true,
@@ -175,7 +175,7 @@ class QuestionBank {
                 },
                 {
                     minDifficulty: 6,
-                    maxDifficulty: 8,
+                    maxDifficulty: 18,
                     type: "text-input",
                     needsCalculator: () => true,
                     hasVisual: true,
@@ -185,7 +185,7 @@ class QuestionBank {
             "word-problems": [
                 {
                     minDifficulty: 7,
-                    maxDifficulty: 10,
+                    maxDifficulty: 20,
                     type: "text-input",
                     needsCalculator: () => true,
                     hasVisual: false,
@@ -195,7 +195,7 @@ class QuestionBank {
             "algebraic-expressions": [
                 {
                     minDifficulty: 4,
-                    maxDifficulty: 8,
+                    maxDifficulty: 16,
                     type: "multiple-choice",
                     needsCalculator: (diff) => diff >= 6,
                     hasVisual: false,
@@ -205,7 +205,7 @@ class QuestionBank {
             "ratios-proportions": [
                 {
                     minDifficulty: 3,
-                    maxDifficulty: 6,
+                    maxDifficulty: 12,
                     type: "text-input",
                     needsCalculator: (diff) => diff >= 5,
                     hasVisual: false,
@@ -215,11 +215,91 @@ class QuestionBank {
             "statistics-probability": [
                 {
                     minDifficulty: 5,
-                    maxDifficulty: 9,
+                    maxDifficulty: 16,
                     type: "multiple-choice",
                     needsCalculator: () => true,
                     hasVisual: false,
                     generate: () => this.generateStatsProbability()
+                }
+            ],
+            "polynomials": [
+                {
+                    minDifficulty: 12,
+                    maxDifficulty: 22,
+                    type: "text-input",
+                    needsCalculator: () => true,
+                    hasVisual: false,
+                    generate: () => this.generatePolynomialQuestion()
+                }
+            ],
+            "exponential-logarithms": [
+                {
+                    minDifficulty: 18,
+                    maxDifficulty: 26,
+                    type: "multiple-choice",
+                    needsCalculator: () => true,
+                    hasVisual: false,
+                    generate: () => this.generateExponentialLogQuestion()
+                }
+            ],
+            "trigonometry": [
+                {
+                    minDifficulty: 20,
+                    maxDifficulty: 28,
+                    type: "text-input",
+                    needsCalculator: () => true,
+                    hasVisual: true,
+                    generate: () => this.generateTrigonometryQuestion()
+                }
+            ],
+            "functions": [
+                {
+                    minDifficulty: 16,
+                    maxDifficulty: 25,
+                    type: "multiple-choice",
+                    needsCalculator: () => true,
+                    hasVisual: true,
+                    generate: () => this.generateFunctionQuestion()
+                }
+            ],
+            "sequences-series": [
+                {
+                    minDifficulty: 14,
+                    maxDifficulty: 24,
+                    type: "text-input",
+                    needsCalculator: () => true,
+                    hasVisual: false,
+                    generate: () => this.generateSequenceSeriesQuestion()
+                }
+            ],
+            "systems-equations": [
+                {
+                    minDifficulty: 10,
+                    maxDifficulty: 19,
+                    type: "text-input",
+                    needsCalculator: () => true,
+                    hasVisual: false,
+                    generate: () => this.generateSystemEquationsQuestion()
+                }
+            ],
+            "radicals-exponents": [
+                {
+                    minDifficulty: 13,
+                    maxDifficulty: 21,
+                    type: "multiple-choice",
+                    needsCalculator: (diff) => diff >= 16,
+                    hasVisual: false,
+                    generate: () => this.generateRadicalsExponentsQuestion()
+                }
+            ],
+            "limits-derivatives": [
+                {
+                    minDifficulty: 25,
+                    maxDifficulty: 30,
+                    type: "multiple-choice",
+                    needsCalculator: () => true,
+                    hasVisual: true,
+                    generate: () => this.generateLimitsDerivativesQuestion()
                 }
             ]
         };
@@ -651,6 +731,376 @@ class QuestionBank {
                         { value: ((total - favorable) / total).toFixed(2), reason: "calculated-complement" },
                         { value: (favorable / (total - favorable)).toFixed(2), reason: "calculation-error" }
                     ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generatePolynomialQuestion() {
+        const templates = [
+            () => {
+                // Multiply binomials: (ax + b)(cx + d)
+                const a = randomInt(1, 5);
+                const b = randomInt(-10, 10, [0]);
+                const c = randomInt(1, 5);
+                const d = randomInt(-10, 10, [0]);
+
+                const x2_coef = a * c;
+                const x_coef = a * d + b * c;
+                const const_term = b * d;
+
+                const result = `${x2_coef}x² ${x_coef >= 0 ? '+' : ''} ${x_coef}x ${const_term >= 0 ? '+' : ''} ${const_term}`;
+
+                return {
+                    text: `Multiply and simplify:`,
+                    latex: `(${a}x ${b >= 0 ? '+' : ''} ${b})(${c}x ${d >= 0 ? '+' : ''} ${d})`,
+                    correctAnswer: result,
+                    explanation: `Using FOIL: First (${a}x·${c}x=${x2_coef}x²), Outer (${a}x·${d}=${a*d}x), Inner (${b}·${c}x=${b*c}x), Last (${b}·${d}=${b*d})`,
+                    wrongAnswers: [
+                        { value: `${a*c}x² + ${b*d}`, reason: "forgot-middle-terms" },
+                        { value: `${a*c}x² + ${a*d + b*c + 1}x + ${b*d}`, reason: "calculation-error" },
+                        { value: `${a*c}x + ${b*d}`, reason: "wrong-exponent" }
+                    ]
+                };
+            },
+            () => {
+                // Factor polynomial: ax² + bx + c
+                const root1 = randomInt(-8, 8, [0]);
+                const root2 = randomInt(-8, 8, [0]);
+                const a = 1;
+                const b = -(root1 + root2);
+                const c = root1 * root2;
+
+                const factored = `(x ${root1 >= 0 ? '-' : '+'} ${Math.abs(root1)})(x ${root2 >= 0 ? '-' : '+'} ${Math.abs(root2)})`;
+
+                return {
+                    text: `Factor the polynomial:`,
+                    latex: `x^2 ${b >= 0 ? '+' : ''} ${b}x ${c >= 0 ? '+' : ''} ${c}`,
+                    correctAnswer: factored,
+                    explanation: `Find two numbers that multiply to ${c} and add to ${b}: ${root1} and ${root2}`,
+                    wrongAnswers: [
+                        { value: `(x + ${root1})(x + ${root2})`, reason: "sign-error" },
+                        { value: `(x - ${root1 + 1})(x - ${root2})`, reason: "calculation-error" },
+                        { value: "Cannot be factored", reason: "gave-up" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateSystemEquationsQuestion() {
+        const templates = [
+            () => {
+                // System of 2 linear equations
+                const x = randomInt(-5, 5);
+                const y = randomInt(-5, 5);
+
+                const a1 = randomInt(1, 5);
+                const b1 = randomInt(1, 5);
+                const c1 = a1 * x + b1 * y;
+
+                const a2 = randomInt(1, 5);
+                const b2 = randomInt(1, 5);
+                const c2 = a2 * x + b2 * y;
+
+                return {
+                    text: `Solve the system of equations:`,
+                    latex: `\\begin{cases} ${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2} \\end{cases}`,
+                    correctAnswer: `x = ${x}, y = ${y}`,
+                    explanation: `Solution: x = ${x}, y = ${y}`,
+                    wrongAnswers: [
+                        { value: `x = ${y}, y = ${x}`, reason: "swapped-variables" },
+                        { value: `x = ${x + 1}, y = ${y}`, reason: "calculation-error" },
+                        { value: `x = ${-x}, y = ${-y}`, reason: "sign-error" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateRadicalsExponentsQuestion() {
+        const templates = [
+            () => {
+                // Simplify radical
+                const perfect = randomChoice([4, 9, 16, 25]);
+                const other = randomChoice([2, 3, 5, 6, 7]);
+                const radicand = perfect * other;
+                const simplified = `${Math.sqrt(perfect)}√${other}`;
+
+                return {
+                    text: `Simplify the radical:`,
+                    latex: `\\sqrt{${radicand}}`,
+                    correctAnswer: simplified,
+                    explanation: `√${radicand} = √${perfect} · √${other} = ${Math.sqrt(perfect)}√${other}`,
+                    wrongAnswers: [
+                        { value: `√${radicand}`, reason: "not-simplified" },
+                        { value: `${Math.sqrt(perfect) + 1}√${other}`, reason: "calculation-error" },
+                        { value: Math.sqrt(radicand).toFixed(2), reason: "converted-to-decimal" }
+                    ]
+                };
+            },
+            () => {
+                // Exponent rules: x^a * x^b = x^(a+b)
+                const base = randomChoice(['x', 'y', 'a']);
+                const exp1 = randomInt(2, 7);
+                const exp2 = randomInt(2, 7);
+                const result = exp1 + exp2;
+
+                return {
+                    text: `Simplify using exponent rules:`,
+                    latex: `${base}^{${exp1}} \\cdot ${base}^{${exp2}}`,
+                    correctAnswer: `${base}^${result}`,
+                    explanation: `When multiplying same bases, add exponents: ${exp1} + ${exp2} = ${result}`,
+                    wrongAnswers: [
+                        { value: `${base}^${exp1 * exp2}`, reason: "multiplied-instead-of-adding" },
+                        { value: `${base}^${exp1}${base}^${exp2}`, reason: "didnt-combine" },
+                        { value: `${base}^${result - 1}`, reason: "calculation-error" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateSequenceSeriesQuestion() {
+        const templates = [
+            () => {
+                // Arithmetic sequence
+                const a1 = randomInt(2, 20);
+                const d = randomInt(2, 10);
+                const n = randomInt(5, 10);
+                const an = a1 + (n - 1) * d;
+
+                return {
+                    text: `Find the ${n}th term of the arithmetic sequence:`,
+                    latex: `${a1}, ${a1 + d}, ${a1 + 2*d}, ...`,
+                    correctAnswer: an.toString(),
+                    explanation: `Using formula a_n = a_1 + (n-1)d: ${a1} + (${n}-1)(${d}) = ${an}`,
+                    wrongAnswers: [
+                        { value: (a1 + n * d).toString(), reason: "used-n-instead-of-n-1" },
+                        { value: (a1 + (n - 1) * d + d).toString(), reason: "off-by-one" },
+                        { value: (an - d).toString(), reason: "calculation-error" }
+                    ]
+                };
+            },
+            () => {
+                // Geometric sequence
+                const a1 = randomInt(2, 10);
+                const r = randomInt(2, 4);
+                const n = randomInt(3, 5);
+                const an = a1 * Math.pow(r, n - 1);
+
+                return {
+                    text: `Find the ${n}th term of the geometric sequence:`,
+                    latex: `${a1}, ${a1 * r}, ${a1 * r * r}, ...`,
+                    correctAnswer: an.toString(),
+                    explanation: `Using formula a_n = a_1 · r^(n-1): ${a1} · ${r}^${n-1} = ${an}`,
+                    wrongAnswers: [
+                        { value: (a1 * Math.pow(r, n)).toString(), reason: "used-n-instead-of-n-1" },
+                        { value: (a1 + n * r).toString(), reason: "added-instead-of-multiplied" },
+                        { value: (an / r).toString(), reason: "off-by-one" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateFunctionQuestion() {
+        const templates = [
+            () => {
+                // Function evaluation
+                const a = randomInt(1, 5);
+                const b = randomInt(-10, 10, [0]);
+                const x = randomInt(-5, 5);
+                const result = a * x + b;
+
+                return {
+                    text: `Evaluate f(${x}) if:`,
+                    latex: `f(x) = ${a}x ${b >= 0 ? '+' : ''} ${b}`,
+                    correctAnswer: result.toString(),
+                    explanation: `f(${x}) = ${a}(${x}) ${b >= 0 ? '+' : ''} ${b} = ${result}`,
+                    wrongAnswers: [
+                        { value: (a * x).toString(), reason: "forgot-constant" },
+                        { value: (result + b).toString(), reason: "calculation-error" },
+                        { value: (a + x + b).toString(), reason: "added-instead-of-multiplied" }
+                    ]
+                };
+            },
+            () => {
+                // Function composition: f(g(x))
+                const a = randomInt(2, 5);
+                const b = randomInt(1, 5);
+                const c = randomInt(1, 5);
+                const x = randomInt(1, 5);
+
+                const gx = b * x + c;
+                const fgx = a * gx;
+
+                return {
+                    text: `Find f(g(${x})) if f(x) = ${a}x and g(x) = ${b}x + ${c}`,
+                    correctAnswer: fgx.toString(),
+                    explanation: `First find g(${x}) = ${gx}, then f(${gx}) = ${a}(${gx}) = ${fgx}`,
+                    wrongAnswers: [
+                        { value: (a * b * x + c).toString(), reason: "wrong-composition" },
+                        { value: gx.toString(), reason: "forgot-outer-function" },
+                        { value: (fgx + a).toString(), reason: "calculation-error" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateExponentialLogQuestion() {
+        const templates = [
+            () => {
+                // Exponential growth: y = a(b)^x
+                const initial = randomInt(100, 500);
+                const rate = randomChoice([1.05, 1.1, 1.15, 1.2, 2]);
+                const time = randomInt(2, 5);
+                const result = Math.round(initial * Math.pow(rate, time));
+
+                return {
+                    text: `A population starts at ${initial} and grows by ${((rate - 1) * 100).toFixed(0)}% each year. What is the population after ${time} years?`,
+                    latex: `y = ${initial}(${rate})^{${time}}`,
+                    correctAnswer: result.toString(),
+                    explanation: `Using y = ${initial}(${rate})^${time} = ${result}`,
+                    wrongAnswers: [
+                        { value: (initial + initial * (rate - 1) * time).toFixed(0), reason: "used-linear-growth" },
+                        { value: (result * rate).toFixed(0), reason: "off-by-one" },
+                        { value: (initial * Math.pow(rate, time + 1)).toFixed(0), reason: "calculation-error" }
+                    ]
+                };
+            },
+            () => {
+                // Basic logarithm
+                const base = randomChoice([2, 3, 10]);
+                const exponent = randomInt(2, 4);
+                const value = Math.pow(base, exponent);
+
+                return {
+                    text: `Evaluate:`,
+                    latex: `\\log_{${base}}(${value})`,
+                    correctAnswer: exponent.toString(),
+                    explanation: `${base}^${exponent} = ${value}, so log₍${base}₎(${value}) = ${exponent}`,
+                    wrongAnswers: [
+                        { value: value.toString(), reason: "confused-with-exponent" },
+                        { value: (exponent + 1).toString(), reason: "off-by-one" },
+                        { value: base.toString(), reason: "returned-base" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateTrigonometryQuestion() {
+        const templates = [
+            () => {
+                // Unit circle values
+                const angles = [
+                    { deg: 0, rad: '0', sin: '0', cos: '1' },
+                    { deg: 30, rad: 'π/6', sin: '1/2', cos: '√3/2' },
+                    { deg: 45, rad: 'π/4', sin: '√2/2', cos: '√2/2' },
+                    { deg: 60, rad: 'π/3', sin: '√3/2', cos: '1/2' },
+                    { deg: 90, rad: 'π/2', sin: '1', cos: '0' }
+                ];
+
+                const angle = randomChoice(angles);
+                const func = randomChoice(['sin', 'cos']);
+                const answer = func === 'sin' ? angle.sin : angle.cos;
+
+                return {
+                    text: `Find the exact value:`,
+                    latex: `\\${func}(${angle.rad})`,
+                    correctAnswer: answer,
+                    explanation: `From the unit circle, ${func}(${angle.deg}°) = ${answer}`,
+                    wrongAnswers: [
+                        { value: func === 'sin' ? angle.cos : angle.sin, reason: "confused-sin-cos" },
+                        { value: Math[func](angle.deg * Math.PI / 180).toFixed(2), reason: "used-decimal" },
+                        { value: angle.deg.toString(), reason: "returned-angle" }
+                    ]
+                };
+            },
+            () => {
+                // Solve trig equation
+                const angle = randomChoice([30, 45, 60]);
+                const value = Math.sin(angle * Math.PI / 180);
+
+                return {
+                    text: `Find x in the range [0°, 90°] if:`,
+                    latex: `\\sin(x) = ${value.toFixed(2)}`,
+                    correctAnswer: `${angle}°`,
+                    explanation: `sin(${angle}°) = ${value.toFixed(2)}`,
+                    wrongAnswers: [
+                        { value: `${90 - angle}°`, reason: "complementary-angle" },
+                        { value: `${angle + 10}°`, reason: "calculation-error" },
+                        { value: `${angle / 2}°`, reason: "half-angle" }
+                    ]
+                };
+            }
+        ];
+
+        return randomChoice(templates)();
+    }
+
+    generateLimitsDerivativesQuestion() {
+        const templates = [
+            () => {
+                // Basic limit
+                const a = randomInt(2, 6);
+                const b = randomInt(-10, 10);
+                const c = randomInt(1, 5);
+                const limit = a * c * c + b;
+
+                return {
+                    text: `Find the limit:`,
+                    latex: `\\lim_{x \\to ${c}} (${a}x^2 ${b >= 0 ? '+' : ''} ${b})`,
+                    correctAnswer: limit.toString(),
+                    explanation: `Direct substitution: ${a}(${c})² ${b >= 0 ? '+' : ''} ${b} = ${limit}`,
+                    needsCalculator: true,
+                    wrongAnswers: [
+                        { value: (a * c + b).toString(), reason: "forgot-to-square" },
+                        { value: b.toString(), reason: "ignored-x-term" },
+                        { value: (limit + 1).toString(), reason: "calculation-error" }
+                    ]
+                };
+            },
+            () => {
+                // Power rule derivative
+                const a = randomInt(2, 10);
+                const n = randomInt(2, 5);
+                const derivative_coef = a * n;
+                const derivative_exp = n - 1;
+
+                return {
+                    text: `Find the derivative using the power rule:`,
+                    latex: `f(x) = ${a}x^{${n}}`,
+                    correctAnswer: `${derivative_coef}x^${derivative_exp}`,
+                    explanation: `Using d/dx[x^n] = nx^(n-1): ${a}·${n}x^${derivative_exp} = ${derivative_coef}x^${derivative_exp}`,
+                    wrongAnswers: [
+                        { value: `${a}x^${n}`, reason: "didnt-differentiate" },
+                        { value: `${a}x^${n-1}`, reason: "forgot-to-multiply-coefficient" },
+                        { value: `${derivative_coef}x^${n}`, reason: "didnt-reduce-exponent" }
+                    ],
+                    visualData: {
+                        type: 'graph',
+                        function: (x) => a * Math.pow(x, n),
+                        xRange: [-3, 3],
+                        yRange: [-10, 50],
+                        showTangent: true
+                    }
                 };
             }
         ];
