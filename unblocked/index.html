@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="google-adsense-account" content="ca-pub-6552523352090461">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>Unblocked Games - GuyThatLives</title>
     <link rel="stylesheet" href="shared/games-styles.css">
     <style>
@@ -623,16 +622,27 @@
 
         // Initialize AdSense ads after window load
         window.addEventListener('load', () => {
-            try {
-                // Push ads to AdSense for initialization
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                console.log('AdSense ads initialized');
-            } catch (e) {
-                console.error('AdSense initialization error:', e);
-            }
+            // Delay to ensure containers are fully rendered
+            setTimeout(() => {
+                try {
+                    // Check if containers exist and have width
+                    const adContainers = document.querySelectorAll('.ad-container');
+                    console.log(`Found ${adContainers.length} ad containers`);
+
+                    adContainers.forEach((container, i) => {
+                        console.log(`Container ${i} width:`, container.offsetWidth);
+                    });
+
+                    // Push ads to AdSense for initialization
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    console.log('AdSense ads initialized');
+                } catch (e) {
+                    console.error('AdSense initialization error:', e);
+                }
+            }, 500); // Wait 500ms for layout to stabilize
         });
     </script>
 </body>

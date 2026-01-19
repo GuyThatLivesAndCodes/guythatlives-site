@@ -766,6 +766,7 @@ body {
 ins.adsbygoogle {
     display: block;
     background: var(--bg-secondary);
+    width: 100%;
     min-height: 250px; /* Prevent layout shift */
 }
 
