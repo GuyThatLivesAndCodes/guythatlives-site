@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>Unblocked Games - GuyThatLives</title>
     <link rel="stylesheet" href="shared/games-styles.css">
     <style>
@@ -619,11 +620,19 @@
             container.insertBefore(errorDiv, container.firstChild);
         }
 
-        // Initialize AdSense ads
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        (adsbygoogle = window.adsbygoogle || []).push({});
+        // Initialize AdSense ads after window load
+        window.addEventListener('load', () => {
+            try {
+                // Push ads to AdSense for initialization
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                console.log('AdSense ads initialized');
+            } catch (e) {
+                console.error('AdSense initialization error:', e);
+            }
+        });
     </script>
 </body>
 </html>
