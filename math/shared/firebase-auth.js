@@ -77,9 +77,23 @@ class FirebaseAuthSystem {
         // Update UI
         this.updateUIForLoggedInUser();
 
+        // Initialize TokenManager if available (for adaptive test system)
+        if (typeof TokenManager !== 'undefined' && typeof tokenManager !== 'undefined') {
+            if (!tokenManager) {
+                tokenManager = new TokenManager();
+            }
+            await tokenManager.initialize(this.user.uid);
+            console.log('TokenManager initialized for user');
+        }
+
         // Notify progress tracker of login (but don't auto-sync)
         if (window.progressTracker) {
             window.progressTracker.onUserLogin(this.user);
+        }
+
+        // Notify adaptive test system of login
+        if (typeof window.onUserAuthenticated === 'function') {
+            window.onUserAuthenticated(this.user);
         }
     }
 

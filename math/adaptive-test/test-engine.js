@@ -13,8 +13,18 @@ const TEST_CONFIG = {
 };
 
 class AdaptiveTestEngine {
-    constructor(config = {}) {
+    constructor(config = {}, subject = 'math') {
+        this.subject = subject;
+        this.subjectConfig = SUBJECT_CONFIG[subject];
         this.config = { ...TEST_CONFIG, ...config };
+
+        // Use subject-specific question count if not overridden
+        if (!config.totalQuestions && this.subjectConfig) {
+            this.config.totalQuestions = this.subjectConfig.questionCount.target;
+            this.config.minQuestions = this.subjectConfig.questionCount.min;
+            this.config.maxQuestions = this.subjectConfig.questionCount.max;
+        }
+
         this.totalQuestions = this.config.totalQuestions;
         this.currentQuestion = 0;
         this.currentDifficulty = this.config.startDifficulty;
@@ -28,6 +38,12 @@ class AdaptiveTestEngine {
         this.consecutiveCorrect = 0; // Track consecutive correct answers
         this.consecutiveIncorrect = 0; // Track consecutive incorrect answers
         this.testComplete = false;
+
+        // Convergence tracking for dynamic question count
+        this.abilityHistory = [];
+        this.convergenceWindowSize = 5; // Look at last 5 ability estimates
+        this.convergenceThreshold = 0.05; // Standard error threshold
+        this.minQuestionsBeforeCheck = this.config.minQuestions || 30; // Minimum questions before checking convergence
     }
 
     /**
@@ -109,9 +125,11 @@ class AdaptiveTestEngine {
         // Increment question counter
         this.currentQuestion++;
 
-        // Check if test is complete
-        if (this.currentQuestion >= this.totalQuestions) {
+        // Check if test should end (dynamic based on convergence)
+        if (this.shouldEndTest()) {
             this.testComplete = true;
+            // Set actual total questions to current count (for dynamic tests)
+            this.totalQuestions = this.currentQuestion;
         }
 
         // Save progress
@@ -137,6 +155,64 @@ class AdaptiveTestEngine {
             this.config.minDifficulty,
             Math.min(this.config.maxDifficulty, this.estimatedAbility)
         );
+
+        // Track ability history for convergence detection
+        this.abilityHistory.push(this.estimatedAbility);
+    }
+
+    /**
+     * Calculate confidence in current ability estimate
+     * Returns convergence status and standard error
+     */
+    calculateConfidence() {
+        // Need minimum window of estimates
+        if (this.abilityHistory.length < this.convergenceWindowSize) {
+            return {
+                converged: false,
+                standardError: 1.0,
+                mean: this.estimatedAbility
+            };
+        }
+
+        // Get last N ability estimates
+        const window = this.abilityHistory.slice(-this.convergenceWindowSize);
+
+        // Calculate mean
+        const mean = window.reduce((sum, val) => sum + val, 0) / window.length;
+
+        // Calculate variance
+        const variance = window.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / window.length;
+
+        // Calculate standard error
+        const standardError = Math.sqrt(variance) / Math.sqrt(window.length);
+
+        // Check if converged (standard error below threshold)
+        const converged = standardError < this.convergenceThreshold;
+
+        return {
+            converged,
+            standardError,
+            mean
+        };
+    }
+
+    /**
+     * Determine if test should end based on convergence or max questions
+     */
+    shouldEndTest() {
+        const { converged } = this.calculateConfidence();
+
+        // Must ask minimum questions first
+        if (this.currentQuestion < this.minQuestionsBeforeCheck) {
+            return false;
+        }
+
+        // End if converged OR reached max questions
+        if (converged || this.currentQuestion >= (this.config.maxQuestions || this.totalQuestions)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -229,10 +305,11 @@ class AdaptiveTestEngine {
     }
 
     /**
-     * Save progress to localStorage
+     * Save progress to localStorage (subject-specific key)
      */
     saveProgress() {
         const saveData = {
+            subject: this.subject,
             currentQuestion: this.currentQuestion,
             currentDifficulty: this.currentDifficulty,
             estimatedAbility: this.estimatedAbility,
@@ -243,21 +320,41 @@ class AdaptiveTestEngine {
             questionStartTime: this.questionStartTime,
             lastTopic: this.lastTopic,
             testComplete: this.testComplete,
-            config: this.config
+            config: this.config,
+            abilityHistory: this.abilityHistory,
+            consecutiveCorrect: this.consecutiveCorrect,
+            consecutiveIncorrect: this.consecutiveIncorrect
         };
 
-        localStorage.setItem('adaptive_test_progress', JSON.stringify(saveData));
+        const key = `adaptive_test_progress_${this.subject}`;
+        localStorage.setItem(key, JSON.stringify(saveData));
+
+        // Use TestStateManager if available
+        if (typeof testStateManager !== 'undefined' && testStateManager) {
+            testStateManager.saveTest(this.subject, saveData);
+        }
     }
 
     /**
-     * Restore progress from localStorage
+     * Restore progress from localStorage (subject-specific key)
      */
     restoreProgress() {
-        const saved = localStorage.getItem('adaptive_test_progress');
+        const key = `adaptive_test_progress_${this.subject}`;
+        const saved = localStorage.getItem(key);
         if (saved) {
             try {
                 const data = JSON.parse(saved);
                 Object.assign(this, data);
+                // Restore convergence tracking data if present
+                if (data.abilityHistory) {
+                    this.abilityHistory = data.abilityHistory;
+                }
+                if (data.consecutiveCorrect !== undefined) {
+                    this.consecutiveCorrect = data.consecutiveCorrect;
+                }
+                if (data.consecutiveIncorrect !== undefined) {
+                    this.consecutiveIncorrect = data.consecutiveIncorrect;
+                }
                 return true;
             } catch (e) {
                 console.error('Error restoring progress:', e);
@@ -268,10 +365,16 @@ class AdaptiveTestEngine {
     }
 
     /**
-     * Clear saved progress
+     * Clear saved progress (subject-specific key)
      */
     clearProgress() {
-        localStorage.removeItem('adaptive_test_progress');
+        const key = `adaptive_test_progress_${this.subject}`;
+        localStorage.removeItem(key);
+
+        // Use TestStateManager if available
+        if (typeof testStateManager !== 'undefined' && testStateManager) {
+            testStateManager.deleteTest(this.subject);
+        }
     }
 
     /**
@@ -289,10 +392,23 @@ class AdaptiveTestEngine {
     }
 
     /**
-     * Get progress percentage
+     * Get progress percentage (uses maxQuestions for dynamic tests)
      */
     getProgressPercentage() {
-        return Math.round((this.currentQuestion / this.totalQuestions) * 100);
+        const maxQ = this.config.maxQuestions || this.totalQuestions;
+        return Math.round((this.currentQuestion / maxQ) * 100);
+    }
+
+    /**
+     * Get convergence info for debugging
+     */
+    getConvergenceInfo() {
+        return {
+            abilityHistory: this.abilityHistory,
+            confidence: this.calculateConfidence(),
+            shouldEnd: this.shouldEndTest(),
+            questionsRemaining: Math.max(0, this.minQuestionsBeforeCheck - this.currentQuestion)
+        };
     }
 }
 
