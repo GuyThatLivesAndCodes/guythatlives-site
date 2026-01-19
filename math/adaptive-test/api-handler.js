@@ -1,16 +1,31 @@
 /**
  * ClaudeAPIHandler - Handles Claude API integration for test analysis
- * Generates personalized feedback based on student performance
+ * Uses Firebase Functions to keep API key secure on the backend
  */
 
-// TODO: Replace with actual API key
-const CLAUDE_API_KEY = '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';
-
 class ClaudeAPIHandler {
-    constructor(apiKey = CLAUDE_API_KEY) {
-        this.apiKey = apiKey;
-        this.endpoint = 'https://api.anthropic.com/v1/messages';
-        this.model = 'claude-sonnet-4-5-20250429';
+    constructor() {
+        // No API key needed - handled by Firebase Functions
+        this.analyzeTestFunction = null;
+    }
+
+    /**
+     * Initialize Firebase Functions callable
+     */
+    async init() {
+        // Wait for Firebase to be initialized
+        if (typeof firebase === 'undefined' || !firebase.functions) {
+            console.warn('Firebase Functions not available');
+            return false;
+        }
+
+        try {
+            this.analyzeTestFunction = firebase.functions().httpsCallable('analyzeTest');
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize Firebase Functions:', error);
+            return false;
+        }
     }
 
     /**
@@ -20,33 +35,34 @@ class ClaudeAPIHandler {
         const prompt = this.generateAnalysisPrompt(testData);
 
         try {
-            const response = await fetch(this.endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': this.apiKey,
-                    'anthropic-version': '2023-06-01'
-                },
-                body: JSON.stringify({
-                    model: this.model,
-                    max_tokens: 4000,
-                    messages: [{
-                        role: 'user',
-                        content: prompt
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(`API error ${response.status}: ${errorData.error?.message || 'Unknown error'}`);
+            // Initialize if not already done
+            if (!this.analyzeTestFunction) {
+                const initialized = await this.init();
+                if (!initialized) {
+                    throw new Error('Firebase Functions not configured');
+                }
             }
 
-            const data = await response.json();
-            return data.content[0].text;
+            // Call Firebase Function (API key is secure on backend)
+            const result = await this.analyzeTestFunction({ prompt });
+
+            if (result.data.success) {
+                return result.data.analysis;
+            } else {
+                throw new Error('Analysis failed');
+            }
 
         } catch (error) {
             console.error('Claude API error:', error);
+
+            // If Firebase Functions not configured, use fallback
+            if (error.message.includes('not configured') ||
+                error.code === 'unauthenticated' ||
+                error.code === 'failed-precondition') {
+                console.log('Using fallback analysis (Firebase Functions not configured)');
+                return this.getFallbackAnalysis(testData);
+            }
+
             throw error;
         }
     }
@@ -189,10 +205,13 @@ Use an encouraging, educational tone suitable for middle/high school students. B
     }
 
     /**
-     * Check if API key is configured
+     * Check if Firebase Functions is configured
      */
-    isConfigured() {
-        return this.apiKey && this.apiKey !== 'YOUR_CLAUDE_API_KEY_HERE';
+    async isConfigured() {
+        if (!this.analyzeTestFunction) {
+            return await this.init();
+        }
+        return true;
     }
 
     /**

@@ -1,0 +1,23 @@
+# Compiled JavaScript files
+*.js.map
+*.log
+
+# Node modules
+node_modules/
+
+# Firebase cache
+.firebase/
+
+# Environment variables (if you use .env)
+.env
+.env.local
+
+# Firebase config file (contains runtime config)
+.runtimeconfig.json
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
