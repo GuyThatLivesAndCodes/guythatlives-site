@@ -471,10 +471,32 @@
                     return;
                 }
 
-                // Fetch and inject storage isolation
-                try {
-                    const response = await fetch(currentGame.gameUrl);
-                    let html = await response.text();
+                // List of games that need direct loading (no storage isolation)
+                // These games require canvas pixel access which srcdoc blocks
+                const DIRECT_LOAD_GAMES = [
+                    'fnaf1', 'fnaf2', 'fnaf3', 'fnaf4',
+                    'minecraft', 'eaglercraft',
+                    'slope', 'run3', 'geometrydash'
+                ];
+
+                // Check if this game needs direct loading
+                const needsDirectLoad = DIRECT_LOAD_GAMES.some(game =>
+                    gameId.toLowerCase().includes(game) ||
+                    currentGame.title.toLowerCase().includes(game)
+                );
+
+                if (needsDirectLoad) {
+                    // Direct load without storage isolation
+                    console.log(`Loading ${gameId} directly (no storage isolation)`);
+                    gameFrame.src = currentGame.gameUrl;
+                    gameFrame.onload = () => {
+                        document.getElementById('game-loading').classList.add('hidden');
+                    };
+                } else {
+                    // Fetch and inject storage isolation
+                    try {
+                        const response = await fetch(currentGame.gameUrl);
+                        let html = await response.text();
 
                     // Build storage isolation script (avoid template literal issues)
                     const scriptCode = [
@@ -541,12 +563,13 @@
                     gameFrame.onload = () => {
                         document.getElementById('game-loading').classList.add('hidden');
                     };
-                } catch (error) {
-                    console.error('Storage isolation failed, using direct load:', error);
-                    gameFrame.src = currentGame.gameUrl;
-                    gameFrame.onload = () => {
-                        document.getElementById('game-loading').classList.add('hidden');
-                    };
+                    } catch (error) {
+                        console.error('Storage isolation failed, using direct load:', error);
+                        gameFrame.src = currentGame.gameUrl;
+                        gameFrame.onload = () => {
+                            document.getElementById('game-loading').classList.add('hidden');
+                        };
+                    }
                 }
 
                 // Increment play count
