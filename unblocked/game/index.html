@@ -320,43 +320,13 @@
         }
     </style>
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6552523352090461"
-         crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="game-container">
-        <div class="game-wrapper-with-ads">
-
-            <!-- Left Sidebar Ad (Desktop Only) -->
-            <div class="ad-sidebar left">
-                <div class="ad-container">
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-6552523352090461"
-                         data-ad-slot="XXXXXXXXXX"
-                         data-ad-format="vertical"
-                         data-full-width-responsive="false"></ins>
-                </div>
-            </div>
-
-            <!-- Main Game Content -->
-            <div class="game-main-content">
-
         <!-- Back Button -->
         <button class="back-button" onclick="window.location.href='/unblocked/'">
             ← Back to Games
         </button>
-
-        <!-- Ad Unit 1: Top Banner -->
-        <div id="ad-game-top" class="ad-container">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                 data-ad-slot="XXXXXXXXXX"
-                 data-ad-format="horizontal"
-                 data-full-width-responsive="true"></ins>
-        </div>
 
         <!-- Game Header -->
         <div class="game-header">
@@ -417,51 +387,15 @@
             </div>
         </div>
 
-        <!-- Ad Unit 2: Below Game Frame (Prime Location) -->
-        <div id="ad-game-mid" class="ad-container">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                 data-ad-slot="XXXXXXXXXX"
-                 data-ad-format="rectangle"
-                 data-full-width-responsive="true"></ins>
-        </div>
-
         <!-- Game Info Section -->
         <div class="game-info-section" id="game-info-section">
             <h2 class="info-section-title">About This Game</h2>
             <div class="game-description-text" id="game-description">Loading game information...</div>
 
-            <!-- Ad Unit 3: After Description -->
-            <div id="ad-game-bottom" class="ad-container">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                     data-ad-slot="XXXXXXXXXX"
-                     data-ad-format="horizontal"
-                     data-full-width-responsive="true"></ins>
-            </div>
-
             <h3 class="info-section-title">Tags</h3>
             <div class="game-tags" id="game-tags"></div>
         </div>
-
-            </div> <!-- .game-main-content -->
-
-            <!-- Right Sidebar Ad (Desktop Only) -->
-            <div class="ad-sidebar right">
-                <div class="ad-container">
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                         data-ad-slot="XXXXXXXXXX"
-                         data-ad-format="vertical"
-                         data-full-width-responsive="false"></ins>
-                </div>
-            </div>
-
-        </div> <!-- .game-wrapper-with-ads -->
-    </div> <!-- .game-container -->
+    </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -725,15 +659,6 @@
                     }
                 }
             });
-
-            // Initialize AdSense ads (wait for game content to load first)
-            setTimeout(() => {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            }, 1000);
         });
 
         // Handle navigation away (browser back button)
