@@ -154,6 +154,9 @@
                 Play the best collection of unblocked games. No downloads, no restrictions, just pure fun.
             </p>
             <div class="search-bar">
+                <select class="category-select" id="search-category-select">
+                    <option value="">All Categories</option>
+                </select>
                 <input type="text" class="search-input" id="search-input" placeholder="Search for games...">
                 <button class="btn btn-primary" id="search-btn">Search</button>
                 <button class="btn btn-secondary" id="random-game-btn" title="Play a random game">🎲 Random Game</button>
@@ -162,6 +165,17 @@
     </section>
 
     <div class="container">
+        <!-- Search Results Section -->
+        <section id="search-results-section" class="section" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Search Results</h2>
+                    <p class="section-subtitle" id="search-results-subtitle"></p>
+                </div>
+            </div>
+            <div id="search-results" class="search-results-list"></div>
+        </section>
+
         <!-- Ad Unit 1: Top Banner -->
         <div id="ad-top" class="ad-container">
             <ins class="adsbygoogle"
@@ -197,23 +211,6 @@
             </div>
         </section>
 
-        <!-- Category Filter -->
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Browse by Category</h2>
-                    <p class="section-subtitle">Find games you'll love</p>
-                </div>
-            </div>
-            <div class="category-filter">
-                <label for="category-select" style="color: var(--text-secondary); font-weight: 500;">Category:</label>
-                <select id="category-select" class="category-select">
-                    <option value="">All Games</option>
-                </select>
-            </div>
-            <div id="category-games" class="games-grid"></div>
-        </section>
-
         <!-- Ad Unit 2: Mid-Page Rectangle -->
         <div id="ad-mid" class="ad-container">
             <ins class="adsbygoogle"
@@ -231,6 +228,22 @@
                 </div>
             </div>
             <div id="most-played-games" class="games-grid">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading games...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Games -->
+        <section class="section">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">All Games</h2>
+                    <p class="section-subtitle">Every game in our collection</p>
+                </div>
+            </div>
+            <div id="all-games" class="games-grid">
                 <div class="loading">
                     <div class="loading-spinner"></div>
                     <p>Loading games...</p>
@@ -393,9 +406,6 @@
             // Setup search
             setupSearch();
 
-            // Setup category filter
-            setupCategoryFilter();
-
             // Setup random game button
             setupRandomGameButton();
 
@@ -417,31 +427,44 @@
             });
         });
 
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         // Load all games sections
         async function loadAllGames() {
             try {
-                const [featured, mostPlayed, newGames, categories] = await Promise.all([
+                const [featured, mostPlayed, newGames, allGames, categories] = await Promise.all([
                     window.gameManager.getFeaturedGames(6),
                     window.gameManager.getMostPlayedGames(12),
                     window.gameManager.getNewGames(12),
+                    window.gameManager.getAllPublishedGames(),
                     window.gameManager.getCategories()
                 ]);
+
+                const shuffledGames = shuffleArray(allGames);
 
                 renderGames('featured-games', featured);
                 renderGames('most-played-games', mostPlayed);
                 renderGames('new-games', newGames);
+                renderGames('all-games', shuffledGames);
 
-                // Populate category select
-                const categorySelect = document.getElementById('category-select');
+                // Populate search category dropdown
+                const searchCategorySelect = document.getElementById('search-category-select');
                 categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category;
                     option.textContent = category;
-                    categorySelect.appendChild(option);
+                    searchCategorySelect.appendChild(option);
                 });
 
                 // Update stats
-                const allGames = await window.gameManager.getAllGames();
                 document.getElementById('total-games-count').textContent = allGames.length;
                 document.getElementById('categories-count').textContent = categories.length;
 
@@ -527,23 +550,20 @@
         function setupSearch() {
             const searchInput = document.getElementById('search-input');
             const searchBtn = document.getElementById('search-btn');
+            const categorySelect = document.getElementById('search-category-select');
 
             const performSearch = async () => {
                 const query = searchInput.value.trim();
-                if (!query) {
-                    await loadAllGames();
+                const category = categorySelect.value;
+
+                if (!query && !category) {
+                    showAllSections();
                     return;
                 }
 
                 try {
-                    const results = await window.gameManager.searchGames(query);
-                    renderGames('featured-games', results.slice(0, 6));
-                    renderGames('most-played-games', []);
-                    renderGames('new-games', []);
-
-                    // Hide sections if no results
-                    document.querySelector('#most-played-games').closest('.section').style.display = 'none';
-                    document.querySelector('#new-games').closest('.section').style.display = 'none';
+                    const results = await window.gameManager.searchGames(query, category);
+                    showSearchResults(results, query, category);
                 } catch (error) {
                     console.error('Search error:', error);
                 }
@@ -553,34 +573,89 @@
             searchInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') performSearch();
             });
+            categorySelect.addEventListener('change', performSearch);
+
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
+            });
         }
 
-        // Setup category filter
-        function setupCategoryFilter() {
-            const categorySelect = document.getElementById('category-select');
-
-            categorySelect.addEventListener('change', async (e) => {
-                const category = e.target.value;
-
-                if (!category) {
-                    // Show all sections
-                    document.querySelector('#most-played-games').closest('.section').style.display = 'block';
-                    document.querySelector('#new-games').closest('.section').style.display = 'block';
-                    document.getElementById('category-games').innerHTML = '';
-                    return;
-                }
-
-                try {
-                    const games = await window.gameManager.getGamesByCategory(category);
-                    renderGames('category-games', games);
-
-                    // Hide other sections
-                    document.querySelector('#most-played-games').closest('.section').style.display = 'none';
-                    document.querySelector('#new-games').closest('.section').style.display = 'none';
-                } catch (error) {
-                    console.error('Category filter error:', error);
-                }
+        // Show all sections (hide search results)
+        function showAllSections() {
+            document.getElementById('search-results-section').style.display = 'none';
+            document.querySelectorAll('.section:not(#search-results-section)').forEach(section => {
+                section.style.display = 'block';
             });
+        }
+
+        // Show search results in horizontal list view
+        function showSearchResults(results, query, category) {
+            const resultsSection = document.getElementById('search-results-section');
+            const resultsContainer = document.getElementById('search-results');
+            const subtitle = document.getElementById('search-results-subtitle');
+
+            let subtitleText = `Found ${results.length} game${results.length !== 1 ? 's' : ''}`;
+            if (query && category) {
+                subtitleText += ` for "${query}" in ${category}`;
+            } else if (query) {
+                subtitleText += ` for "${query}"`;
+            } else if (category) {
+                subtitleText += ` in ${category}`;
+            }
+            subtitle.textContent = subtitleText;
+
+            document.querySelectorAll('.section:not(#search-results-section)').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            resultsSection.style.display = 'block';
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <div class="empty-state-title">No games found</div>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(game => createHorizontalGameCard(game)).join('');
+        }
+
+        // Create horizontal game card for search results
+        function createHorizontalGameCard(game) {
+            const thumbnail = game.thumbnail || '';
+            const isNew = game.addedDate && isNewGame(game.addedDate);
+            const badges = [];
+
+            if (game.featured) badges.push('<span class="game-badge featured">Featured</span>');
+            if (isNew) badges.push('<span class="game-badge new">New</span>');
+
+            return `
+                <a href="/unblocked/game/?game=${game.id}" class="game-card-horizontal">
+                    <div class="game-thumbnail-horizontal">
+                        ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '<div class="game-thumbnail-placeholder">🎮</div>'}
+                        ${badges.join('')}
+                    </div>
+                    <div class="game-info-horizontal">
+                        <h3 class="game-title">${game.title}</h3>
+                        <p class="game-description">${game.description || 'No description available'}</p>
+                        <div class="game-meta">
+                            <span class="game-meta-item">▶ ${game.playCount || 0} plays</span>
+                            ${game.categories && game.categories.length > 0 ?
+                                `<span class="game-meta-item">📁 ${game.categories.join(', ')}</span>` : ''}
+                        </div>
+                        ${game.tags && game.tags.length > 0 ? `
+                            <div class="game-tags">
+                                ${game.tags.slice(0, 5).map(tag => `<span class="game-tag">${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </a>
+            `;
         }
 
         // Setup random game button
