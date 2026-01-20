@@ -651,3 +651,8 @@ function updateImportProgress(progress) {
             break;
     }
 }
+
+
+// ====================================
+// Announcement Management
+// ====================================
