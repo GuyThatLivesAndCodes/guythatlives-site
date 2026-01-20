@@ -502,40 +502,34 @@
                             let html = await response.text();
 
                             // Canvas fix script - patches Image to add crossorigin
-                            const canvasFixScript = `
-                                <script>
-                                (function() {
-                                    console.log('Applying canvas CORS fix for FNAF');
-
-                                    // Patch Image constructor
-                                    const OriginalImage = window.Image;
-                                    window.Image = function() {
-                                        const img = new OriginalImage();
-                                        img.crossOrigin = 'anonymous';
-                                        return img;
-                                    };
-
-                                    // Patch createElement for img tags
-                                    const originalCreateElement = document.createElement.bind(document);
-                                    document.createElement = function(tagName) {
-                                        const element = originalCreateElement(tagName);
-                                        if (tagName.toLowerCase() === 'img') {
-                                            element.crossOrigin = 'anonymous';
-                                        }
-                                        return element;
-                                    };
-
-                                    // Patch any existing images
-                                    setTimeout(() => {
-                                        document.querySelectorAll('img').forEach(img => {
-                                            if (!img.crossOrigin) {
-                                                img.crossOrigin = 'anonymous';
-                                            }
-                                        });
-                                    }, 100);
-                                })();
-                                </script>
-                            `;
+                            // Build script using array.join() to avoid template literal issues
+                            const canvasFixCode = [
+                                '(function() {',
+                                '    console.log("Applying canvas CORS fix for FNAF");',
+                                '    var OriginalImage = window.Image;',
+                                '    window.Image = function() {',
+                                '        var img = new OriginalImage();',
+                                '        img.crossOrigin = "anonymous";',
+                                '        return img;',
+                                '    };',
+                                '    var originalCreateElement = document.createElement.bind(document);',
+                                '    document.createElement = function(tagName) {',
+                                '        var element = originalCreateElement(tagName);',
+                                '        if (tagName.toLowerCase() === "img") {',
+                                '            element.crossOrigin = "anonymous";',
+                                '        }',
+                                '        return element;',
+                                '    };',
+                                '    setTimeout(function() {',
+                                '        document.querySelectorAll("img").forEach(function(img) {',
+                                '            if (!img.crossOrigin) {',
+                                '                img.crossOrigin = "anonymous";',
+                                '            }',
+                                '        });',
+                                '    }, 100);',
+                                '})();'
+                            ].join('\n');
+                            const canvasFixScript = '<scr' + 'ipt>' + canvasFixCode + '</scr' + 'ipt>';
 
                             // Inject at beginning of head
                             if (html.indexOf('<head>') !== -1) {
