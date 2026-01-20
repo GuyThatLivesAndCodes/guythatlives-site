@@ -122,10 +122,10 @@
         <div class="header-content">
             <a href="/" class="logo">GuyThatLives</a>
             <nav class="nav">
-                <a href="/">Home</a>
-                <a href="/math/">Math</a>
-                <a href="/unblocked/">Games</a>
-                <a href="/unblocked/editor" class="admin-only">Editor</a>
+                <a href="/" class="nav-link">Home</a>
+                <a href="/math/" class="nav-link">Math</a>
+                <a href="/unblocked/" class="nav-link">Games</a>
+                <a href="/unblocked/editor" class="nav-link admin-only">Editor</a>
             </nav>
             <div class="school-controls">
                 <button class="disguise-toggle-btn">🕶️ Disguise Page</button>
@@ -187,17 +187,6 @@
                  data-ad-slot="9624020132"></ins>
         </div>
 
-        <!-- Recently Played (for logged-in users) -->
-        <section id="recent-section" class="section" style="display: none;">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Continue Playing</h2>
-                    <p class="section-subtitle">Pick up where you left off</p>
-                </div>
-            </div>
-            <div id="recent-games" class="games-grid"></div>
-        </section>
-
         <!-- Featured Games -->
         <section class="section">
             <div class="section-header">
@@ -212,6 +201,17 @@
                     <p>Loading games...</p>
                 </div>
             </div>
+        </section>
+
+        <!-- Recently Played (for logged-in users) -->
+        <section id="recent-section" class="section" style="display: none;">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Continue Playing</h2>
+                    <p class="section-subtitle">Pick up where you left off</p>
+                </div>
+            </div>
+            <div id="recent-games" class="games-grid"></div>
         </section>
 
         <!-- Ad Unit 2: Mid-Page Rectangle -->
