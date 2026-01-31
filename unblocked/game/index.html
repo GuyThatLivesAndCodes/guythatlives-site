@@ -631,6 +631,11 @@
                     ].join('\n');
 
                     const scriptTag = '<scr' + 'ipt>' + scriptCode + '</scr' + 'ipt>';
+                    
+                    html = html.replace(
+                        /<script[^>]*cloudflareinsights[^>]*>.*?<\/script>/gis,
+                        ''
+                    );
 
                     // Inject at beginning of head or html
                     if (html.indexOf('<head>') !== -1) {
