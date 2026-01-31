@@ -410,6 +410,23 @@
 
     <!-- Game Player Script -->
     <script>
+        function injectBaseTag(html, baseUrl) {
+            // Remove any existing <base> tag
+            html = html.replace(/<base[^>]*>/i, '');
+
+            const baseTag = `<base href="${baseUrl}">`;
+
+            if (html.includes('<head>')) {
+                // Inject base as FIRST thing in <head>
+                html = html.replace('<head>', `<head>${baseTag}`);
+            } else if (html.includes('<html>')) {
+                html = html.replace('<html>', `<html><head>${baseTag}</head>`);
+            } else {
+                html = baseTag + html;
+            }
+
+            return html;
+        }
         let currentGame = null;
 
         // Get game ID from URL parameter
@@ -542,10 +559,7 @@
 
                             // Add base tag for relative URLs
                             const baseUrl = currentGame.gameUrl.substring(0, currentGame.gameUrl.lastIndexOf('/') + 1);
-                            const baseTag = '<base href="' + baseUrl + '">';
-                            if (html.indexOf('<head>') !== -1) {
-                                html = html.replace('<head>', '<head>' + baseTag);
-                            }
+                            html = injectBaseTag(html, baseUrl);
 
                             gameFrame.srcdoc = html;
                             gameFrame.onload = () => {
@@ -625,12 +639,7 @@
 
                     // Get base URL
                     const baseUrl = currentGame.gameUrl.substring(0, currentGame.gameUrl.lastIndexOf('/') + 1);
-                    const baseTag = '<base href="' + baseUrl + '">';
-
-                    // Add base tag
-                    if (html.indexOf('<head>') !== -1) {
-                        html = html.replace('<head>', '<head>' + baseTag);
-                    }
+                    html = injectBaseTag(html, baseUrl);
 
                     gameFrame.srcdoc = html;
                     gameFrame.onload = () => {
