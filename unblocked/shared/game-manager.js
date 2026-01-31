@@ -129,6 +129,13 @@ class GameManager {
     }
 
     /**
+     * Get all published games (alias for getAllGames)
+     */
+    async getAllPublishedGames() {
+        return await this.getAllGames();
+    }
+
+    /**
      * Get games by category
      */
     async getGamesByCategory(category, limit = null) {
@@ -167,22 +174,33 @@ class GameManager {
     }
 
     /**
-     * Search games by title or tags
+     * Search games by title, tags, and optionally filter by category
      */
-    async searchGames(query) {
-        const games = await this.getAllGames();
-        const lowerQuery = query.toLowerCase();
+    async searchGames(query, category = '') {
+        let games = await this.getAllGames();
 
-        return games.filter(game => {
-            const titleMatch = game.title.toLowerCase().includes(lowerQuery);
-            const tagMatch = game.tags && game.tags.some(tag =>
-                tag.toLowerCase().includes(lowerQuery)
+        // Filter by category first if provided
+        if (category && category !== '') {
+            games = games.filter(game =>
+                game.categories && game.categories.includes(category)
             );
-            const descMatch = game.description &&
-                game.description.toLowerCase().includes(lowerQuery);
+        }
 
-            return titleMatch || tagMatch || descMatch;
-        });
+        // Then filter by query if provided
+        if (query && query.trim() !== '') {
+            const lowerQuery = query.toLowerCase();
+            games = games.filter(game => {
+                const titleMatch = game.title.toLowerCase().includes(lowerQuery);
+                const tagMatch = game.tags && game.tags.some(tag =>
+                    tag.toLowerCase().includes(lowerQuery)
+                );
+                const descMatch = game.description &&
+                    game.description.toLowerCase().includes(lowerQuery);
+                return titleMatch || tagMatch || descMatch;
+            });
+        }
+
+        return games;
     }
 
     /**

@@ -360,6 +360,10 @@
                 <span>⛶</span>
                 <span>Fullscreen</span>
             </button>
+            <button class="control-btn" id="source-game-btn" style="display: none;" title="Open game directly from CDN (no panic button or disguise features)">
+                <span>🔗</span>
+                <span>Source Game</span>
+            </button>
         </div>
 
         <!-- Game Frame -->
@@ -663,6 +667,9 @@
                     await window.gameManager.trackUserPlay(gameId, user.uid);
                 }
 
+                // Show source game button after 5 seconds
+                showSourceGameButton();
+
             } catch (error) {
                 console.error('Error loading game:', error);
                 showError(error.message);
@@ -716,6 +723,23 @@
             }
         }
 
+        // Show source game button after 5 seconds
+        function showSourceGameButton() {
+            setTimeout(() => {
+                if (currentGame && currentGame.gameUrl) {
+                    const sourceBtn = document.getElementById('source-game-btn');
+                    sourceBtn.style.display = 'flex';
+                }
+            }, 5000); // 5 seconds
+        }
+
+        // Open source game in new tab
+        function openSourceGame() {
+            if (currentGame && currentGame.gameUrl) {
+                window.open(currentGame.gameUrl, '_blank');
+            }
+        }
+
         // Setup event listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Load game
@@ -729,6 +753,9 @@
 
             // Shuffle button
             document.getElementById('shuffle-btn').addEventListener('click', goToRandomGame);
+
+            // Source game button
+            document.getElementById('source-game-btn').addEventListener('click', openSourceGame);
 
             // Cloud save button (only show when logged in)
             const cloudSaveBtn = document.getElementById('cloud-save-btn');

@@ -449,6 +449,7 @@
             <div class="tabs">
                 <button class="tab active" data-tab="all-games">All Games</button>
                 <button class="tab" data-tab="add-game">Add Game</button>
+                <button class="tab" data-tab="announcement">Announcements</button>
             </div>
 
             <!-- All Games Tab -->
@@ -561,6 +562,81 @@
                     <div class="error-message" id="form-error"></div>
                 </form>
             </div>
+
+            <!-- Announcements Tab -->
+            <div id="announcement" class="tab-content">
+                <div class="announcement-editor">
+                    <div class="announcement-status" id="announcement-status">
+                        <p>Loading announcement...</p>
+                    </div>
+
+                    <form id="announcement-form">
+                        <div class="form-group">
+                            <label class="form-label">Active</label>
+                            <input type="checkbox" id="announcement-active" name="isActive" style="width: auto;">
+                            <span style="margin-left: 0.5rem; color: var(--text-muted);">Show announcement on site</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Title *</label>
+                            <input type="text" class="form-input" id="announcement-title" name="title" placeholder="Exciting new game release!" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-input" id="announcement-description" name="description" rows="4" placeholder="Supports **bold** and *italic* markdown..." required></textarea>
+                            <small style="color: var(--text-muted);">Supports: **bold**, *italic*</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Header Image URL</label>
+                            <input type="url" class="form-input" id="announcement-header-image" name="headerImage" placeholder="https://...">
+                            <div id="announcement-image-preview" style="margin-top: 0.5rem; display: none;">
+                                <img style="max-width: 100%; max-height: 200px; border-radius: var(--border-radius);" id="announcement-preview-img">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Scheduled Date & Time *</label>
+                            <input type="datetime-local" class="form-input" id="announcement-scheduled-date" name="scheduledDate" required>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">After Announcement</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 1rem;">These fields will replace the title and description after the scheduled time passes.</p>
+
+                        <div class="form-group">
+                            <label class="form-label">"After" Title</label>
+                            <input type="text" class="form-input" id="announcement-after-title" name="afterTitle" placeholder="Event is now live!">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">"After" Description</label>
+                            <textarea class="form-input" id="announcement-after-description" name="afterDescription" rows="3" placeholder="The event has started! Check out the new features..."></textarea>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-color);">
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h3 style="margin: 0; color: var(--text-primary);">Events</h3>
+                                <button type="button" class="btn btn-secondary" id="add-event-btn">+ Add Event</button>
+                            </div>
+                            <p style="color: var(--text-muted); margin-bottom: 1rem;">Events will execute automatically when the scheduled time is reached.</p>
+                            <div id="events-list"></div>
+                        </div>
+
+                        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                            <button type="submit" class="btn btn-primary" id="save-announcement-btn">Save Announcement</button>
+                            <button type="button" class="btn btn-danger" id="delete-announcement-btn">Delete Announcement</button>
+                        </div>
+
+                        <div class="success-message" id="announcement-success"></div>
+                        <div class="error-message" id="announcement-error"></div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -642,10 +718,12 @@
     <!-- Shared Modules -->
     <script src="../shared/games-auth.js"></script>
     <script src="../shared/game-manager.js"></script>
+    <script src="../shared/announcement-manager.js"></script>
     <script src="../shared/game-importer.js"></script>
     <script src="../shared/disguise.js"></script>
 
     <!-- Editor Script -->
     <script src="editor-script.js"></script>
+    <script src="announcement-editor.js"></script>
 </body>
 </html>

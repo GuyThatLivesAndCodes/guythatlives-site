@@ -147,6 +147,16 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    /* ========= Announcements ========= */
+
+    match /announcements/{announcementId} {
+      // Anyone can read announcements (for public display)
+      allow read: if true;
+
+      // Only admin can create, update, or delete announcements
+      allow create, update, delete: if isAdmin();
+    }
+
     /* ========= Default Deny ========= */
     // Removed catch-all rule to prevent interference with specific permissions
     // Firestore denies by default if no rule matches
