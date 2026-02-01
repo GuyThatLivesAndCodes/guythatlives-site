@@ -110,6 +110,115 @@
                 gap: 1.5rem;
             }
         }
+
+        /* Ome-Chat Featured Banner */
+        .ome-chat-feature {
+            margin-bottom: 2rem;
+        }
+
+        .ome-chat-banner {
+            display: block;
+            position: relative;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
+            text-decoration: none;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ome-chat-banner:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .ome-chat-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ome-chat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ome-chat-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        .ome-chat-text {
+            flex: 1;
+        }
+
+        .ome-chat-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .ome-chat-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .ome-chat-cta {
+            flex-shrink: 0;
+        }
+
+        .ome-chat-glow {
+            position: absolute;
+            top: 50%;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .ome-chat-banner-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            .ome-chat-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .ome-chat-icon svg {
+                width: 26px;
+                height: 26px;
+            }
+
+            .ome-chat-title {
+                font-size: 1.25rem;
+            }
+
+            .ome-chat-description {
+                font-size: 0.85rem;
+            }
+
+            .ome-chat-glow {
+                display: none;
+            }
+        }
     </style>
 
     <!-- Google AdSense -->
@@ -178,6 +287,28 @@
 
         <!-- Announcement Container -->
         <div id="announcement-container" style="display: none;"></div>
+
+        <!-- Ome-Chat Featured Banner -->
+        <section class="section ome-chat-feature">
+            <a href="/unblocked/ome-chat/" class="ome-chat-banner">
+                <div class="ome-chat-banner-content">
+                    <div class="ome-chat-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 7l-7 5 7 5V7z"></path>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                    </div>
+                    <div class="ome-chat-text">
+                        <h3 class="ome-chat-title">Ome-Chat</h3>
+                        <p class="ome-chat-description">Talk to random strangers with video, audio, or text chat. No sign-up required!</p>
+                    </div>
+                    <div class="ome-chat-cta">
+                        <span class="btn btn-primary">Start Chatting</span>
+                    </div>
+                </div>
+                <div class="ome-chat-glow"></div>
+            </a>
+        </section>
 
         <!-- Ad Unit 1: Top Banner -->
         <div id="ad-top" class="ad-container">

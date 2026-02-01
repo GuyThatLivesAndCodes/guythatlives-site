@@ -157,6 +157,50 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    /* ========= Ome-Chat ========= */
+    // Anonymous random video/text chat system
+    // No authentication required - uses session-based IDs
+
+    match /omechat/data {
+      // Allow reading the data document itself
+      allow read: if true;
+
+      // Sessions - anonymous users manage their own sessions
+      match /sessions/{sessionId} {
+        // Anyone can create, read, update, delete sessions
+        // (Session-based auth, not Firebase auth)
+        allow create, read, update, delete: if true;
+      }
+
+      // Matching Queue - users waiting for matches
+      match /matchingQueue/{sessionId} {
+        allow create, read, update, delete: if true;
+      }
+
+      // Chat Rooms - active video/text chat sessions
+      match /rooms/{roomId} {
+        // Anyone can create and manage rooms
+        allow create, read, update, delete: if true;
+
+        // Messages subcollection for text chat
+        match /messages/{messageId} {
+          allow create, read: if true;
+        }
+
+        // ICE Candidates subcollection for WebRTC signaling
+        match /candidates/{candidateId} {
+          allow create, read: if true;
+        }
+      }
+
+      // Moderation - ban and report tracking
+      match /moderation/{sessionId} {
+        // Allow creating and updating moderation records
+        // (for bans and reports)
+        allow create, read, update: if true;
+      }
+    }
+
     /* ========= Default Deny ========= */
     // Removed catch-all rule to prevent interference with specific permissions
     // Firestore denies by default if no rule matches

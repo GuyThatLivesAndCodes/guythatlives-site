@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ome-Chat - Random Video Chat</title>
+    <link rel="stylesheet" href="../shared/games-styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <span class="logo-text">GuyThatLives</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/math/">Math</a>
+                <a href="/unblocked/">Games</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="ome-chat-container">
+
+        <!-- Setup Panel (shown before connecting) -->
+        <div id="setup-panel" class="panel setup-panel">
+            <div class="setup-content">
+                <div class="setup-header">
+                    <h1 class="setup-title">Ome-Chat</h1>
+                    <p class="setup-subtitle">Talk to strangers anonymously</p>
+                </div>
+
+                <div class="your-id-display">
+                    <span class="id-label">Your ID:</span>
+                    <span id="my-anonymous-id" class="id-value">Loading...</span>
+                </div>
+
+                <!-- Preference Toggles -->
+                <div class="preferences-section">
+                    <h3 class="preferences-title">Communication Preferences</h3>
+                    <div class="preference-toggles">
+                        <label class="preference-toggle">
+                            <input type="checkbox" id="pref-video" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">
+                                <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 7l-7 5 7 5V7z"></path>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                                Video
+                            </span>
+                        </label>
+                        <label class="preference-toggle">
+                            <input type="checkbox" id="pref-audio" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">
+                                <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                                </svg>
+                                Audio
+                            </span>
+                        </label>
+                        <label class="preference-toggle">
+                            <input type="checkbox" id="pref-text" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">
+                                <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                Text
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rules-notice">
+                    <h4>Community Guidelines</h4>
+                    <ul>
+                        <li>Be respectful to other users</li>
+                        <li>No inappropriate content or language</li>
+                        <li>Violations may result in temporary bans</li>
+                    </ul>
+                </div>
+
+                <button id="start-btn" class="btn btn-primary btn-large">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Start Chatting
+                </button>
+            </div>
+        </div>
+
+        <!-- Searching Panel -->
+        <div id="searching-panel" class="panel searching-panel" style="display: none;">
+            <div class="searching-content">
+                <div class="searching-animation">
+                    <div class="search-ring"></div>
+                    <div class="search-ring"></div>
+                    <div class="search-ring"></div>
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </div>
+                <h2 class="searching-title">Finding someone to chat with...</h2>
+                <p class="searching-subtitle">This may take a moment</p>
+                <button id="cancel-search-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Chat Panel -->
+        <div id="chat-panel" class="panel chat-panel" style="display: none;">
+            <div class="chat-layout">
+                <!-- Video Container -->
+                <div class="video-section">
+                    <div class="video-container">
+                        <video id="remote-video" autoplay playsinline></video>
+                        <div id="remote-video-placeholder" class="video-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Waiting for video...</span>
+                        </div>
+                        <video id="local-video" autoplay playsinline muted></video>
+                        <div class="partner-info">
+                            <span id="partner-id">Partner ID</span>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="chat-controls">
+                        <button id="skip-btn" class="btn btn-control btn-skip" title="Skip to next person">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19"></line>
+                            </svg>
+                            Skip
+                        </button>
+                        <button id="block-btn" class="btn btn-control btn-block" title="Block this user for this session">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                            </svg>
+                            Block
+                        </button>
+                        <button id="report-btn" class="btn btn-control btn-report" title="Report this user">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                                <line x1="4" y1="22" x2="4" y2="15"></line>
+                            </svg>
+                            Report
+                        </button>
+                        <button id="disconnect-btn" class="btn btn-control btn-disconnect" title="End chat">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path>
+                                <line x1="23" y1="1" x2="1" y2="23"></line>
+                            </svg>
+                            End
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Text Chat Section -->
+                <div class="text-chat-section">
+                    <div class="chat-header">
+                        <h3>Chat</h3>
+                        <span id="connection-status" class="connection-status connected">Connected</span>
+                    </div>
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Messages will be inserted here -->
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." maxlength="500" autocomplete="off">
+                        <button id="send-btn" class="btn btn-send" title="Send message">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ban Panel -->
+        <div id="ban-panel" class="panel ban-panel" style="display: none;">
+            <div class="ban-content">
+                <div class="ban-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                </div>
+                <h2 class="ban-title">Temporarily Banned</h2>
+                <p id="ban-reason" class="ban-reason">You have been temporarily banned.</p>
+                <div class="ban-timer-container">
+                    <span class="ban-timer-label">Time remaining:</span>
+                    <span id="ban-timer" class="ban-timer">5:00</span>
+                </div>
+                <p class="ban-info">Please review our community guidelines while you wait.</p>
+            </div>
+        </div>
+
+        <!-- Connection Error Panel -->
+        <div id="error-panel" class="panel error-panel" style="display: none;">
+            <div class="error-content">
+                <div class="error-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <h2 class="error-title">Connection Error</h2>
+                <p id="error-message" class="error-message">Unable to connect. Please try again.</p>
+                <button id="retry-btn" class="btn btn-primary">Try Again</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Report User</h3>
+                <button id="close-report-modal" class="modal-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Why are you reporting this user?</p>
+                <div class="report-options">
+                    <label class="report-option">
+                        <input type="radio" name="report-reason" value="inappropriate">
+                        <span class="option-text">Inappropriate behavior</span>
+                    </label>
+                    <label class="report-option">
+                        <input type="radio" name="report-reason" value="harassment">
+                        <span class="option-text">Harassment or bullying</span>
+                    </label>
+                    <label class="report-option">
+                        <input type="radio" name="report-reason" value="spam">
+                        <span class="option-text">Spam or scam</span>
+                    </label>
+                    <label class="report-option">
+                        <input type="radio" name="report-reason" value="other">
+                        <span class="option-text">Other violation</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-report-btn" class="btn btn-secondary">Cancel</button>
+                <button id="submit-report-btn" class="btn btn-danger">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+
+    <!-- Ome-Chat Modules -->
+    <script src="moderation.js"></script>
+    <script src="signaling.js"></script>
+    <script src="webrtc-handler.js"></script>
+    <script src="matching-queue.js"></script>
+    <script src="ui-controller.js"></script>
+    <script src="chat-manager.js"></script>
+</body>
+</html>
