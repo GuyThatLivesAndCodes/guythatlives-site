@@ -2,6 +2,15 @@
  * OmeChatManager - Main orchestration for Ome-Chat
  * Singleton pattern coordinating all chat functionality
  */
+// Heartbeat constants — shared with matching-queue.js via window globals.
+// Every live session writes a heartbeat every INTERVAL ms.  Any client that
+// reads a session whose heartbeat is older than TIMEOUT ms treats it as dead.
+// 5 s interval × 3 missed = 15 s timeout.  Loose enough to survive a network
+// blip; tight enough that a crashed tab is detected within ~15 s.
+const HEARTBEAT_INTERVAL = 5000;
+const HEARTBEAT_TIMEOUT  = 15000;
+window.HEARTBEAT_TIMEOUT = HEARTBEAT_TIMEOUT; // read by matching-queue.js
+
 class OmeChatManager {
     constructor() {
         // Firebase
@@ -27,6 +36,11 @@ class OmeChatManager {
         this.skipPenaltyActive = false;
         // Safe Mode: when true, WebRTC uses Cloudflare TURN instead of Google STUN
         this.safeMode = false;
+
+        // Heartbeat: periodic proof-of-life write to our session doc
+        this.heartbeatInterval = null;
+        // Throttle for validateRoomParticipants — don't run more than once per 10 s
+        this.lastValidationTime = 0;
 
         // Initialization
         this.initialized = false;
@@ -100,8 +114,9 @@ class OmeChatManager {
                     console.log('User is banned until:', banStatus.banUntil);
                     this.ui.showBanPanel(banStatus.banUntil, banStatus.reason);
                 } else {
-                    // Create session document
+                    // Create session document and start heartbeat
                     await this.createSession();
+                    this.startHeartbeat();
                     this.ui.showPanel('setup');
                 }
 
@@ -153,6 +168,35 @@ class OmeChatManager {
             console.log('Session created');
         } catch (error) {
             console.error('Error creating session:', error);
+        }
+    }
+
+    /**
+     * Start the heartbeat — writes a server timestamp to our session doc every
+     * HEARTBEAT_INTERVAL ms.  Any peer that reads our session and sees this
+     * timestamp older than HEARTBEAT_TIMEOUT treats us as dead.
+     */
+    startHeartbeat() {
+        if (this.heartbeatInterval) return; // already running
+        this.heartbeatInterval = setInterval(() => {
+            if (!this.sessionId || !this.db) return;
+            this.db.collection('omechat').doc('data')
+                .collection('sessions').doc(this.sessionId)
+                .update({ heartbeat: firebase.firestore.FieldValue.serverTimestamp() })
+                .catch(() => {}); // fire-and-forget; a missed beat is fine
+        }, HEARTBEAT_INTERVAL);
+        console.log('Heartbeat started');
+    }
+
+    /**
+     * Stop the heartbeat.  Once stopped, our heartbeat timestamp will go stale
+     * and peers will treat us as dead after HEARTBEAT_TIMEOUT ms.
+     */
+    stopHeartbeat() {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+            console.log('Heartbeat stopped');
         }
     }
 
@@ -527,6 +571,10 @@ class OmeChatManager {
 
         this.roomParticipants = [...participants];
 
+        // Validate peers' heartbeats — remove any dead participants so the
+        // room-close timer can fire once only live people remain.
+        this.validateRoomParticipants(participants);
+
         // Room-close timer: start/cancel based on participant count
         if (participants.length <= 1) {
             // Only one (or zero) people left — start the 5s close timer if not already running
@@ -551,6 +599,50 @@ class OmeChatManager {
     }
 
     /**
+     * Verify every other participant in our room is still alive (heartbeat fresh).
+     * Dead participants are removed so the room-close timer can fire naturally.
+     * Throttled to once per 10 s to avoid hammering Firestore.
+     */
+    async validateRoomParticipants(participants) {
+        if (!this.currentRoomId) return;
+
+        const now = Date.now();
+        if (now - this.lastValidationTime < 10000) return; // throttle: max once per 10 s
+        this.lastValidationTime = now;
+
+        const sessionsRef = this.db.collection('omechat').doc('data').collection('sessions');
+
+        for (const id of participants) {
+            if (id === this.sessionId) continue; // don't validate ourselves
+
+            try {
+                const doc = await sessionsRef.doc(id).get();
+
+                if (!doc.exists) {
+                    console.log(`Participant ${id} has no session doc — removing from room`);
+                    await this.signaling.removeParticipant(this.currentRoomId, id);
+                    continue;
+                }
+
+                const data = doc.data();
+                if (!data.heartbeat) {
+                    console.log(`Participant ${id} has no heartbeat — removing from room`);
+                    await this.signaling.removeParticipant(this.currentRoomId, id);
+                    continue;
+                }
+
+                const age = now - data.heartbeat.toMillis();
+                if (age > HEARTBEAT_TIMEOUT) {
+                    console.log(`Participant ${id} heartbeat stale (${age}ms) — removing from room`);
+                    await this.signaling.removeParticipant(this.currentRoomId, id);
+                }
+            } catch (e) {
+                console.warn(`Could not validate participant ${id}:`, e);
+            }
+        }
+    }
+
+    /**
      * Cancel searching for a match
      */
     async cancelSearch() {
@@ -564,6 +656,9 @@ class OmeChatManager {
      */
     async disconnect() {
         console.log('Disconnecting...');
+
+        // Stop heartbeat immediately — peers will see it go stale and treat us as dead
+        this.stopHeartbeat();
 
         const roomId = this.currentRoomId;
 
@@ -642,6 +737,8 @@ class OmeChatManager {
     async cleanup() {
         console.log('Cleaning up Ome-Chat...');
 
+        this.stopHeartbeat();
+
         try {
             // Disconnect from any active chat
             await this.disconnect();
@@ -671,6 +768,9 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('beforeunload', () => {
     const mgr = window.omeChatManager;
     if (!mgr.sessionId || !mgr.db) return;
+
+    // Stop heartbeat — peers will see it go stale within HEARTBEAT_TIMEOUT
+    mgr.stopHeartbeat();
 
     const base = mgr.db.collection('omechat').doc('data');
 

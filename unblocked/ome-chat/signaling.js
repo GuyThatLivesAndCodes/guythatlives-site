@@ -331,6 +331,21 @@ class SignalingManager {
                         return; // don't include it in the list
                     }
 
+                    // Safety net: end rooms that have been active for >30 min
+                    // with ≤2 participants.  These are rooms where both users
+                    // crashed and nobody was watching to run
+                    // validateRoomParticipants.  The next visitor who loads the
+                    // searching panel will clean them up.  Idempotent — multiple
+                    // clients racing to end the same room is harmless.
+                    if (data.participants.length <= 2 && data.createdAt) {
+                        const ageMs = Date.now() - data.createdAt.toMillis();
+                        if (ageMs > 30 * 60 * 1000) { // 30 minutes
+                            console.log(`Cleaning up stale room ${doc.id} (${data.participants.length} participants, ${Math.round(ageMs / 60000)} min old)`);
+                            this.endRoom(doc.id);
+                            return; // don't include it in the list
+                        }
+                    }
+
                     rooms.push({
                         roomId: doc.id,
                         participants: data.participants,

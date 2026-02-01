@@ -184,17 +184,34 @@ class MatchingQueue {
 
             if (!hasCommonPreference) continue;
 
-            // Verify the partner's session is alive and still searching.
-            // This catches stale queue docs left behind by closed/crashed tabs.
+            // Verify the partner's session is alive via heartbeat freshness.
+            // Heartbeat is the authoritative liveness signal — a session whose
+            // heartbeat is older than HEARTBEAT_TIMEOUT is dead regardless of its
+            // status field.  Status is checked second to catch the normal case
+            // where a live session was already matched by someone else.
             try {
                 const sessionDoc = await this.getSessionsRef().doc(user.sessionId).get();
                 if (!sessionDoc.exists) {
                     console.log(`Skipping ${user.anonymousId} — session doc missing (ghost entry)`);
-                    // Clean up the orphan queue entry so it doesn't keep blocking
                     await this.getQueueRef().doc(user.sessionId).delete().catch(() => {});
                     continue;
                 }
                 const sessionData = sessionDoc.data();
+
+                // Heartbeat check (primary liveness signal)
+                if (!sessionData.heartbeat) {
+                    console.log(`Skipping ${user.anonymousId} — no heartbeat (ghost entry)`);
+                    await this.getQueueRef().doc(user.sessionId).delete().catch(() => {});
+                    continue;
+                }
+                const heartbeatAge = Date.now() - sessionData.heartbeat.toMillis();
+                if (heartbeatAge > window.HEARTBEAT_TIMEOUT) {
+                    console.log(`Skipping ${user.anonymousId} — heartbeat stale (${heartbeatAge}ms)`);
+                    await this.getQueueRef().doc(user.sessionId).delete().catch(() => {});
+                    continue;
+                }
+
+                // Status check (secondary — catches "already matched" on a live session)
                 if (sessionData.status !== 'searching') {
                     console.log(`Skipping ${user.anonymousId} — session status is "${sessionData.status}", not searching`);
                     continue;
@@ -249,10 +266,26 @@ class MatchingQueue {
                 }
 
                 // Re-verify partner session is alive and still searching.
-                // This catches ghosts whose cleanup propagated after findCompatibleMatch ran.
-                if (!partnerSession.exists || partnerSession.data().status !== 'searching') {
-                    console.log(`Transaction aborted — partner ${partner.anonymousId} session is no longer active`);
-                    throw new Error('Partner session is no longer active');
+                // This closes the TOCTOU gap between findCompatibleMatch and here.
+                if (!partnerSession.exists) {
+                    throw new Error('Partner session no longer exists');
+                }
+                const partnerSessionData = partnerSession.data();
+                if (partnerSessionData.status !== 'searching') {
+                    console.log(`Transaction aborted — partner ${partner.anonymousId} status is "${partnerSessionData.status}"`);
+                    throw new Error('Partner session is no longer searching');
+                }
+                // Heartbeat freshness re-check inside the transaction.
+                // A ghost that passed findCompatibleMatch's check could have gone
+                // stale in the window between that read and this transaction.
+                if (!partnerSessionData.heartbeat) {
+                    console.log(`Transaction aborted — partner ${partner.anonymousId} has no heartbeat`);
+                    throw new Error('Partner session has no heartbeat');
+                }
+                const partnerHeartbeatAge = Date.now() - partnerSessionData.heartbeat.toMillis();
+                if (partnerHeartbeatAge > window.HEARTBEAT_TIMEOUT) {
+                    console.log(`Transaction aborted — partner ${partner.anonymousId} heartbeat stale (${partnerHeartbeatAge}ms)`);
+                    throw new Error('Partner session heartbeat is stale');
                 }
 
                 // Create room (explicitly private — users can toggle public later)
