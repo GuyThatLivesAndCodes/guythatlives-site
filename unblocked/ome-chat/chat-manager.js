@@ -287,9 +287,9 @@ class OmeChatManager {
 
         if (!moderationResult.allowed) {
             if (moderationResult.reason === 'profanity') {
-                // Apply 5-minute ban
-                this.applyProfanityBan();
-                return { error: 'banned' };
+                // Handle profanity with strike system
+                const strikeResult = this.handleProfanityStrike(moderationResult.censored || '****');
+                return { error: strikeResult.banned ? 'banned' : 'warning', strikeResult };
             }
 
             if (moderationResult.reason === 'invalid_chars') {
@@ -318,18 +318,45 @@ class OmeChatManager {
     }
 
     /**
-     * Apply a profanity ban
+     * Handle a profanity strike - warn user or ban after 3 strikes
+     * @param {string} censoredWord - The censored version of the bad word
+     * @returns {{banned: boolean, strikeCount: number, remaining: number, banUntil?: Date}}
+     */
+    handleProfanityStrike(censoredWord) {
+        const result = this.moderation.handleProfanityViolation();
+
+        if (result.banned) {
+            // User has been banned after 3 strikes
+            this.ui.showToast(`Strike 3! You've been banned for 5 minutes.`, 'error');
+
+            // Disconnect from current chat
+            this.disconnect();
+
+            // Show ban panel
+            this.ui.showBanPanel(result.banUntil, 'profanity');
+        } else {
+            // Show warning toast
+            this.ui.showToast(
+                `Warning ${result.strikeCount}/3: "${censoredWord}" is not allowed. ${result.remaining} warning(s) left before ban.`,
+                'warning'
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * Apply a profanity ban (legacy - now uses strike system)
      */
     async applyProfanityBan() {
         try {
-            await this.moderation.applyBan('profanity', 5);
-            const banUntil = new Date(Date.now() + 5 * 60 * 1000);
+            const result = this.moderation.applyLocalBan('profanity', 5);
 
             // Disconnect from current chat
             await this.disconnect();
 
             // Show ban panel
-            this.ui.showBanPanel(banUntil, 'profanity');
+            this.ui.showBanPanel(result.banUntil, 'profanity');
         } catch (error) {
             console.error('Error applying ban:', error);
         }

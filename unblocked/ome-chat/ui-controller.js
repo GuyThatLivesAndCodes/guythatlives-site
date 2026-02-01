@@ -178,6 +178,10 @@ class UIController {
                 this.showToast('Message contains invalid characters', 'error');
             } else if (result.error === 'banned') {
                 // Ban panel will be shown by chat manager
+                input.value = '';
+            } else if (result.error === 'warning') {
+                // Warning was shown by chat manager, clear the input
+                input.value = '';
             }
         } else {
             // Clear input on success

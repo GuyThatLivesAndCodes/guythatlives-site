@@ -1,19 +1,28 @@
 /**
  * ModerationManager - Handles content filtering, bans, and reports
- * Provides keyboard filtering, profanity detection, and report-based banning
+ * Uses localStorage for persistent bans that survive page reloads
+ * Implements 3-strike warning system before banning
  */
 class ModerationManager {
     constructor(db, sessionId) {
         this.db = db;
         this.sessionId = sessionId;
 
+        // localStorage keys
+        this.STORAGE_KEYS = {
+            BAN_UNTIL: 'omechat_ban_until',
+            BAN_REASON: 'omechat_ban_reason',
+            STRIKE_COUNT: 'omechat_strike_count',
+            LAST_STRIKE_TIME: 'omechat_last_strike_time'
+        };
+
+        // Number of warnings before ban
+        this.MAX_STRIKES = 3;
+
         // Allowed characters (standard US keyboard)
-        // Includes: letters, numbers, common punctuation, and whitespace
         this.allowedCharsRegex = /^[a-zA-Z0-9\s.,!?'"()\-:;@#$%&*+=\[\]{}|\\/<>~`_^]+$/;
 
         // Comprehensive profanity list
-        // This list includes common profanity, slurs, and variations
-        // Words are stored lowercase for case-insensitive matching
         this.profanityList = [
             // Common profanity
             'fuck', 'fucking', 'fucked', 'fucker', 'fucks', 'fck', 'fuk', 'phuck', 'phuk',
@@ -29,7 +38,7 @@ class ModerationManager {
             'whore', 'whores', 'wh0re',
             'slut', 'sluts', 'sl*t',
 
-            // Racial slurs (abbreviated/censored in code but detected)
+            // Racial slurs
             'nigger', 'nigga', 'n1gger', 'n1gga', 'negro',
             'chink', 'ch1nk',
             'spic', 'sp1c',
@@ -94,20 +103,49 @@ class ModerationManager {
             'a s s', 'a.s.s', 'a-s-s',
             'b i t c h', 'b.i.t.c.h', 'b-i-t-c-h'
         ];
+    }
 
-        // Create regex patterns for word boundary matching
-        this.profanityPatterns = this.profanityList.map(word => {
-            // Escape special regex characters
-            const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // Allow for common letter substitutions
-            return new RegExp(escaped, 'i');
-        });
+    /**
+     * Get current strike count from localStorage
+     * @returns {number}
+     */
+    getStrikeCount() {
+        const count = localStorage.getItem(this.STORAGE_KEYS.STRIKE_COUNT);
+        return count ? parseInt(count, 10) : 0;
+    }
+
+    /**
+     * Increment strike count and return new count
+     * @returns {number} New strike count
+     */
+    incrementStrikes() {
+        const current = this.getStrikeCount();
+        const newCount = current + 1;
+        localStorage.setItem(this.STORAGE_KEYS.STRIKE_COUNT, newCount.toString());
+        localStorage.setItem(this.STORAGE_KEYS.LAST_STRIKE_TIME, Date.now().toString());
+        return newCount;
+    }
+
+    /**
+     * Reset strike count (called after ban expires)
+     */
+    resetStrikes() {
+        localStorage.removeItem(this.STORAGE_KEYS.STRIKE_COUNT);
+        localStorage.removeItem(this.STORAGE_KEYS.LAST_STRIKE_TIME);
+    }
+
+    /**
+     * Get remaining strikes before ban
+     * @returns {number}
+     */
+    getRemainingStrikes() {
+        return Math.max(0, this.MAX_STRIKES - this.getStrikeCount());
     }
 
     /**
      * Check if a message contains only allowed characters and no profanity
      * @param {string} text - The message to check
-     * @returns {{allowed: boolean, reason?: string}}
+     * @returns {{allowed: boolean, reason?: string, word?: string, censored?: string}}
      */
     checkMessage(text) {
         if (!text || typeof text !== 'string') {
@@ -131,7 +169,6 @@ class ModerationManager {
         // Remove common bypass characters and check again
         const cleanedText = lowerText
             .replace(/[0-9]/g, match => {
-                // Convert leetspeak numbers to letters
                 const leetMap = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b' };
                 return leetMap[match] || match;
             })
@@ -141,19 +178,27 @@ class ModerationManager {
             .replace(/[.]/g, '')
             .replace(/[-]/g, '')
             .replace(/[_]/g, '')
-            .replace(/\s+/g, ''); // Remove spaces for bypass detection
+            .replace(/\s+/g, '');
 
         // Check against profanity list
         for (const word of this.profanityList) {
-            // Check exact word
             if (lowerText.includes(word)) {
-                return { allowed: false, reason: 'profanity', word: word };
+                return {
+                    allowed: false,
+                    reason: 'profanity',
+                    word: word,
+                    censored: this.censorWord(word)
+                };
             }
 
-            // Check cleaned text (for bypass attempts)
             const cleanedWord = word.replace(/[.\-_\s]/g, '');
             if (cleanedText.includes(cleanedWord)) {
-                return { allowed: false, reason: 'profanity', word: word };
+                return {
+                    allowed: false,
+                    reason: 'profanity',
+                    word: word,
+                    censored: this.censorWord(word)
+                };
             }
         }
 
@@ -161,10 +206,132 @@ class ModerationManager {
     }
 
     /**
-     * Check if the current session is banned
+     * Censor a word (show first and last letter with asterisks)
+     * @param {string} word
+     * @returns {string}
+     */
+    censorWord(word) {
+        if (word.length <= 2) {
+            return '*'.repeat(word.length);
+        }
+        return word[0] + '*'.repeat(word.length - 2) + word[word.length - 1];
+    }
+
+    /**
+     * Handle a profanity violation - increment strikes or apply ban
+     * @returns {{banned: boolean, strikeCount: number, remaining: number, banUntil?: Date}}
+     */
+    handleProfanityViolation() {
+        const newStrikeCount = this.incrementStrikes();
+        const remaining = this.MAX_STRIKES - newStrikeCount;
+
+        if (newStrikeCount >= this.MAX_STRIKES) {
+            // Apply 5-minute ban
+            const banResult = this.applyLocalBan('profanity', 5);
+            return {
+                banned: true,
+                strikeCount: newStrikeCount,
+                remaining: 0,
+                banUntil: banResult.banUntil
+            };
+        }
+
+        return {
+            banned: false,
+            strikeCount: newStrikeCount,
+            remaining: remaining
+        };
+    }
+
+    /**
+     * Apply a ban stored in localStorage (persists across reloads)
+     * @param {string} reason
+     * @param {number} durationMinutes
+     * @returns {{success: boolean, banUntil: Date}}
+     */
+    applyLocalBan(reason, durationMinutes) {
+        const banUntil = new Date(Date.now() + durationMinutes * 60 * 1000);
+
+        localStorage.setItem(this.STORAGE_KEYS.BAN_UNTIL, banUntil.getTime().toString());
+        localStorage.setItem(this.STORAGE_KEYS.BAN_REASON, reason);
+
+        // Reset strikes after ban is applied
+        this.resetStrikes();
+
+        console.log(`Local ban applied: ${reason} for ${durationMinutes} minutes`);
+
+        // Also sync to Firestore for server-side tracking
+        this.syncBanToFirestore(reason, banUntil);
+
+        return { success: true, banUntil };
+    }
+
+    /**
+     * Sync ban to Firestore (for server-side tracking, optional)
+     */
+    async syncBanToFirestore(reason, banUntil) {
+        try {
+            await this.db.collection('omechat').doc('data')
+                .collection('moderation').doc(this.sessionId).set({
+                    banUntil: firebase.firestore.Timestamp.fromDate(banUntil),
+                    banReason: reason,
+                    lastBanTime: firebase.firestore.FieldValue.serverTimestamp(),
+                    sessionId: this.sessionId
+                }, { merge: true });
+        } catch (error) {
+            console.error('Error syncing ban to Firestore:', error);
+        }
+    }
+
+    /**
+     * Check if the device is currently banned (uses localStorage)
+     * @returns {{banned: boolean, banUntil?: Date, reason?: string}}
+     */
+    checkLocalBanStatus() {
+        const banUntilStr = localStorage.getItem(this.STORAGE_KEYS.BAN_UNTIL);
+        const banReason = localStorage.getItem(this.STORAGE_KEYS.BAN_REASON);
+
+        if (!banUntilStr) {
+            return { banned: false };
+        }
+
+        const banUntil = new Date(parseInt(banUntilStr, 10));
+
+        if (banUntil > new Date()) {
+            return {
+                banned: true,
+                banUntil: banUntil,
+                reason: banReason || 'unknown'
+            };
+        }
+
+        // Ban expired - clear it
+        this.clearLocalBan();
+        return { banned: false };
+    }
+
+    /**
+     * Clear the local ban (called when ban expires)
+     */
+    clearLocalBan() {
+        localStorage.removeItem(this.STORAGE_KEYS.BAN_UNTIL);
+        localStorage.removeItem(this.STORAGE_KEYS.BAN_REASON);
+        // Also reset strikes when ban expires
+        this.resetStrikes();
+    }
+
+    /**
+     * Check ban status - checks both localStorage AND Firestore
      * @returns {Promise<{banned: boolean, banUntil?: Date, reason?: string}>}
      */
     async checkBanStatus() {
+        // First check localStorage (primary - persists across reloads)
+        const localBan = this.checkLocalBanStatus();
+        if (localBan.banned) {
+            return localBan;
+        }
+
+        // Then check Firestore (for bans from reports)
         try {
             const doc = await this.db.collection('omechat').doc('data')
                 .collection('moderation').doc(this.sessionId).get();
@@ -179,6 +346,10 @@ class ModerationManager {
                 const banUntilDate = data.banUntil.toDate();
 
                 if (banUntilDate > new Date()) {
+                    // Sync Firestore ban to localStorage
+                    localStorage.setItem(this.STORAGE_KEYS.BAN_UNTIL, banUntilDate.getTime().toString());
+                    localStorage.setItem(this.STORAGE_KEYS.BAN_REASON, data.banReason || 'reports');
+
                     return {
                         banned: true,
                         banUntil: banUntilDate,
@@ -189,40 +360,24 @@ class ModerationManager {
 
             return { banned: false };
         } catch (error) {
-            console.error('Error checking ban status:', error);
+            console.error('Error checking Firestore ban status:', error);
             return { banned: false };
         }
     }
 
     /**
-     * Apply a temporary ban to the current session
-     * @param {string} reason - The reason for the ban ('profanity' or 'reports')
-     * @param {number} durationMinutes - How long the ban should last
+     * Apply a ban (legacy method - now uses localStorage)
+     * @param {string} reason
+     * @param {number} durationMinutes
      */
     async applyBan(reason, durationMinutes) {
-        const banUntil = new Date(Date.now() + durationMinutes * 60 * 1000);
-
-        try {
-            await this.db.collection('omechat').doc('data')
-                .collection('moderation').doc(this.sessionId).set({
-                    banUntil: firebase.firestore.Timestamp.fromDate(banUntil),
-                    banReason: reason,
-                    lastBanTime: firebase.firestore.FieldValue.serverTimestamp(),
-                    sessionId: this.sessionId
-                }, { merge: true });
-
-            console.log(`Ban applied: ${reason} for ${durationMinutes} minutes`);
-            return { success: true, banUntil };
-        } catch (error) {
-            console.error('Error applying ban:', error);
-            return { success: false, error };
-        }
+        return this.applyLocalBan(reason, durationMinutes);
     }
 
     /**
      * Submit a report against another user
-     * @param {string} targetSessionId - The session ID of the user being reported
-     * @param {string} reason - The reason for the report
+     * @param {string} targetSessionId
+     * @param {string} reason
      */
     async submitReport(targetSessionId, reason) {
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
@@ -239,39 +394,30 @@ class ModerationManager {
                     sessionId: targetSessionId
                 };
 
-                // Create new report
                 const newReport = {
                     reporterId: this.sessionId,
                     reason: reason,
                     timestamp: new Date()
                 };
 
-                // Add to reports array
                 data.reports = data.reports || [];
                 data.reports.push(newReport);
 
-                // Count recent reports (within 30 minutes)
                 const recentReports = data.reports.filter(r => {
                     const reportTime = r.timestamp.toDate ? r.timestamp.toDate() : r.timestamp;
                     return reportTime > thirtyMinutesAgo;
                 });
 
-                // Update report count
                 data.reportCount = recentReports.length;
                 data.lastReportTime = firebase.firestore.FieldValue.serverTimestamp();
 
-                // Check if user should be banned (3 reports in 30 minutes)
                 if (recentReports.length >= 3 && !data.banUntil) {
-                    // Apply 15-minute ban
                     data.banUntil = firebase.firestore.Timestamp.fromDate(
                         new Date(Date.now() + 15 * 60 * 1000)
                     );
                     data.banReason = 'reports';
-
-                    // Reset report count after ban
                     data.reports = [];
                     data.reportCount = 0;
-
                     console.log(`User ${targetSessionId} banned due to reports`);
                 }
 
@@ -286,7 +432,7 @@ class ModerationManager {
     }
 
     /**
-     * Get the profanity list (for debugging/admin purposes)
+     * Get the profanity list
      * @returns {string[]}
      */
     getProfanityList() {
@@ -294,8 +440,8 @@ class ModerationManager {
     }
 
     /**
-     * Add a word to the profanity list (runtime only)
-     * @param {string} word - Word to add
+     * Add a word to the profanity list
+     * @param {string} word
      */
     addProfanityWord(word) {
         if (!this.profanityList.includes(word.toLowerCase())) {
@@ -305,7 +451,7 @@ class ModerationManager {
 
     /**
      * Check if a specific word is in the profanity list
-     * @param {string} word - Word to check
+     * @param {string} word
      * @returns {boolean}
      */
     isProfanity(word) {
