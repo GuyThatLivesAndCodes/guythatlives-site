@@ -171,8 +171,9 @@ class UIController {
             return;
         }
 
-        // Update preferences and start searching
+        // Update preferences and safe-mode flag, then start searching
         this.chatManager.preferences = preferences;
+        this.chatManager.safeMode = document.getElementById('pref-safe-mode')?.checked || false;
         this.chatManager.startSearching();
     }
 

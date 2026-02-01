@@ -222,13 +222,18 @@ class MatchingQueue {
         try {
             // Use transaction to ensure atomic match creation
             await this.db.runTransaction(async (transaction) => {
-                // Get fresh data for both users
+                // Get fresh data for both users AND the partner's session doc.
+                // Reading the session inside the transaction closes the TOCTOU gap:
+                // findCompatibleMatch verified liveness *before* we got here, but a
+                // ghost's beforeunload cleanup could have landed in that window.
                 const myDocRef = this.getQueueRef().doc(this.sessionId);
                 const partnerDocRef = this.getQueueRef().doc(partner.sessionId);
+                const partnerSessionRef = this.getSessionsRef().doc(partner.sessionId);
 
-                const [myDoc, partnerDoc] = await Promise.all([
+                const [myDoc, partnerDoc, partnerSession] = await Promise.all([
                     transaction.get(myDocRef),
-                    transaction.get(partnerDocRef)
+                    transaction.get(partnerDocRef),
+                    transaction.get(partnerSessionRef)
                 ]);
 
                 // Check both users are still waiting
@@ -241,6 +246,13 @@ class MatchingQueue {
 
                 if (myData.status !== 'waiting' || partnerData.status !== 'waiting') {
                     throw new Error('One or both users are no longer waiting');
+                }
+
+                // Re-verify partner session is alive and still searching.
+                // This catches ghosts whose cleanup propagated after findCompatibleMatch ran.
+                if (!partnerSession.exists || partnerSession.data().status !== 'searching') {
+                    console.log(`Transaction aborted — partner ${partner.anonymousId} session is no longer active`);
+                    throw new Error('Partner session is no longer active');
                 }
 
                 // Create room (explicitly private — users can toggle public later)

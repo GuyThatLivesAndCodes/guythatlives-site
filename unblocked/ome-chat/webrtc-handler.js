@@ -11,8 +11,8 @@ class WebRTCHandler {
         this.roomId = null;
         this.isInitiator = false;
 
-        // STUN servers for NAT traversal (free Google servers)
-        this.configuration = {
+        // ICE server configs — selected at initialize() time based on safeMode
+        this.stunConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
@@ -22,6 +22,25 @@ class WebRTCHandler {
             ],
             iceCandidatePoolSize: 10
         };
+
+        // Cloudflare TURN — replace username/credential with real values from
+        // https://dash.cloudflare.com → Calls API → TURN credentials.
+        this.turnConfig = {
+            iceServers: [
+                {
+                    urls: [
+                        'turn:turn.cloudflare.com:443?transport=udp',
+                        'turn:turn.cloudflare.com:443?transport=tcp',
+                        'turns:turn.cloudflare.com:443?transport=tcp'
+                    ],
+                    username: 'REPLACE_WITH_CLOUDFLARE_TURN_USERNAME',
+                    credential: 'REPLACE_WITH_CLOUDFLARE_TURN_CREDENTIAL'
+                }
+            ],
+            iceCandidatePoolSize: 10
+        };
+
+        this.configuration = this.stunConfig;
 
         // Event callbacks
         this.onRemoteStream = null;
@@ -49,15 +68,18 @@ class WebRTCHandler {
      * @param {string} roomId
      * @param {boolean} isInitiator
      * @param {Object} preferences - { video: boolean, audio: boolean }
+     * @param {boolean} safeMode - if true, use Cloudflare TURN only (slower but more reliable)
      */
-    async initialize(roomId, isInitiator, preferences = { video: true, audio: true }) {
+    async initialize(roomId, isInitiator, preferences = { video: true, audio: true }, safeMode = false) {
         this.roomId = roomId;
         this.isInitiator = isInitiator;
         this.hasProcessedOffer = false;
         this.hasProcessedAnswer = false;
         this.pendingCandidates = [];
 
-        console.log(`Initializing WebRTC - Room: ${roomId}, Initiator: ${isInitiator}`);
+        // Pick ICE config based on mode
+        this.configuration = safeMode ? this.turnConfig : this.stunConfig;
+        console.log(`Initializing WebRTC - Room: ${roomId}, Initiator: ${isInitiator}, Mode: ${safeMode ? 'TURN (safe)' : 'STUN (normal)'}`);
 
         // Create peer connection
         this.peerConnection = new RTCPeerConnection(this.configuration);

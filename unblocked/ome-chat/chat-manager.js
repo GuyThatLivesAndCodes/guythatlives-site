@@ -25,6 +25,8 @@ class OmeChatManager {
         this.roomCloseTimeout = null;
         // Skip penalty: true while the 3s countdown is running (debounce guard)
         this.skipPenaltyActive = false;
+        // Safe Mode: when true, WebRTC uses Cloudflare TURN instead of Google STUN
+        this.safeMode = false;
 
         // Initialization
         this.initialized = false;
@@ -246,11 +248,12 @@ class OmeChatManager {
             // Update session status
             await this.updateSessionStatus('in-chat');
 
-            // Initialize WebRTC
+            // Initialize WebRTC (pass safeMode to select STUN vs TURN)
             await this.webrtc.initialize(
                 matchData.roomId,
                 matchData.isInitiator,
-                this.preferences
+                this.preferences,
+                this.safeMode
             );
 
             // Setup signaling listeners
@@ -471,7 +474,7 @@ class OmeChatManager {
             await this.updateSessionStatus('in-chat');
 
             // Initialize WebRTC — we are NOT the initiator (we joined an existing room)
-            await this.webrtc.initialize(roomId, false, this.preferences);
+            await this.webrtc.initialize(roomId, false, this.preferences, this.safeMode);
             this.signaling.listenForRoom(roomId);
             this.signaling.listenForMessages(roomId, (message) => {
                 this.handleIncomingMessage(message);
