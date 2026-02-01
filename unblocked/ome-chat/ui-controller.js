@@ -677,5 +677,25 @@ class UIController {
     }
 }
 
+// Dismiss disclaimer immediately on script load — no dependency on OmeChatManager init.
+// The modal is visible via a hardcoded "active" class before any JS runs, so this listener
+// must be attached as early as possible rather than waiting for UIController.init().
+(function () {
+    function attach() {
+        const btn = document.getElementById('disclaimer-accept-btn');
+        const modal = document.getElementById('disclaimer-modal');
+        if (btn && modal) {
+            btn.addEventListener('click', function () {
+                modal.classList.remove('active');
+            });
+        }
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', attach);
+    } else {
+        attach();
+    }
+})();
+
 // Export for use in other modules
 window.UIController = UIController;
