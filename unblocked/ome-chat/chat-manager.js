@@ -641,10 +641,16 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
-// Also handle visibility change for mobile
+// Handle visibility change for mobile — only update last-active when idle/searching,
+// never while in an active chat (setting 'idle' there would corrupt the session for
+// the partner's live-session verification in the matching queue).
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && window.omeChatManager.currentRoomId) {
-        // Update last active timestamp
-        window.omeChatManager.updateSessionStatus('idle').catch(console.error);
+    const mgr = window.omeChatManager;
+    if (document.visibilityState === 'visible' && mgr.sessionId && mgr.db) {
+        // Tab came back — refresh the lastActive timestamp so the session stays warm
+        mgr.db.collection('omechat').doc('data')
+            .collection('sessions').doc(mgr.sessionId)
+            .update({ lastActive: firebase.firestore.FieldValue.serverTimestamp() })
+            .catch(() => {});
     }
 });

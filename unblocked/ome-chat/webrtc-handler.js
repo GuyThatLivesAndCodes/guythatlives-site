@@ -38,6 +38,7 @@ class WebRTCHandler {
         this.iceRestartAttempts = 0;
         this.maxIceRestartAttempts = 3;
         this.reconnectTimeout = null;
+        this.disconnectGraceTimeout = null;
 
         // Multi-peer support for public rooms: sessionId -> { pc, remoteStream }
         this.peers = new Map();
@@ -146,17 +147,15 @@ class WebRTCHandler {
             }
         };
 
-        // Handle ICE connection state changes
+        // Log ICE state for debugging only — do NOT drive the UI from here.
+        // onconnectionstatechange (below) is the single source of truth for UI state.
+        // ICE states like 'checking'/'completed'/'disconnected' are internal details
+        // that would cause confusing flicker if surfaced to the user.
         this.peerConnection.oniceconnectionstatechange = () => {
-            const state = this.peerConnection.iceConnectionState;
-            console.log('ICE connection state:', state);
-
-            if (this.onConnectionStateChange) {
-                this.onConnectionStateChange(state);
-            }
+            console.log('ICE connection state:', this.peerConnection.iceConnectionState);
         };
 
-        // Handle connection state changes
+        // Handle connection state changes — single source of truth for UI
         this.peerConnection.onconnectionstatechange = () => {
             const state = this.peerConnection.connectionState;
             console.log('Connection state:', state);
@@ -166,17 +165,40 @@ class WebRTCHandler {
             }
 
             if (state === 'connected') {
-                // Connection succeeded — reset recovery counters
+                // Connection succeeded — reset all recovery state
                 this.iceRestartAttempts = 0;
                 if (this.reconnectTimeout) {
                     clearTimeout(this.reconnectTimeout);
                     this.reconnectTimeout = null;
                 }
+                // Cancel any pending disconnection grace timer
+                if (this.disconnectGraceTimeout) {
+                    clearTimeout(this.disconnectGraceTimeout);
+                    this.disconnectGraceTimeout = null;
+                }
             }
 
-            if (state === 'failed' || state === 'disconnected') {
-                console.warn(`Connection ${state}, attempting recovery...`);
+            if (state === 'failed') {
+                // Hard failure — restart ICE immediately
+                console.warn('Connection failed, attempting ICE restart...');
                 this.restartIce();
+            }
+
+            if (state === 'disconnected') {
+                // Transient blip — the spec says this can self-heal.
+                // Give it 5 seconds before escalating to a full ICE restart.
+                // If 'connected' fires before the timer, it gets cancelled above.
+                console.warn('Connection disconnected — starting 5s grace period before ICE restart');
+                if (this.disconnectGraceTimeout) {
+                    clearTimeout(this.disconnectGraceTimeout);
+                }
+                this.disconnectGraceTimeout = setTimeout(() => {
+                    this.disconnectGraceTimeout = null;
+                    if (this.peerConnection && this.peerConnection.connectionState !== 'connected') {
+                        console.warn('Grace period expired, connection still not recovered — attempting ICE restart');
+                        this.restartIce();
+                    }
+                }, 5000);
             }
         };
 
@@ -599,6 +621,12 @@ class WebRTCHandler {
         if (this.reconnectTimeout) {
             clearTimeout(this.reconnectTimeout);
             this.reconnectTimeout = null;
+        }
+
+        // Clear disconnection grace timeout
+        if (this.disconnectGraceTimeout) {
+            clearTimeout(this.disconnectGraceTimeout);
+            this.disconnectGraceTimeout = null;
         }
 
         // Stop all local tracks
