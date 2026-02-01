@@ -101,9 +101,9 @@ class MatchingQueue {
 
                 console.log(`Found ${waitingUsers.length} waiting users`);
 
-                // Try to find a compatible match
+                // Try to find a compatible match (async — verifies each candidate is live)
                 if (waitingUsers.length > 0) {
-                    const match = this.findCompatibleMatch(waitingUsers, myPreferences);
+                    const match = await this.findCompatibleMatch(waitingUsers, myPreferences);
                     if (match) {
                         await this.createMatch(match);
                     }
@@ -167,12 +167,14 @@ class MatchingQueue {
     }
 
     /**
-     * Find a compatible match from waiting users
+     * Find a compatible match from waiting users.
+     * Verifies the candidate's session document exists and is still searching
+     * before returning them — this filters out ghost entries left by closed tabs.
      * @param {Array} waitingUsers
      * @param {Object} myPreferences
-     * @returns {Object|null}
+     * @returns {Promise<Object|null>}
      */
-    findCompatibleMatch(waitingUsers, myPreferences) {
+    async findCompatibleMatch(waitingUsers, myPreferences) {
         for (const user of waitingUsers) {
             // Check if at least one preference matches
             const hasCommonPreference =
@@ -180,10 +182,30 @@ class MatchingQueue {
                 (myPreferences.audio && user.preferences.audio) ||
                 (myPreferences.text && user.preferences.text);
 
-            if (hasCommonPreference) {
-                console.log(`Found compatible match: ${user.anonymousId}`);
-                return user;
+            if (!hasCommonPreference) continue;
+
+            // Verify the partner's session is alive and still searching.
+            // This catches stale queue docs left behind by closed/crashed tabs.
+            try {
+                const sessionDoc = await this.getSessionsRef().doc(user.sessionId).get();
+                if (!sessionDoc.exists) {
+                    console.log(`Skipping ${user.anonymousId} — session doc missing (ghost entry)`);
+                    // Clean up the orphan queue entry so it doesn't keep blocking
+                    await this.getQueueRef().doc(user.sessionId).delete().catch(() => {});
+                    continue;
+                }
+                const sessionData = sessionDoc.data();
+                if (sessionData.status !== 'searching') {
+                    console.log(`Skipping ${user.anonymousId} — session status is "${sessionData.status}", not searching`);
+                    continue;
+                }
+            } catch (error) {
+                console.warn(`Could not verify session for ${user.anonymousId}:`, error);
+                continue;
             }
+
+            console.log(`Found compatible match: ${user.anonymousId}`);
+            return user;
         }
 
         return null;

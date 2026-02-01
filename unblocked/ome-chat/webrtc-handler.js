@@ -85,57 +85,52 @@ class WebRTCHandler {
      * @param {Object} preferences
      */
     async getLocalMedia(preferences) {
-        const constraints = {
-            video: preferences.video ? {
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-                facingMode: 'user'
-            } : false,
-            audio: preferences.audio ? {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true
-            } : false
-        };
+        // Try video+audio first, then fall back through progressively less demanding options.
+        // A denied permission must never stop the connection — text-only is always valid.
+        const attempts = [];
+        if (preferences.video && preferences.audio) {
+            attempts.push(
+                { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
+                { video: true, audio: true },
+                { video: false, audio: true },
+                { video: true, audio: false }
+            );
+        } else if (preferences.video) {
+            attempts.push(
+                { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false },
+                { video: true, audio: false }
+            );
+        } else if (preferences.audio) {
+            attempts.push(
+                { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false },
+                { audio: true, video: false }
+            );
+        }
 
-        try {
-            this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('Got local media stream');
+        for (const constraints of attempts) {
+            try {
+                this.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('Got local media stream with constraints:', JSON.stringify(constraints));
 
-            // Notify UI
-            if (this.onLocalStream) {
-                this.onLocalStream(this.localStream);
-            }
-
-            // Display in local video element
-            const localVideo = document.getElementById('local-video');
-            if (localVideo) {
-                localVideo.srcObject = this.localStream;
-            }
-        } catch (error) {
-            console.error('Failed to get local media:', error);
-
-            // Try again with just audio if video failed
-            if (preferences.video && preferences.audio) {
-                console.log('Retrying with audio only...');
-                try {
-                    this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    if (this.onLocalStream) {
-                        this.onLocalStream(this.localStream);
-                    }
-                } catch (audioError) {
-                    console.error('Failed to get audio:', audioError);
-                    // Create empty stream as fallback
-                    this.localStream = new MediaStream();
+                if (this.onLocalStream) {
+                    this.onLocalStream(this.localStream);
                 }
-            } else {
-                // Create empty stream as fallback for text-only
-                this.localStream = new MediaStream();
-            }
 
-            if (this.onError) {
-                this.onError('media', error.message);
+                const localVideo = document.getElementById('local-video');
+                if (localVideo) {
+                    localVideo.srcObject = this.localStream;
+                }
+                return; // success — stop trying
+            } catch (error) {
+                console.warn('Media attempt failed:', error.name, '— trying next fallback');
             }
+        }
+
+        // All attempts failed — proceed with no tracks (text-only chat still works)
+        console.warn('All media attempts failed. Continuing as text-only.');
+        this.localStream = new MediaStream();
+        if (this.onError) {
+            this.onError('media', 'Camera/microphone access denied. Continuing as text-only.');
         }
     }
 

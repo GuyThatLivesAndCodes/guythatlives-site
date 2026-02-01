@@ -538,30 +538,32 @@ class OmeChatManager {
     async disconnect() {
         console.log('Disconnecting...');
 
-        if (this.currentRoomId) {
-            if (this.isRoomPublic && this.roomParticipants.length > 1) {
-                // In a public multi-user room: just remove ourselves, don't end it
-                await this.signaling.removeFromRoom(this.currentRoomId, this.sessionId);
-            } else {
-                // 1-on-1 or last person: end the room
-                await this.signaling.leaveRoom(this.currentRoomId);
-            }
-        }
+        const roomId = this.currentRoomId;
 
-        // Close WebRTC connection
-        this.webrtc.close();
-
-        // Leave matching queue if in it
-        if (this.matchingQueue.isQueued()) {
-            await this.matchingQueue.leave();
-        }
-
-        // Clear state
+        // Clear currentRoomId FIRST so the onConnectionStateChange callback
+        // (fired synchronously by webrtc.close()) won't trigger showPartnerDisconnected.
         this.currentRoomId = null;
         this.currentPartnerSessionId = null;
         this.currentPartnerAnonymousId = null;
         this.isRoomPublic = false;
         this.roomParticipants = [];
+
+        // Close WebRTC connection (may fire 'closed' state change synchronously)
+        this.webrtc.close();
+
+        // Now do the Firestore cleanup using the saved roomId
+        if (roomId) {
+            try {
+                await this.signaling.leaveRoom(roomId);
+            } catch (e) {
+                console.error('Error leaving room:', e);
+            }
+        }
+
+        // Leave matching queue if in it
+        if (this.matchingQueue.isQueued()) {
+            await this.matchingQueue.leave();
+        }
 
         // Update session status
         await this.updateSessionStatus('idle');
@@ -616,12 +618,26 @@ document.addEventListener('DOMContentLoaded', () => {
     window.omeChatManager.initialize();
 });
 
-// Cleanup on page unload
+// Cleanup on page unload — fire-and-forget Firestore writes.
+// These dispatch immediately even though we can't await them in beforeunload.
 window.addEventListener('beforeunload', () => {
-    // Use sendBeacon for reliable cleanup on page unload
-    if (window.omeChatManager.sessionId && window.omeChatManager.db) {
-        // Synchronous cleanup attempt
-        window.omeChatManager.cleanup().catch(console.error);
+    const mgr = window.omeChatManager;
+    if (!mgr.sessionId || !mgr.db) return;
+
+    const base = mgr.db.collection('omechat').doc('data');
+
+    // Delete our queue entry so we don't become a ghost match target
+    base.collection('matchingQueue').doc(mgr.sessionId).delete();
+
+    // Mark session as idle so the live session check in matchmaking skips us
+    base.collection('sessions').doc(mgr.sessionId).update({ status: 'idle' });
+
+    // End any active room we're in
+    if (mgr.currentRoomId) {
+        base.collection('rooms').doc(mgr.currentRoomId).update({
+            status: 'ended',
+            endedBy: mgr.sessionId
+        });
     }
 });
 
