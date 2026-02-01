@@ -243,13 +243,14 @@ class MatchingQueue {
                     throw new Error('One or both users are no longer waiting');
                 }
 
-                // Create room
+                // Create room (explicitly private — users can toggle public later)
                 const roomRef = this.getRoomsRef().doc(roomId);
                 transaction.set(roomRef, {
                     participants: [this.sessionId, partner.sessionId],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     status: 'active',
-                    createdBy: this.sessionId
+                    createdBy: this.sessionId,
+                    isPublic: false
                 });
 
                 // Update both users' queue status

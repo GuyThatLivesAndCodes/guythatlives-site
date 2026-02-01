@@ -1149,6 +1149,31 @@
     background: var(--primary-light);
 }
 
+/* Private (locked) room card */
+.public-room-card.private {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.public-room-card.private:hover {
+    border-color: var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.room-card-locked {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.room-card-locked svg {
+    width: 12px;
+    height: 12px;
+}
+
 /* ===== Multi-Video Grid ===== */
 .remote-videos-grid {
     position: absolute;
@@ -1375,6 +1400,43 @@
         min-width: auto;
         max-width: none;
     }
+}
+
+/* ===== Skip Penalty Overlay ===== */
+.skip-penalty-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skip-penalty-content {
+    text-align: center;
+}
+
+.skip-penalty-text {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.03em;
+}
+
+.skip-penalty-countdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--warning-color);
+    line-height: 1;
+    animation: skipPulse 1s ease-in-out infinite;
+}
+
+@keyframes skipPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.9); opacity: 0.7; }
 }
 
 /* ===== Scrollbar Styling ===== */

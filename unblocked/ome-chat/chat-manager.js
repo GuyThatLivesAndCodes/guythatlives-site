@@ -21,6 +21,11 @@ class OmeChatManager {
         this.isRoomPublic = false;
         this.roomParticipants = [];
 
+        // Room-close timer: fires after 5s of ≤1 person to end the room
+        this.roomCloseTimeout = null;
+        // Skip penalty: true while the 3s countdown is running (debounce guard)
+        this.skipPenaltyActive = false;
+
         // Initialization
         this.initialized = false;
         this.initPromise = null;
@@ -171,11 +176,10 @@ class OmeChatManager {
                     break;
                 case 'failed':
                 case 'closed':
-                    // Recovery exhausted or connection closed — show disconnect message.
+                    // WebRTC layer is dead. Don't auto-skip here — the room-close
+                    // timer will fire when the participant list actually shrinks,
+                    // giving the connection a chance to recover or the partner to rejoin.
                     this.ui.updateConnectionStatus('disconnected');
-                    if (this.currentRoomId) {
-                        this.ui.showPartnerDisconnected();
-                    }
                     break;
             }
         };
@@ -206,8 +210,8 @@ class OmeChatManager {
             // Show searching panel
             this.ui.showPanel('searching');
 
-            // Start listening for public rooms to show in sidebar
-            this.startListeningForPublicRooms();
+            // Start listening for all rooms to show in sidebar
+            this.startListeningForAllRooms();
 
             // Setup match callback
             this.matchingQueue.onMatch(async (matchData) => {
@@ -255,6 +259,12 @@ class OmeChatManager {
             // Setup message listener
             this.signaling.listenForMessages(matchData.roomId, (message) => {
                 this.handleIncomingMessage(message);
+            });
+
+            // Listen for participant changes — drives the room-close timer
+            // so we detect when the partner leaves even in a 1-to-1 room.
+            this.signaling.listenForParticipants(matchData.roomId, (participants, roomData) => {
+                this.handleParticipantChange(participants, roomData);
             });
 
             // Create offer if we're the initiator
@@ -356,28 +366,18 @@ class OmeChatManager {
     }
 
     /**
-     * Apply a profanity ban (legacy - now uses strike system)
+     * Skip to find a new match — shows a forced 3-second penalty countdown first.
+     * Debounced: calling skip() while a penalty is already running does nothing.
      */
-    async applyProfanityBan() {
-        try {
-            const result = this.moderation.applyLocalBan('profanity', 5);
+    skip() {
+        if (this.skipPenaltyActive) return;
+        this.skipPenaltyActive = true;
 
-            // Disconnect from current chat
+        this.ui.showSkipPenalty(async () => {
+            this.skipPenaltyActive = false;
             await this.disconnect();
-
-            // Show ban panel
-            this.ui.showBanPanel(result.banUntil, 'profanity');
-        } catch (error) {
-            console.error('Error applying ban:', error);
-        }
-    }
-
-    /**
-     * Skip to find a new match
-     */
-    async skip() {
-        await this.disconnect();
-        await this.startSearching();
+            await this.startSearching();
+        });
     }
 
     /**
@@ -442,11 +442,11 @@ class OmeChatManager {
     }
 
     /**
-     * Start listening for public rooms (called when entering the searching panel)
+     * Start listening for all active rooms (called when entering the searching panel)
      */
-    startListeningForPublicRooms() {
-        this.signaling.listenForPublicRooms((rooms) => {
-            this.ui.updatePublicRoomsList(rooms);
+    startListeningForAllRooms() {
+        this.signaling.listenForAllRooms((rooms) => {
+            this.ui.updateRoomsList(rooms);
         });
     }
 
@@ -506,7 +506,8 @@ class OmeChatManager {
     }
 
     /**
-     * Handle participant list changes in a public room
+     * Handle participant list changes in a room.
+     * Manages the room-close timer: if ≤1 person remains for 5 seconds, end the room.
      */
     handleParticipantChange(participants, roomData) {
         if (!this.currentRoomId) return;
@@ -514,14 +515,36 @@ class OmeChatManager {
         // Update UI
         this.ui.updateParticipantsBar(participants, this.sessionId);
 
-        // Check if room ended (no participants or status ended)
+        // Room was ended (by timer or another client)
         if (roomData && roomData.status === 'ended') {
             this.ui.addSystemMessage('This room has ended.');
-            setTimeout(() => this.disconnect(), 2000);
+            this.ui.showPartnerDisconnected();
             return;
         }
 
         this.roomParticipants = [...participants];
+
+        // Room-close timer: start/cancel based on participant count
+        if (participants.length <= 1) {
+            // Only one (or zero) people left — start the 5s close timer if not already running
+            if (!this.roomCloseTimeout) {
+                console.log(`Room down to ${participants.length} — starting 5s close timer`);
+                this.roomCloseTimeout = setTimeout(async () => {
+                    this.roomCloseTimeout = null;
+                    if (this.currentRoomId) {
+                        console.log('Room close timer fired — ending room');
+                        await this.signaling.endRoom(this.currentRoomId);
+                    }
+                }, 5000);
+            }
+        } else {
+            // Multiple people — cancel any pending close timer
+            if (this.roomCloseTimeout) {
+                console.log('Room has multiple participants again — cancelling close timer');
+                clearTimeout(this.roomCloseTimeout);
+                this.roomCloseTimeout = null;
+            }
+        }
     }
 
     /**
@@ -533,30 +556,38 @@ class OmeChatManager {
     }
 
     /**
-     * Disconnect from current chat
+     * Disconnect from current chat — removes us from the room but doesn't end it.
+     * The room-close timer (in handleParticipantChange) will end it if nobody else remains.
      */
     async disconnect() {
         console.log('Disconnecting...');
 
         const roomId = this.currentRoomId;
 
-        // Clear currentRoomId FIRST so the onConnectionStateChange callback
-        // (fired synchronously by webrtc.close()) won't trigger showPartnerDisconnected.
+        // Cancel any pending room-close timer (we're leaving, not managing anymore)
+        if (this.roomCloseTimeout) {
+            clearTimeout(this.roomCloseTimeout);
+            this.roomCloseTimeout = null;
+        }
+
+        // Clear state FIRST so the onConnectionStateChange callback
+        // (fired synchronously by webrtc.close()) won't trigger anything.
         this.currentRoomId = null;
         this.currentPartnerSessionId = null;
         this.currentPartnerAnonymousId = null;
         this.isRoomPublic = false;
         this.roomParticipants = [];
+        this.skipPenaltyActive = false;
 
         // Close WebRTC connection (may fire 'closed' state change synchronously)
         this.webrtc.close();
 
-        // Now do the Firestore cleanup using the saved roomId
+        // Remove ourselves from the room (room stays alive for others)
         if (roomId) {
             try {
-                await this.signaling.leaveRoom(roomId);
+                await this.signaling.removeParticipant(roomId, this.sessionId);
             } catch (e) {
-                console.error('Error leaving room:', e);
+                console.error('Error removing from room:', e);
             }
         }
 
@@ -632,11 +663,11 @@ window.addEventListener('beforeunload', () => {
     // Mark session as idle so the live session check in matchmaking skips us
     base.collection('sessions').doc(mgr.sessionId).update({ status: 'idle' });
 
-    // End any active room we're in
+    // Remove ourselves from any active room (don't end it — the room-close timer
+    // on the remaining clients will end it after 5s if nobody else is there)
     if (mgr.currentRoomId) {
         base.collection('rooms').doc(mgr.currentRoomId).update({
-            status: 'ended',
-            endedBy: mgr.sessionId
+            participants: firebase.firestore.FieldValue.arrayRemove(mgr.sessionId)
         });
     }
 });

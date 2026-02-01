@@ -562,10 +562,11 @@ class UIController {
     }
 
     /**
-     * Render the list of public rooms in the searching sidebar
+     * Render the list of all active rooms in the searching sidebar.
+     * Public rooms show a Join button; private rooms show a locked indicator.
      * @param {Array} rooms
      */
-    updatePublicRoomsList(rooms) {
+    updateRoomsList(rooms) {
         const grid = document.getElementById('public-rooms-grid');
         const countEl = document.getElementById('public-rooms-count');
         if (!grid) return;
@@ -574,7 +575,6 @@ class UIController {
             countEl.textContent = rooms.length + ' active';
         }
 
-        // Clear existing cards
         grid.innerHTML = '';
 
         if (rooms.length === 0) {
@@ -585,34 +585,55 @@ class UIController {
                         <line x1="12" y1="8" x2="12" y2="12"></line>
                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
-                    <p>No public rooms available</p>
-                    <span>When users make their calls public, they'll appear here</span>
+                    <p>No rooms available</p>
+                    <span>Rooms appear here while active</span>
                 </div>`;
             return;
         }
 
         rooms.forEach((room) => {
             const card = document.createElement('div');
-            card.className = 'public-room-card';
+            card.className = 'public-room-card' + (room.isPublic ? '' : ' private');
 
             const spotsLeft = 10 - room.participantCount;
-            card.innerHTML = `
-                <div class="room-card-header">
-                    <svg class="room-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span class="room-card-count">${room.participantCount}/10</span>
-                </div>
-                <div class="room-card-spots">${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left</div>
-                <button class="btn btn-join-room" data-room-id="${this.escapeHtml(room.roomId)}">Join Room</button>`;
+
+            if (room.isPublic) {
+                card.innerHTML = `
+                    <div class="room-card-header">
+                        <svg class="room-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span class="room-card-count">${room.participantCount}/10</span>
+                    </div>
+                    <div class="room-card-spots">${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left</div>
+                    <button class="btn btn-join-room" data-room-id="${this.escapeHtml(room.roomId)}">Join Room</button>`;
+            } else {
+                card.innerHTML = `
+                    <div class="room-card-header">
+                        <svg class="room-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span class="room-card-count">${room.participantCount}</span>
+                    </div>
+                    <div class="room-card-locked">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Private
+                    </div>`;
+            }
 
             grid.appendChild(card);
         });
 
-        // Attach join handlers
+        // Attach join handlers (only on public room buttons)
         grid.querySelectorAll('.btn-join-room').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const roomId = btn.getAttribute('data-room-id');
@@ -665,6 +686,44 @@ class UIController {
     }
 
     /**
+     * Show the skip penalty overlay with a forced countdown.
+     * @param {Function} onComplete - called when countdown reaches 0
+     */
+    showSkipPenalty(onComplete) {
+        const overlay = document.getElementById('skip-penalty-overlay');
+        const countdownEl = document.getElementById('skip-penalty-countdown');
+        if (!overlay || !countdownEl) return;
+
+        let seconds = 3;
+        countdownEl.textContent = seconds;
+        overlay.style.display = 'flex';
+
+        this.skipPenaltyInterval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(this.skipPenaltyInterval);
+                this.skipPenaltyInterval = null;
+                overlay.style.display = 'none';
+                onComplete();
+            } else {
+                countdownEl.textContent = seconds;
+            }
+        }, 1000);
+    }
+
+    /**
+     * Hide the skip penalty overlay and stop any running countdown
+     */
+    hideSkipPenalty() {
+        const overlay = document.getElementById('skip-penalty-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (this.skipPenaltyInterval) {
+            clearInterval(this.skipPenaltyInterval);
+            this.skipPenaltyInterval = null;
+        }
+    }
+
+    /**
      * Clean up UI state
      */
     cleanup() {
@@ -672,7 +731,7 @@ class UIController {
             clearInterval(this.banTimerInterval);
             this.banTimerInterval = null;
         }
-
+        this.hideSkipPenalty();
         this.clearChatMessages();
     }
 }

@@ -219,23 +219,35 @@ class SignalingManager {
     }
 
     /**
-     * Leave the current room
+     * Remove a participant from a room without ending it.
+     * The room stays alive for other participants; the client-side
+     * room-close timer will end it after 5s if only ≤1 person remains.
      * @param {string} roomId
+     * @param {string} sessionId
      */
-    async leaveRoom(roomId) {
+    async removeParticipant(roomId, sessionId) {
         try {
-            // Update room status to ended
             await this.getRoomRef(roomId).update({
-                status: 'ended',
-                endedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                endedBy: this.sessionId
+                participants: firebase.firestore.FieldValue.arrayRemove(sessionId)
             });
         } catch (error) {
-            console.error('Error leaving room:', error);
+            console.error('Error removing participant:', error);
         }
+    }
 
-        // Unsubscribe from all listeners
-        this.cleanup();
+    /**
+     * End a room (called by the room-close timer when the room has been empty long enough)
+     * @param {string} roomId
+     */
+    async endRoom(roomId) {
+        try {
+            await this.getRoomRef(roomId).update({
+                status: 'ended',
+                endedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error('Error ending room:', error);
+        }
     }
 
     /**
@@ -292,36 +304,35 @@ class SignalingManager {
     }
 
     /**
-     * Listen for active public rooms
-     * @param {Function} callback - receives array of public room data
+     * Listen for all active rooms (public and private).
+     * The UI decides which are joinable based on isPublic.
+     * @param {Function} callback - receives array of room data
      */
-    listenForPublicRooms(callback) {
+    listenForAllRooms(callback) {
         this.publicRoomsCallback = callback;
 
         const unsub = this.db.collection('omechat').doc('data').collection('rooms')
             .where('status', '==', 'active')
-            .where('isPublic', '==', true)
             .orderBy('createdAt', 'desc')
             .onSnapshot((snapshot) => {
                 const rooms = [];
                 snapshot.forEach((doc) => {
                     const data = doc.data();
-                    // Only include rooms that haven't hit the 10-person cap
-                    if (data.participants && data.participants.length < 10) {
-                        rooms.push({
-                            roomId: doc.id,
-                            participants: data.participants,
-                            createdBy: data.createdBy,
-                            createdAt: data.createdAt,
-                            participantCount: data.participants.length
-                        });
-                    }
+                    if (!data.participants) return;
+                    rooms.push({
+                        roomId: doc.id,
+                        participants: data.participants,
+                        createdBy: data.createdBy,
+                        createdAt: data.createdAt,
+                        participantCount: data.participants.length,
+                        isPublic: data.isPublic === true
+                    });
                 });
                 if (this.publicRoomsCallback) {
                     this.publicRoomsCallback(rooms);
                 }
             }, (error) => {
-                console.error('Error listening to public rooms:', error);
+                console.error('Error listening to rooms:', error);
             });
 
         this.unsubscribers.push(unsub);
@@ -341,7 +352,8 @@ class SignalingManager {
             if (!doc.exists) return false;
 
             const data = doc.data();
-            if (data.status !== 'active' || !data.isPublic) return false;
+            if (data.status !== 'active') return false;
+            if (data.isPublic !== true) return false; // safety guard — UI hides Join for private rooms
             if (data.participants.includes(sessionId)) return false;
             if (data.participants.length >= 10) return false;
 
@@ -349,7 +361,7 @@ class SignalingManager {
                 participants: firebase.firestore.FieldValue.arrayUnion(sessionId)
             });
 
-            console.log(`Joined public room: ${roomId}`);
+            console.log(`Joined room: ${roomId}`);
             return true;
         } catch (error) {
             console.error('Error joining room:', error);
@@ -357,28 +369,6 @@ class SignalingManager {
         }
     }
 
-    /**
-     * Remove a participant from a room
-     * @param {string} roomId
-     * @param {string} sessionId
-     */
-    async removeFromRoom(roomId, sessionId) {
-        try {
-            const roomRef = this.getRoomRef(roomId);
-
-            await roomRef.update({
-                participants: firebase.firestore.FieldValue.arrayRemove(sessionId)
-            });
-
-            // If no participants left, end the room
-            const doc = await roomRef.get();
-            if (doc.exists && doc.data().participants.length === 0) {
-                await roomRef.update({ status: 'ended' });
-            }
-        } catch (error) {
-            console.error('Error removing from room:', error);
-        }
-    }
 
     /**
      * Listen for participant changes in a room (for multi-user rooms)

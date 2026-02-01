@@ -127,7 +127,7 @@
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                            Public Rooms
+                            Rooms
                         </h3>
                         <span id="public-rooms-count" class="rooms-count">0 active</span>
                     </div>
@@ -374,6 +374,14 @@
             <div class="modal-footer">
                 <button id="disclaimer-accept-btn" class="btn btn-accept">I Understand</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Skip Penalty Overlay (forced 3s countdown before skip executes) -->
+    <div id="skip-penalty-overlay" class="skip-penalty-overlay" style="display: none;">
+        <div class="skip-penalty-content">
+            <p class="skip-penalty-text">Skipping in...</p>
+            <div class="skip-penalty-countdown" id="skip-penalty-countdown">3</div>
         </div>
     </div>
 
