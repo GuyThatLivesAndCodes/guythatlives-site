@@ -21,9 +21,6 @@ class ModerationManager {
             'ass', 'asses', 'asshole', 'assholes', 'a$$', 'a$$hole',
             'bitch', 'bitches', 'bitching', 'b1tch', 'biatch',
             'damn', 'dammit', 'damned', 'goddamn', 'goddammit',
-            'hell', 'hells',
-            'crap', 'crappy',
-            'piss', 'pissed', 'pissing',
             'dick', 'dicks', 'd1ck', 'dickhead',
             'cock', 'cocks', 'c0ck',
             'pussy', 'pussies', 'pu$$y',
@@ -48,8 +45,6 @@ class ModerationManager {
             // Homophobic slurs
             'fag', 'faggot', 'faggots', 'f4g', 'f4ggot',
             'dyke', 'dykes',
-            'homo', 'homos',
-            'queer', 'queers',
             'tranny', 'trannies',
 
             // Other offensive terms
@@ -92,7 +87,6 @@ class ModerationManager {
             'weed', 'marijuana', 'cannabis',
             'lsd', 'acid',
             'ecstasy', 'mdma', 'molly',
-            'crack',
 
             // Common leetspeak/bypass attempts
             'f u c k', 'f.u.c.k', 'f-u-c-k',
