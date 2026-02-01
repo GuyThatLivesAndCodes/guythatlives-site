@@ -327,6 +327,56 @@
         </div>
     </div>
 
+    <!-- Disclaimer Modal (shown on first load) -->
+    <div id="disclaimer-modal" class="modal active">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Before You Start</h3>
+            </div>
+            <div class="modal-body">
+                <p class="disclaimer-intro">
+                    Ome-Chat connects you with random strangers for anonymous video, audio, or text conversations. Please read the following before continuing.
+                </p>
+
+                <div class="disclaimer-section">
+                    <h4>What We Moderate</h4>
+                    <p>
+                        We run automated filters on text chat for profanity, slurs, and threats. Repeated violations result in temporary bans. You can also report other users, and multiple reports may lead to a ban. We do our best to keep conversations respectful.
+                    </p>
+                </div>
+
+                <div class="disclaimer-section">
+                    <h4>What We Don't Control</h4>
+                    <p>
+                        Conversations are peer-to-peer and happen in real time. We cannot monitor or record video, audio, or the full content of live chats. Any obscene, illegal, or sexual content shared during a conversation is not produced, endorsed, or distributed by GuyThatLives or its operators. This is a connection platform only — we are not responsible for the actions or content shared by individual users.
+                    </p>
+                </div>
+
+                <div class="disclaimer-section">
+                    <h4>Your Responsibility</h4>
+                    <p>
+                        You are responsible for your own conduct. If someone shares content that is illegal or harmful, please use the Report button immediately and end the conversation. Do not share personal information such as your real name, address, school, or phone number.
+                    </p>
+                </div>
+
+                <div class="disclaimer-section">
+                    <h4>Age Requirement</h4>
+                    <p>
+                        You must be at least 13 years old to use this service. If you encounter a user who appears to be underage or who shares content involving minors, report it immediately.
+                    </p>
+                </div>
+
+                <div class="disclaimer-legal">
+                    By clicking "I Understand," you acknowledge that GuyThatLives is a connection platform and is not liable for any content shared by other users during conversations. Use at your own discretion.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="disclaimer-accept-btn" class="btn btn-accept">I Understand</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 

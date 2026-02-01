@@ -137,6 +137,14 @@ class UIController {
             });
         }
 
+        // Disclaimer accept button
+        const disclaimerAcceptBtn = document.getElementById('disclaimer-accept-btn');
+        if (disclaimerAcceptBtn) {
+            disclaimerAcceptBtn.addEventListener('click', () => {
+                this.dismissDisclaimer();
+            });
+        }
+
         // Retry button (error panel)
         const retryBtn = document.getElementById('retry-btn');
         if (retryBtn) {
@@ -644,6 +652,16 @@ class UIController {
             avatar.textContent = id === mySessionId ? 'You' : '👤';
             listEl.appendChild(avatar);
         });
+    }
+
+    /**
+     * Dismiss the disclaimer modal
+     */
+    dismissDisclaimer() {
+        const modal = document.getElementById('disclaimer-modal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
     }
 
     /**
