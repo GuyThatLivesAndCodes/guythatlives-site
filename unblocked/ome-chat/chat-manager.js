@@ -559,8 +559,8 @@ class OmeChatManager {
     }
 
     /**
-     * Disconnect from current chat — removes us from the room but doesn't end it.
-     * The room-close timer (in handleParticipantChange) will end it if nobody else remains.
+     * Disconnect from current chat.  Ends the room if we're the last person;
+     * otherwise just removes us and lets the remaining clients' timer handle cleanup.
      */
     async disconnect() {
         console.log('Disconnecting...');
@@ -572,6 +572,13 @@ class OmeChatManager {
             clearTimeout(this.roomCloseTimeout);
             this.roomCloseTimeout = null;
         }
+
+        // Decide whether to end the room or just remove ourselves.
+        // We already track roomParticipants locally — if we're the last person
+        // (or only person), end the room now.  We can't rely on the client-side
+        // timer here because disconnect() nulls currentRoomId and tears down the
+        // listener before the snapshot from our arrayRemove could fire.
+        const willBeEmpty = this.roomParticipants.length <= 1;
 
         // Clear state FIRST so the onConnectionStateChange callback
         // (fired synchronously by webrtc.close()) won't trigger anything.
@@ -585,12 +592,19 @@ class OmeChatManager {
         // Close WebRTC connection (may fire 'closed' state change synchronously)
         this.webrtc.close();
 
-        // Remove ourselves from the room (room stays alive for others)
         if (roomId) {
             try {
-                await this.signaling.removeParticipant(roomId, this.sessionId);
+                if (willBeEmpty) {
+                    // We're the last one — end the room outright so it doesn't
+                    // linger as a ghost.
+                    await this.signaling.endRoom(roomId);
+                } else {
+                    // Others are still in the room — just remove ourselves.
+                    // Their client-side timer will end it if everyone else leaves.
+                    await this.signaling.removeParticipant(roomId, this.sessionId);
+                }
             } catch (e) {
-                console.error('Error removing from room:', e);
+                console.error('Error leaving room:', e);
             }
         }
 
@@ -666,12 +680,20 @@ window.addEventListener('beforeunload', () => {
     // Mark session as idle so the live session check in matchmaking skips us
     base.collection('sessions').doc(mgr.sessionId).update({ status: 'idle' });
 
-    // Remove ourselves from any active room (don't end it — the room-close timer
-    // on the remaining clients will end it after 5s if nobody else is there)
+    // Leave the room.  If we're the last person, end it outright — we can't
+    // rely on a client-side timer here because this tab is about to die and
+    // no snapshot callback will ever fire.
     if (mgr.currentRoomId) {
-        base.collection('rooms').doc(mgr.currentRoomId).update({
-            participants: firebase.firestore.FieldValue.arrayRemove(mgr.sessionId)
-        });
+        if (mgr.roomParticipants.length <= 1) {
+            base.collection('rooms').doc(mgr.currentRoomId).update({
+                status: 'ended',
+                endedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } else {
+            base.collection('rooms').doc(mgr.currentRoomId).update({
+                participants: firebase.firestore.FieldValue.arrayRemove(mgr.sessionId)
+            });
+        }
     }
 });
 

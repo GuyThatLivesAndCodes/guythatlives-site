@@ -319,6 +319,18 @@ class SignalingManager {
                 snapshot.forEach((doc) => {
                     const data = doc.data();
                     if (!data.participants) return;
+
+                    // Opportunistic cleanup: end any active room that has been
+                    // abandoned (0 participants).  These are ghosts left behind
+                    // when both users' tabs closed before the client-side timer
+                    // could fire.  Deleting them here is idempotent — multiple
+                    // clients racing to end the same room is harmless.
+                    if (data.participants.length === 0) {
+                        console.log(`Cleaning up ghost room ${doc.id} (0 participants)`);
+                        this.endRoom(doc.id);
+                        return; // don't include it in the list
+                    }
+
                     rooms.push({
                         roomId: doc.id,
                         participants: data.participants,
