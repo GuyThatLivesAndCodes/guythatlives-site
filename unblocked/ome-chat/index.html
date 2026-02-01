@@ -100,19 +100,49 @@
 
         <!-- Searching Panel -->
         <div id="searching-panel" class="panel searching-panel" style="display: none;">
-            <div class="searching-content">
-                <div class="searching-animation">
-                    <div class="search-ring"></div>
-                    <div class="search-ring"></div>
-                    <div class="search-ring"></div>
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+            <div class="searching-layout">
+                <!-- Left: Search Animation -->
+                <div class="searching-main">
+                    <div class="searching-animation">
+                        <div class="search-ring"></div>
+                        <div class="search-ring"></div>
+                        <div class="search-ring"></div>
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <h2 class="searching-title">Finding someone to chat with...</h2>
+                    <p class="searching-subtitle">This may take a moment</p>
+                    <button id="cancel-search-btn" class="btn btn-secondary">Cancel</button>
                 </div>
-                <h2 class="searching-title">Finding someone to chat with...</h2>
-                <p class="searching-subtitle">This may take a moment</p>
-                <button id="cancel-search-btn" class="btn btn-secondary">Cancel</button>
+
+                <!-- Right: Public Rooms Sidebar -->
+                <div class="public-rooms-sidebar">
+                    <div class="public-rooms-header">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Public Rooms
+                        </h3>
+                        <span id="public-rooms-count" class="rooms-count">0 active</span>
+                    </div>
+                    <div id="public-rooms-grid" class="public-rooms-grid">
+                        <div class="no-public-rooms">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <p>No public rooms available</p>
+                            <span>When users make their calls public, they'll appear here</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -122,18 +152,24 @@
                 <!-- Video Container -->
                 <div class="video-section">
                     <div class="video-container">
-                        <video id="remote-video" autoplay playsinline></video>
-                        <div id="remote-video-placeholder" class="video-placeholder">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            <span>Waiting for video...</span>
+                        <!-- Remote videos grid (for multi-user rooms) -->
+                        <div id="remote-videos-grid" class="remote-videos-grid">
+                            <div id="remote-video-wrapper-main" class="remote-video-wrapper">
+                                <video id="remote-video" autoplay playsinline></video>
+                                <div id="remote-video-placeholder" class="video-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <span>Waiting for video...</span>
+                                </div>
+                                <div class="remote-user-label">
+                                    <span id="partner-id">Partner ID</span>
+                                </div>
+                            </div>
+                            <!-- Additional remote videos will be added here dynamically -->
                         </div>
                         <video id="local-video" autoplay playsinline muted></video>
-                        <div class="partner-info">
-                            <span id="partner-id">Partner ID</span>
-                        </div>
                     </div>
 
                     <!-- Control Buttons -->
@@ -166,6 +202,29 @@
                             </svg>
                             End
                         </button>
+                        <button id="public-toggle-btn" class="btn btn-control btn-public" title="Make room public for others to join">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <span id="public-btn-text">Make Public</span>
+                        </button>
+                    </div>
+                    <!-- Participants bar for multi-user rooms -->
+                    <div id="participants-bar" class="participants-bar" style="display: none;">
+                        <div class="participants-label">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span id="participant-count">2 in room</span>
+                        </div>
+                        <div id="participants-list" class="participants-list">
+                            <!-- Participant avatars inserted here -->
+                        </div>
                     </div>
                 </div>
 
