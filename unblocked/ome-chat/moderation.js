@@ -27,7 +27,7 @@ class ModerationManager {
             // Common profanity
             'fuck', 'fucking', 'fucked', 'fucker', 'fucks', 'fck', 'fuk', 'phuck', 'phuk',
             'shit', 'shitting', 'shitter', 'shitty', 'sh1t', 'sht',
-            'ass', 'asses', 'asshole', 'assholes', 'a$$', 'a$$hole',
+            'asshole', 'assholes', 'a$$', 'a$$hole', 'ashole',
             'bitch', 'bitches', 'bitching', 'b1tch', 'biatch',
             'damn', 'dammit', 'damned', 'goddamn', 'goddammit',
             'dick', 'dicks', 'd1ck', 'dickhead',
