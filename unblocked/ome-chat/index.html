@@ -34,6 +34,15 @@
                     <p class="setup-subtitle">Talk to strangers anonymously</p>
                 </div>
 
+                <div class="setup-beta-notice">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Brand new &amp; extremely buggy — made by an independent developer
+                </div>
+
                 <div class="your-id-display">
                     <span class="id-label">Your ID:</span>
                     <span id="my-anonymous-id" class="id-value">Loading...</span>
@@ -352,6 +361,18 @@
                 <h3>Before You Start</h3>
             </div>
             <div class="modal-body">
+                <div class="disclaimer-beta-banner">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <div>
+                        <strong>This is a brand new feature — it is extremely buggy.</strong>
+                        Ome-Chat is built for anonymous connection and is actively being developed by an independent developer. Expect rough edges and please be patient.
+                    </div>
+                </div>
+
                 <p class="disclaimer-intro">
                     Ome-Chat connects you with random strangers for anonymous video, audio, or text conversations. Please read the following before continuing.
                 </p>
@@ -409,6 +430,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+
+    <!-- Bug Reporter -->
+    <script src="../shared/bug-reporter.js"></script>
 
     <!-- Ome-Chat Modules -->
     <script src="moderation.js"></script>

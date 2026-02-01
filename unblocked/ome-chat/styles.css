@@ -968,6 +968,58 @@
     background: var(--primary-light);
 }
 
+/* ===== Beta / Warning Banners ===== */
+.disclaimer-beta-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 0.625rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.disclaimer-beta-banner svg {
+    width: 20px;
+    height: 20px;
+    color: var(--warning-color);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.disclaimer-beta-banner strong {
+    color: var(--warning-color);
+    font-size: 0.82rem;
+}
+
+.disclaimer-beta-banner div {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.setup-beta-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.78rem;
+    color: var(--warning-color);
+    opacity: 0.9;
+}
+
+.setup-beta-notice svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: var(--warning-color);
+}
+
 /* ===== Toast Notifications ===== */
 .toast-container {
     position: fixed;

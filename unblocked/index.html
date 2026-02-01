@@ -179,6 +179,29 @@
             flex-shrink: 0;
         }
 
+        .ome-chat-beta-tag {
+            display: inline-block;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--warning-color);
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 999px;
+            padding: 0.15rem 0.55rem;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+
+        .ome-chat-beta-note {
+            font-size: 0.78rem;
+            color: var(--warning-color);
+            opacity: 0.85;
+            margin-top: 0.35rem;
+            margin-bottom: 0;
+        }
+
         .ome-chat-glow {
             position: absolute;
             top: 50%;
@@ -299,8 +322,9 @@
                         </svg>
                     </div>
                     <div class="ome-chat-text">
-                        <h3 class="ome-chat-title">Ome-Chat</h3>
+                        <h3 class="ome-chat-title">Ome-Chat <span class="ome-chat-beta-tag">Beta</span></h3>
                         <p class="ome-chat-description">Talk to random strangers with video, audio, or text chat. No sign-up required!</p>
+                        <p class="ome-chat-beta-note">Brand new &amp; extremely buggy — made by an independent developer. Built for anonymous connection.</p>
                     </div>
                     <div class="ome-chat-cta">
                         <span class="btn btn-primary">Start Chatting</span>
@@ -496,6 +520,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 
     <!-- Shared Modules -->
     <script src="shared/games-auth.js"></script>
@@ -503,6 +528,7 @@
     <script src="shared/announcement-manager.js"></script>
     <script src="shared/announcement-display.js"></script>
     <script src="shared/disguise.js"></script>
+    <script src="shared/bug-reporter.js"></script>
 
     <!-- Page Script -->
     <script>

@@ -654,5 +654,163 @@ function updateImportProgress(progress) {
 
 
 // ====================================
+// Bug Reports
+// ====================================
+
+let currentBugReportFilter = 'open';
+
+/**
+ * Load bug reports from Firestore and render the table.
+ * Called when the Bug Reports tab is activated.
+ */
+async function loadBugReports() {
+    const tbody = document.getElementById('bug-reports-table-body');
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                <div class="loading-spinner" style="margin: 0 auto 0.75rem;"></div>
+                Loading…
+            </td>
+        </tr>`;
+
+    try {
+        const db = firebase.firestore();
+        let query = db.collection('bugReports').orderBy('submittedAt', 'desc').limit(100);
+
+        if (currentBugReportFilter === 'open') {
+            query = query.where('resolved', '==', false);
+        } else if (currentBugReportFilter === 'resolved') {
+            query = query.where('resolved', '==', true);
+        }
+
+        const snapshot = await query.get();
+        const reports = [];
+        snapshot.forEach((doc) => {
+            reports.push({ id: doc.id, ...doc.data() });
+        });
+
+        document.getElementById('bug-report-count').textContent = `${reports.length} report${reports.length !== 1 ? 's' : ''}`;
+
+        if (reports.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        No ${currentBugReportFilter === 'all' ? '' : currentBugReportFilter + ' '}reports found.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        tbody.innerHTML = reports.map((report) => {
+            const date = report.submittedAt
+                ? report.submittedAt.toDate().toLocaleString()
+                : 'Unknown';
+            const logCount = Array.isArray(report.consoleLogs) ? report.consoleLogs.length : 0;
+            const resolvedClass = report.resolved ? 'color: var(--success-color);' : 'color: var(--warning-color);';
+            const resolvedLabel = report.resolved ? 'Resolved' : 'Open';
+            const actionLabel = report.resolved ? 'Reopen' : 'Resolve';
+
+            // Truncate description for table display
+            const descPreview = (report.description || '').substring(0, 80) +
+                ((report.description || '').length > 80 ? '…' : '');
+
+            return `
+                <tr>
+                    <td style="color: var(--primary-light); font-size: 0.82rem; word-break: break-all;">${report.page || '—'}</td>
+                    <td>
+                        <span style="font-size: 0.875rem;" title="${report.description || ''}">${descPreview}</span>
+                        <span style="${resolvedClass} font-size: 0.72rem; margin-left: 0.5rem;">${resolvedLabel}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="toggleBugReportLogs('${report.id}')" style="font-size: 0.75rem;">
+                            ${logCount} log${logCount !== 1 ? 's' : ''}
+                        </button>
+                    </td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${date}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-sm btn-secondary" onclick="toggleBugReportResolved('${report.id}', ${!report.resolved})">${actionLabel}</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="bug-report-logs-${report.id}" style="display: none;">
+                    <td colspan="5">
+                        <div style="padding: 0.75rem 1rem; background: var(--bg-tertiary); border-radius: var(--border-radius-sm); max-height: 240px; overflow-y: auto;">
+                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">FULL DESCRIPTION</p>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 0.75rem; white-space: pre-wrap;">${report.description || '(empty)'}</p>
+                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">CONSOLE LOGS (last ${logCount})</p>
+                            ${logCount > 0
+                                ? `<pre style="font-size: 0.72rem; color: var(--text-secondary); margin: 0; white-space: pre-wrap; line-height: 1.5;">${
+                                    (report.consoleLogs || []).map((entry) => {
+                                        const levelColors = { error: '#ef4444', warn: '#f59e0b', info: '#60a5fa', debug: '#94a3b8', log: '#cbd5e1' };
+                                        const color = levelColors[entry.level] || '#cbd5e1';
+                                        return `<span style="color:${color};">[${(entry.level || 'log').toUpperCase()}]</span> ${entry.timestamp || ''} ${entry.message || ''}`;
+                                    }).join('\n')
+                                }</pre>`
+                                : '<p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">(no logs captured)</p>'
+                            }
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading bug reports:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--danger-color);">
+                    Error loading reports: ${error.message}
+                </td>
+            </tr>`;
+    }
+}
+
+/**
+ * Toggle visibility of the expanded log panel for a report.
+ */
+window.toggleBugReportLogs = function (reportId) {
+    const row = document.getElementById('bug-report-logs-' + reportId);
+    if (row) {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    }
+};
+
+/**
+ * Mark a bug report as resolved or re-open it.
+ */
+window.toggleBugReportResolved = async function (reportId, resolved) {
+    try {
+        const db = firebase.firestore();
+        await db.collection('bugReports').doc(reportId).update({ resolved: resolved });
+        // Reload
+        await loadBugReports();
+    } catch (error) {
+        console.error('Error updating bug report:', error);
+        alert('Failed to update report: ' + error.message);
+    }
+};
+
+// Hook: when the bug-reports tab is activated, load reports.
+// Patch into the existing switchTab function.
+const _originalSwitchTab = switchTab;
+switchTab = function (tabName) {
+    _originalSwitchTab(tabName);
+    if (tabName === 'bug-reports') {
+        loadBugReports();
+    }
+};
+
+// Wire the filter dropdown
+document.addEventListener('DOMContentLoaded', () => {
+    const filterSelect = document.getElementById('bug-report-filter');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', () => {
+            currentBugReportFilter = filterSelect.value;
+            loadBugReports();
+        });
+    }
+});
+
+// ====================================
 // Announcement Management
 // ====================================

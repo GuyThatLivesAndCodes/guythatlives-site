@@ -450,6 +450,7 @@
                 <button class="tab active" data-tab="all-games">All Games</button>
                 <button class="tab" data-tab="add-game">Add Game</button>
                 <button class="tab" data-tab="announcement">Announcements</button>
+                <button class="tab" data-tab="bug-reports">Bug Reports</button>
             </div>
 
             <!-- All Games Tab -->
@@ -561,6 +562,45 @@
                     <div class="success-message" id="form-success"></div>
                     <div class="error-message" id="form-error"></div>
                 </form>
+            </div>
+
+            <!-- Bug Reports Tab -->
+            <div id="bug-reports" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="color: var(--text-primary); font-size: 1.25rem; margin-bottom: 0.25rem;">Bug Reports</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">User-submitted bug reports from all /unblocked/ pages</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <select id="bug-report-filter" style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 0.75rem; border-radius: var(--border-radius-sm); font-size: 0.82rem; cursor: pointer;">
+                            <option value="open">Open Reports</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="all">All Reports</option>
+                        </select>
+                        <span id="bug-report-count" style="color: var(--text-muted); font-size: 0.8rem;"></span>
+                    </div>
+                </div>
+                <div class="games-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Description</th>
+                                <th>Logs</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bug-reports-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                                    Loading reports...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Announcements Tab -->
@@ -714,6 +754,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 
     <!-- Shared Modules -->
     <script src="../shared/games-auth.js"></script>
