@@ -201,6 +201,15 @@ service cloud.firestore {
       }
     }
 
+    /* ========= Bug Reports ========= */
+    // Anyone can create a report (no auth needed — same as Ome-Chat).
+    // Only admins can read or update (e.g. mark resolved).
+
+    match /bugReports/{reportId} {
+      allow create: if true;
+      allow read, update: if isAdmin();
+    }
+
     /* ========= Default Deny ========= */
     // Removed catch-all rule to prevent interference with specific permissions
     // Firestore denies by default if no rule matches

@@ -330,12 +330,22 @@
         status.style.display = 'none';
 
         try {
-            // firebase.functions() is available because the Firebase SDK is loaded before this script
-            const fn = firebase.functions().httpsCallable('submitBugReport');
-            await fn({
+            // Write directly to Firestore — no Cloud Function needed.
+            // Security rules allow anyone to create; only admins can read.
+            const logs = capturedLogs.slice(-50).map(function (entry) {
+                return {
+                    level: entry.level || 'log',
+                    message: (entry.message || '').substring(0, 500),
+                    timestamp: entry.timestamp || null
+                };
+            });
+
+            await firebase.firestore().collection('bugReports').add({
                 page: window.location.pathname,
-                description: description,
-                consoleLogs: capturedLogs.slice() // snapshot current logs
+                description: description.substring(0, 2000),
+                consoleLogs: logs,
+                submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                resolved: false
             });
 
             status.textContent = 'Bug report submitted — thank you!';

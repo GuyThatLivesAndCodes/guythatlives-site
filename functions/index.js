@@ -239,49 +239,6 @@ exports.omeChatCleanupSessions = functions.pubsub
     });
 
 /**
- * Submit a bug report from any page in /unblocked/
- * Stores the user's description + last 50 console messages.
- * No auth required — anyone can report.
- */
-exports.submitBugReport = functions.https.onCall(async (data, context) => {
-    const { page, description, consoleLogs } = data;
-
-    if (!description || typeof description !== 'string' || description.trim().length === 0) {
-        throw new functions.https.HttpsError(
-            'invalid-argument',
-            'A description is required.'
-        );
-    }
-
-    if (!page || typeof page !== 'string') {
-        throw new functions.https.HttpsError(
-            'invalid-argument',
-            'The page path is required.'
-        );
-    }
-
-    const db = admin.firestore();
-
-    await db.collection('bugReports').add({
-        page: page.trim(),
-        description: description.trim().substring(0, 2000), // cap at 2 000 chars
-        consoleLogs: Array.isArray(consoleLogs)
-            ? consoleLogs.slice(-50).map(entry => ({
-                level: entry.level || 'log',
-                message: typeof entry.message === 'string'
-                    ? entry.message.substring(0, 500)
-                    : String(entry.message).substring(0, 500),
-                timestamp: entry.timestamp || null
-            }))
-            : [],
-        submittedAt: admin.firestore.FieldValue.serverTimestamp(),
-        resolved: false
-    });
-
-    return { success: true };
-});
-
-/**
  * Auto-ban users when they receive 3 reports in 30 minutes
  * Triggered when moderation document is updated
  */
