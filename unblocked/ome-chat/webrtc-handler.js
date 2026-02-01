@@ -33,6 +33,14 @@ class WebRTCHandler {
         this.hasProcessedOffer = false;
         this.hasProcessedAnswer = false;
         this.pendingCandidates = [];
+
+        // Connection recovery
+        this.iceRestartAttempts = 0;
+        this.maxIceRestartAttempts = 3;
+        this.reconnectTimeout = null;
+
+        // Multi-peer support for public rooms: sessionId -> { pc, remoteStream }
+        this.peers = new Map();
     }
 
     /**
@@ -162,8 +170,17 @@ class WebRTCHandler {
                 this.onConnectionStateChange(state);
             }
 
-            if (state === 'failed') {
-                console.error('Connection failed, attempting ICE restart...');
+            if (state === 'connected') {
+                // Connection succeeded — reset recovery counters
+                this.iceRestartAttempts = 0;
+                if (this.reconnectTimeout) {
+                    clearTimeout(this.reconnectTimeout);
+                    this.reconnectTimeout = null;
+                }
+            }
+
+            if (state === 'failed' || state === 'disconnected') {
+                console.warn(`Connection ${state}, attempting recovery...`);
                 this.restartIce();
             }
         };
@@ -243,7 +260,8 @@ class WebRTCHandler {
         try {
             switch (message.type) {
                 case 'offer':
-                    // Only process offer if we're not the initiator
+                    // Non-initiator processes offers.  hasProcessedOffer is reset
+                    // by restartIce() recovery so a fresh ICE-restart offer goes through.
                     if (!this.isInitiator && !this.hasProcessedOffer) {
                         console.log('Received offer, creating answer...');
                         this.hasProcessedOffer = true;
@@ -262,11 +280,28 @@ class WebRTCHandler {
 
                         await this.signaling.sendAnswer(this.roomId, answer);
                         console.log('Answer sent');
+                    } else if (!this.isInitiator && this.hasProcessedOffer) {
+                        // A second offer arrived — this is an ICE restart from the initiator.
+                        // Process it to recover the connection.
+                        console.log('Received ICE-restart offer, reprocessing...');
+                        this.pendingCandidates = [];
+
+                        await this.peerConnection.setRemoteDescription(
+                            new RTCSessionDescription(message.offer)
+                        );
+
+                        await this.processPendingCandidates();
+
+                        const answer = await this.peerConnection.createAnswer();
+                        await this.peerConnection.setLocalDescription(answer);
+                        await this.signaling.sendAnswer(this.roomId, answer);
+                        console.log('ICE-restart answer sent');
                     }
                     break;
 
                 case 'answer':
-                    // Only process answer if we're the initiator
+                    // Initiator processes answers. hasProcessedAnswer is reset
+                    // by restartIce() so the answer to an ICE-restart offer goes through.
                     if (this.isInitiator && !this.hasProcessedAnswer) {
                         console.log('Received answer');
                         this.hasProcessedAnswer = true;
@@ -326,19 +361,51 @@ class WebRTCHandler {
     }
 
     /**
-     * Attempt to restart ICE in case of connection failure
+     * Attempt to restart ICE in case of connection failure.
+     * Works bilaterally: the initiator sends a new offer, the non-initiator
+     * waits for it (the signaling layer's timestamp dedup will let the new offer through).
+     * Gives up after maxIceRestartAttempts and fires a 'failed' state.
      */
     async restartIce() {
-        if (!this.peerConnection || !this.isInitiator) return;
+        if (!this.peerConnection) return;
 
-        try {
-            const offer = await this.peerConnection.createOffer({ iceRestart: true });
-            await this.peerConnection.setLocalDescription(offer);
-            await this.signaling.sendOffer(this.roomId, offer);
-            console.log('ICE restart initiated');
-        } catch (error) {
-            console.error('Error restarting ICE:', error);
+        this.iceRestartAttempts++;
+        if (this.iceRestartAttempts > this.maxIceRestartAttempts) {
+            console.error('ICE restart attempts exhausted — connection failed.');
+            if (this.onConnectionStateChange) {
+                this.onConnectionStateChange('failed');
+            }
+            return;
         }
+
+        console.log(`ICE restart attempt ${this.iceRestartAttempts}/${this.maxIceRestartAttempts}`);
+
+        if (this.isInitiator) {
+            // Initiator: create a fresh offer with iceRestart and reset the answer flag
+            // so the incoming answer will be processed.
+            try {
+                this.hasProcessedAnswer = false;
+                const offer = await this.peerConnection.createOffer({ iceRestart: true });
+                await this.peerConnection.setLocalDescription(offer);
+                await this.signaling.sendOffer(this.roomId, offer);
+                console.log('ICE restart offer sent');
+            } catch (error) {
+                console.error('Error sending ICE restart offer:', error);
+            }
+        }
+        // Non-initiator does nothing here — it will receive the new offer via
+        // the signaling listener (timestamp dedup allows it through) and the
+        // hasProcessedOffer flag is reset below when a new offer arrives.
+
+        // Safety timeout: if we haven't reconnected in 8 seconds, try again
+        if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = setTimeout(() => {
+            if (this.peerConnection &&
+                this.peerConnection.connectionState !== 'connected') {
+                console.warn('Reconnect timeout — retrying ICE restart');
+                this.restartIce();
+            }
+        }, 8000);
     }
 
     /**
@@ -390,10 +457,154 @@ class WebRTCHandler {
     }
 
     /**
+     * Connect to a peer in a multi-user public room.
+     * Each remote peer gets their own RTCPeerConnection to us.
+     * @param {string} peerId - The remote peer's session ID
+     * @param {boolean} isInitiatorToPeer - true if we should send the offer to this peer
+     * @param {string} roomId
+     */
+    async connectToPeer(peerId, isInitiatorToPeer, roomId) {
+        if (this.peers.has(peerId)) {
+            console.log(`Already connected to peer ${peerId}`);
+            return;
+        }
+
+        console.log(`Connecting to peer ${peerId} (initiator: ${isInitiatorToPeer})`);
+
+        const pc = new RTCPeerConnection(this.configuration);
+        const peerData = { pc, remoteStream: null, isInitiator: isInitiatorToPeer };
+        this.peers.set(peerId, peerData);
+
+        // Add our local tracks to the new peer connection
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => {
+                pc.addTrack(track, this.localStream);
+            });
+        }
+
+        // ICE candidates — store in a peer-specific subcollection path
+        pc.onicecandidate = async (event) => {
+            if (event.candidate) {
+                await this.signaling.sendCandidate(roomId + '_peer_' + peerId, event.candidate);
+            }
+        };
+
+        pc.ontrack = (event) => {
+            if (!peerData.remoteStream) {
+                peerData.remoteStream = new MediaStream();
+            }
+            peerData.remoteStream.addTrack(event.track);
+
+            // Render this peer's video
+            this.renderPeerVideo(peerId, peerData.remoteStream);
+        };
+
+        pc.onconnectionstatechange = () => {
+            console.log(`Peer ${peerId} connection state: ${pc.connectionState}`);
+            if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+                this.removePeerVideo(peerId);
+                this.peers.delete(peerId);
+            }
+        };
+
+        // Listen for this peer's signaling on the peer-specific channel
+        this.signaling.listenForRoom(roomId + '_peer_' + peerId);
+        this.signaling.onSignalingMessage(async (message) => {
+            await this.handlePeerSignaling(peerId, pc, message);
+        });
+
+        if (isInitiatorToPeer) {
+            const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+            await pc.setLocalDescription(offer);
+            await this.signaling.sendOffer(roomId + '_peer_' + peerId, offer);
+        }
+    }
+
+    /**
+     * Handle signaling for a specific peer in a multi-user room
+     */
+    async handlePeerSignaling(peerId, pc, message) {
+        const peerData = this.peers.get(peerId);
+        if (!peerData) return;
+
+        try {
+            if (message.type === 'offer' && !peerData.isInitiator) {
+                await pc.setRemoteDescription(new RTCSessionDescription(message.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                await this.signaling.sendAnswer(this.roomId + '_peer_' + peerId, answer);
+            } else if (message.type === 'answer' && peerData.isInitiator) {
+                await pc.setRemoteDescription(new RTCSessionDescription(message.answer));
+            } else if (message.type === 'candidate') {
+                await pc.addIceCandidate(new RTCIceCandidate(message.candidate));
+            }
+        } catch (error) {
+            console.error(`Error handling peer ${peerId} signaling:`, error);
+        }
+    }
+
+    /**
+     * Render a peer's video stream into the multi-video grid
+     */
+    renderPeerVideo(peerId, stream) {
+        const grid = document.getElementById('remote-videos-grid');
+        if (!grid) return;
+
+        let wrapper = document.getElementById('remote-video-wrapper-' + peerId);
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'remote-video-wrapper';
+            wrapper.id = 'remote-video-wrapper-' + peerId;
+
+            const video = document.createElement('video');
+            video.autoplay = true;
+            video.playsInline = true;
+            video.id = 'remote-video-' + peerId;
+
+            const label = document.createElement('div');
+            label.className = 'remote-user-label';
+            label.innerHTML = `<span>${peerId.substring(0, 12)}...</span>`;
+
+            wrapper.appendChild(video);
+            wrapper.appendChild(label);
+            grid.appendChild(wrapper);
+        }
+
+        const video = document.getElementById('remote-video-' + peerId);
+        if (video) video.srcObject = stream;
+    }
+
+    /**
+     * Remove a peer's video element from the grid
+     */
+    removePeerVideo(peerId) {
+        const wrapper = document.getElementById('remote-video-wrapper-' + peerId);
+        if (wrapper) wrapper.remove();
+    }
+
+    /**
+     * Disconnect from a specific peer
+     */
+    disconnectPeer(peerId) {
+        const peerData = this.peers.get(peerId);
+        if (peerData) {
+            peerData.pc.close();
+            this.removePeerVideo(peerId);
+            this.peers.delete(peerId);
+        }
+    }
+
+    /**
      * Close the peer connection and clean up
      */
     close() {
         console.log('Closing WebRTC connection');
+
+        // Clear reconnect timeout
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
 
         // Stop all local tracks
         if (this.localStream) {
@@ -404,7 +615,14 @@ class WebRTCHandler {
             this.localStream = null;
         }
 
-        // Close peer connection
+        // Close all multi-peer connections
+        this.peers.forEach((peerData, peerId) => {
+            peerData.pc.close();
+            this.removePeerVideo(peerId);
+        });
+        this.peers.clear();
+
+        // Close primary peer connection
         if (this.peerConnection) {
             this.peerConnection.close();
             this.peerConnection = null;
@@ -417,6 +635,7 @@ class WebRTCHandler {
         this.hasProcessedOffer = false;
         this.hasProcessedAnswer = false;
         this.pendingCandidates = [];
+        this.iceRestartAttempts = 0;
 
         // Clear video elements
         const localVideo = document.getElementById('local-video');

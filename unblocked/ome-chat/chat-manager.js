@@ -18,6 +18,8 @@ class OmeChatManager {
         this.currentPartnerAnonymousId = null;
         this.preferences = { video: true, audio: true, text: true };
         this.blockedSessions = new Set();
+        this.isRoomPublic = false;
+        this.roomParticipants = [];
 
         // Initialization
         this.initialized = false;
@@ -163,8 +165,13 @@ class OmeChatManager {
                     this.ui.updateConnectionStatus('connecting');
                     break;
                 case 'disconnected':
+                    // Transient — ICE restart will attempt recovery automatically.
+                    // Just update the indicator; don't trigger partner-disconnected yet.
+                    this.ui.updateConnectionStatus('connecting');
+                    break;
                 case 'failed':
                 case 'closed':
+                    // Recovery exhausted or connection closed — show disconnect message.
                     this.ui.updateConnectionStatus('disconnected');
                     if (this.currentRoomId) {
                         this.ui.showPartnerDisconnected();
@@ -198,6 +205,9 @@ class OmeChatManager {
 
             // Show searching panel
             this.ui.showPanel('searching');
+
+            // Start listening for public rooms to show in sidebar
+            this.startListeningForPublicRooms();
 
             // Setup match callback
             this.matchingQueue.onMatch(async (matchData) => {
@@ -408,6 +418,113 @@ class OmeChatManager {
     }
 
     /**
+     * Toggle the current room's public visibility
+     */
+    async togglePublic() {
+        if (!this.currentRoomId) return;
+
+        this.isRoomPublic = !this.isRoomPublic;
+
+        try {
+            await this.signaling.setRoomPublic(this.currentRoomId, this.isRoomPublic);
+            this.ui.updatePublicButton(this.isRoomPublic);
+            this.ui.showToast(
+                this.isRoomPublic
+                    ? 'Room is now public — others can join while searching'
+                    : 'Room is now private',
+                'info'
+            );
+        } catch (error) {
+            console.error('Error toggling public:', error);
+            this.isRoomPublic = !this.isRoomPublic; // revert
+            this.ui.showToast('Failed to update room visibility', 'error');
+        }
+    }
+
+    /**
+     * Start listening for public rooms (called when entering the searching panel)
+     */
+    startListeningForPublicRooms() {
+        this.signaling.listenForPublicRooms((rooms) => {
+            this.ui.updatePublicRoomsList(rooms);
+        });
+    }
+
+    /**
+     * Join a public room by ID
+     * @param {string} roomId
+     */
+    async joinPublicRoom(roomId) {
+        try {
+            const joined = await this.signaling.joinRoom(roomId, this.sessionId);
+            if (!joined) {
+                this.ui.showToast('Could not join that room (full or no longer available)', 'error');
+                return;
+            }
+
+            // Cancel any ongoing search
+            if (this.matchingQueue.isQueued()) {
+                await this.matchingQueue.leave();
+            }
+
+            this.currentRoomId = roomId;
+            await this.updateSessionStatus('in-chat');
+
+            // Initialize WebRTC — we are NOT the initiator (we joined an existing room)
+            await this.webrtc.initialize(roomId, false, this.preferences);
+            this.signaling.listenForRoom(roomId);
+            this.signaling.listenForMessages(roomId, (message) => {
+                this.handleIncomingMessage(message);
+            });
+
+            // Listen for participant changes to connect to new peers
+            this.signaling.listenForParticipants(roomId, (participants, roomData) => {
+                this.handleParticipantChange(participants, roomData);
+            });
+
+            // Create offer to room creator (first participant)
+            // Each joiner connects peer-to-peer with every existing participant
+            this.roomParticipants = [];
+            // Short delay to let listeners settle
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Get current participants and connect
+            const roomDoc = await this.db.collection('omechat').doc('data')
+                .collection('rooms').doc(roomId).get();
+            if (roomDoc.exists) {
+                const participants = roomDoc.data().participants;
+                this.roomParticipants = [...participants];
+
+                // Show chat with multi-user info
+                this.ui.showChatPanel('Public Room');
+                this.ui.updateParticipantsBar(participants, this.sessionId);
+            }
+        } catch (error) {
+            console.error('Error joining public room:', error);
+            this.ui.showToast('Failed to join room', 'error');
+        }
+    }
+
+    /**
+     * Handle participant list changes in a public room
+     */
+    handleParticipantChange(participants, roomData) {
+        if (!this.currentRoomId) return;
+
+        // Update UI
+        this.ui.updateParticipantsBar(participants, this.sessionId);
+
+        // Check if room ended (no participants or status ended)
+        if (roomData && roomData.status === 'ended') {
+            this.ui.addSystemMessage('This room has ended.');
+            setTimeout(() => this.disconnect(), 2000);
+            return;
+        }
+
+        this.roomParticipants = [...participants];
+    }
+
+    /**
      * Cancel searching for a match
      */
     async cancelSearch() {
@@ -421,9 +538,14 @@ class OmeChatManager {
     async disconnect() {
         console.log('Disconnecting...');
 
-        // Leave room via signaling
         if (this.currentRoomId) {
-            await this.signaling.leaveRoom(this.currentRoomId);
+            if (this.isRoomPublic && this.roomParticipants.length > 1) {
+                // In a public multi-user room: just remove ourselves, don't end it
+                await this.signaling.removeFromRoom(this.currentRoomId, this.sessionId);
+            } else {
+                // 1-on-1 or last person: end the room
+                await this.signaling.leaveRoom(this.currentRoomId);
+            }
         }
 
         // Close WebRTC connection
@@ -438,6 +560,8 @@ class OmeChatManager {
         this.currentRoomId = null;
         this.currentPartnerSessionId = null;
         this.currentPartnerAnonymousId = null;
+        this.isRoomPublic = false;
+        this.roomParticipants = [];
 
         // Update session status
         await this.updateSessionStatus('idle');

@@ -129,6 +129,14 @@ class UIController {
             });
         }
 
+        // Public toggle button
+        const publicToggleBtn = document.getElementById('public-toggle-btn');
+        if (publicToggleBtn) {
+            publicToggleBtn.addEventListener('click', () => {
+                this.chatManager.togglePublic();
+            });
+        }
+
         // Retry button (error panel)
         const retryBtn = document.getElementById('retry-btn');
         if (retryBtn) {
@@ -338,7 +346,7 @@ class UIController {
             if (this.panels.chat.style.display !== 'none') {
                 this.chatManager.skip();
             }
-        }, 3000);
+        }, 5000);
     }
 
     /**
@@ -528,6 +536,114 @@ class UIController {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    /**
+     * Update the public toggle button text/style
+     * @param {boolean} isPublic
+     */
+    updatePublicButton(isPublic) {
+        const btn = document.getElementById('public-toggle-btn');
+        const text = document.getElementById('public-btn-text');
+        if (btn) {
+            btn.classList.toggle('btn-public-active', isPublic);
+        }
+        if (text) {
+            text.textContent = isPublic ? 'Make Private' : 'Make Public';
+        }
+    }
+
+    /**
+     * Render the list of public rooms in the searching sidebar
+     * @param {Array} rooms
+     */
+    updatePublicRoomsList(rooms) {
+        const grid = document.getElementById('public-rooms-grid');
+        const countEl = document.getElementById('public-rooms-count');
+        if (!grid) return;
+
+        if (countEl) {
+            countEl.textContent = rooms.length + ' active';
+        }
+
+        // Clear existing cards
+        grid.innerHTML = '';
+
+        if (rooms.length === 0) {
+            grid.innerHTML = `
+                <div class="no-public-rooms">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <p>No public rooms available</p>
+                    <span>When users make their calls public, they'll appear here</span>
+                </div>`;
+            return;
+        }
+
+        rooms.forEach((room) => {
+            const card = document.createElement('div');
+            card.className = 'public-room-card';
+
+            const spotsLeft = 10 - room.participantCount;
+            card.innerHTML = `
+                <div class="room-card-header">
+                    <svg class="room-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span class="room-card-count">${room.participantCount}/10</span>
+                </div>
+                <div class="room-card-spots">${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left</div>
+                <button class="btn btn-join-room" data-room-id="${this.escapeHtml(room.roomId)}">Join Room</button>`;
+
+            grid.appendChild(card);
+        });
+
+        // Attach join handlers
+        grid.querySelectorAll('.btn-join-room').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const roomId = btn.getAttribute('data-room-id');
+                this.chatManager.joinPublicRoom(roomId);
+            });
+        });
+    }
+
+    /**
+     * Update the participants bar in a multi-user room
+     * @param {string[]} participants - Array of session IDs
+     * @param {string} mySessionId
+     */
+    updateParticipantsBar(participants, mySessionId) {
+        const bar = document.getElementById('participants-bar');
+        const countEl = document.getElementById('participant-count');
+        const listEl = document.getElementById('participants-list');
+
+        if (!bar || !listEl) return;
+
+        // Show bar if more than 2 participants (or always for public rooms)
+        bar.style.display = participants.length > 1 ? 'flex' : 'none';
+
+        if (countEl) {
+            countEl.textContent = participants.length + ' in room';
+        }
+
+        listEl.innerHTML = '';
+        participants.forEach((id) => {
+            const avatar = document.createElement('div');
+            avatar.className = 'participant-avatar' + (id === mySessionId ? ' me' : '');
+            avatar.title = id === mySessionId ? 'You' : id.substring(5, 17);
+            // Use initials from the session ID hash for a simple colored avatar
+            const hash = id.split('').reduce((a, c) => ((a << 5) - a) + c.charCodeAt(0), 0);
+            const hue = Math.abs(hash) % 360;
+            avatar.style.background = `hsl(${hue}, 60%, 45%)`;
+            avatar.textContent = id === mySessionId ? 'You' : '👤';
+            listEl.appendChild(avatar);
+        });
     }
 
     /**
