@@ -6,7 +6,8 @@
 
 // Configuration
 const CONFIG = {
-    OLLAMA_API_URL: 'http://oai1.guythatlives.net/api',
+    // Use Firebase Function proxy to avoid mixed content issues
+    OLLAMA_API_URL: 'https://us-central1-guythatlives-unblocked.cloudfunctions.net/ollamaProxy',
     MODEL: 'qwen3:4b',
     MAX_RETRIES: 3,
     RETRY_DELAY: 1000,
@@ -106,7 +107,7 @@ class OllamaClient {
     }
 
     async chat(messages, onChunk = null) {
-        const url = `${this.apiUrl}/chat`;
+        const url = this.apiUrl;
 
         // Prepare messages with system prompt
         const formattedMessages = [
@@ -174,12 +175,19 @@ class OllamaClient {
 
     async testConnection() {
         try {
-            const response = await fetch(`${this.apiUrl}/tags`);
-            if (!response.ok) {
-                throw new Error('API not accessible');
-            }
-            const data = await response.json();
-            return data.models && data.models.some(m => m.name === this.model);
+            // Simple test - try to send a minimal request
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: this.model,
+                    messages: [{ role: 'user', content: 'test' }],
+                    stream: false
+                })
+            });
+            return response.ok;
         } catch (error) {
             console.error('Connection test failed:', error);
             return false;

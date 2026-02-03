@@ -5,6 +5,7 @@
 
 const functions = require('firebase-functions');
 const https = require('https');
+const http = require('http');
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
@@ -268,3 +269,85 @@ exports.omeChatProcessReport = functions.firestore
 
         return null;
     });
+
+/* ========= GuyAI Ollama Proxy ========= */
+
+/**
+ * Proxy requests to Ollama API to avoid mixed content issues
+ * HTTPS frontend -> Firebase Function (HTTPS) -> Ollama API (HTTP)
+ */
+exports.ollamaProxy = functions.https.onRequest(async (req, res) => {
+    // Enable CORS
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+    }
+
+    // Only allow POST for /chat endpoint
+    if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
+
+    const { messages, model = 'qwen3:4b', stream = true } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+        res.status(400).json({ error: 'Invalid request: messages required' });
+        return;
+    }
+
+    const requestBody = JSON.stringify({
+        model,
+        messages,
+        stream
+    });
+
+    const options = {
+        hostname: 'oai1.guythatlives.net',
+        port: 80,
+        path: '/api/chat',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(requestBody)
+        }
+    };
+
+    // Forward request to Ollama API
+    const proxyReq = http.request(options, (proxyRes) => {
+        // Set response headers for streaming
+        res.status(proxyRes.statusCode || 200);
+        res.set('Content-Type', proxyRes.headers['content-type'] || 'application/json');
+
+        if (stream) {
+            res.set('Transfer-Encoding', 'chunked');
+        }
+
+        // Stream response back to client
+        proxyRes.on('data', (chunk) => {
+            res.write(chunk);
+        });
+
+        proxyRes.on('end', () => {
+            res.end();
+        });
+    });
+
+    proxyReq.on('error', (error) => {
+        console.error('Ollama proxy error:', error);
+        if (!res.headersSent) {
+            res.status(502).json({
+                error: 'Failed to connect to Ollama API',
+                message: error.message
+            });
+        }
+    });
+
+    proxyReq.write(requestBody);
+    proxyReq.end();
+});
