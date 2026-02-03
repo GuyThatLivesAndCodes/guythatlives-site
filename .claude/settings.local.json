@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(curl:*)",
-      "Bash(firebase use:*)"
+      "Bash(firebase use:*)",
+      "Bash(find:*)"
     ]
   }
 }

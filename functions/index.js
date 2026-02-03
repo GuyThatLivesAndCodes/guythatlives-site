@@ -270,84 +270,34 @@ exports.omeChatProcessReport = functions.firestore
         return null;
     });
 
-/* ========= GuyAI Ollama Proxy ========= */
+/* ========= GuyAI - Legacy Ollama Proxy (DEPRECATED) ========= */
 
 /**
- * Proxy requests to Ollama API to avoid mixed content issues
- * HTTPS frontend -> Firebase Function (HTTPS) -> Ollama API (HTTP)
+ * DEPRECATED: This function is no longer used by GuyAI.
+ * GuyAI now uses Cloudflare AI Gateway for direct access to Claude API.
+ *
+ * This legacy proxy was used to route requests to a local Ollama server.
+ * Keeping for backward compatibility but should be removed in future cleanup.
+ *
+ * New GuyAI architecture:
+ * - Client-side encryption using Web Crypto API
+ * - Cloudflare AI Gateway for secure API routing
+ * - Direct integration with Anthropic's Claude Haiku 4
  */
 exports.ollamaProxy = functions.https.onRequest(async (req, res) => {
-    // Enable CORS
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.set('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.status(204).send('');
-        return;
-    }
-
-    // Only allow POST for /chat endpoint
-    if (req.method !== 'POST') {
-        res.status(405).json({ error: 'Method not allowed' });
-        return;
-    }
-
-    const { messages, model = 'qwen3:4b', stream = true } = req.body;
-
-    if (!messages || !Array.isArray(messages)) {
-        res.status(400).json({ error: 'Invalid request: messages required' });
-        return;
-    }
-
-    const requestBody = JSON.stringify({
-        model,
-        messages,
-        stream
-    });
-
-    const options = {
-        hostname: 'oai1.guythatlives.net',
-        port: 80,
-        path: '/api/chat',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(requestBody)
-        }
-    };
-
-    // Forward request to Ollama API
-    const proxyReq = http.request(options, (proxyRes) => {
-        // Set response headers for streaming
-        res.status(proxyRes.statusCode || 200);
-        res.set('Content-Type', proxyRes.headers['content-type'] || 'application/json');
-
-        if (stream) {
-            res.set('Transfer-Encoding', 'chunked');
-        }
-
-        // Stream response back to client
-        proxyRes.on('data', (chunk) => {
-            res.write(chunk);
-        });
-
-        proxyRes.on('end', () => {
-            res.end();
-        });
-    });
-
-    proxyReq.on('error', (error) => {
-        console.error('Ollama proxy error:', error);
-        if (!res.headersSent) {
-            res.status(502).json({
-                error: 'Failed to connect to Ollama API',
-                message: error.message
-            });
+    // Return deprecation notice
+    res.status(410).json({
+        error: 'This endpoint is deprecated',
+        message: 'GuyAI now uses Cloudflare AI Gateway. Please update to the latest version at /unblocked/guyai/',
+        migration: {
+            oldEndpoint: 'Firebase Function Ollama Proxy',
+            newArchitecture: 'Cloudflare AI Gateway → Anthropic Claude API',
+            benefits: [
+                'End-to-end encryption',
+                'No server-side proxy needed',
+                'Better performance and reliability',
+                'Direct access to Claude Haiku 4'
+            ]
         }
     });
-
-    proxyReq.write(requestBody);
-    proxyReq.end();
 });

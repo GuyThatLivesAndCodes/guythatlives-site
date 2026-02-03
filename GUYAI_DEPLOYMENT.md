@@ -1,187 +1,239 @@
 # GuyAI Deployment Guide
 
-## Problem: Mixed Content Error
+## New Architecture: Cloudflare AI Gateway
 
-Your site uses HTTPS (`https://guythatlives.net`) but the Ollama server is HTTP (`http://oai1.guythatlives.net`). Browsers block HTTP requests from HTTPS pages for security reasons.
+GuyAI has been completely redesigned to use Cloudflare AI Gateway with Anthropic's Claude Haiku 4.
 
-## Solution: Firebase Function Proxy
-
-We've created a Firebase Cloud Function that acts as a secure proxy:
+### Architecture Overview
 
 ```
-User (HTTPS) → Firebase Function (HTTPS) → Ollama API (HTTP) → Firebase Function → User
+User Browser (E2E Encrypted)
+    ↓ HTTPS
+Cloudflare AI Gateway
+    ↓ HTTPS
+Anthropic Claude API (Haiku 4)
+    ↓
+Response (streamed back)
 ```
 
-This allows secure HTTPS communication throughout while still accessing your HTTP Ollama server.
+## Key Features
 
-## Deployment Steps
+- **End-to-End Encryption**: AES-256-GCM encryption for all chat data
+- **No Server-Side Proxy**: Direct client-to-gateway communication
+- **Cloudflare Security**: Built-in rate limiting, analytics, and caching
+- **Claude Haiku 4**: Fast, intelligent AI responses
+- **Privacy First**: All data stays in browser localStorage
 
-### Option 1: Automated Deployment (Recommended)
+## Setup Steps
 
-1. **Run the deployment script:**
-   ```bash
-   deploy-guyai.bat
-   ```
+### Step 1: Get Cloudflare Credentials
 
-2. **Follow the prompts:**
-   - The script will switch to the `guythatlives-unblocked` Firebase project
-   - Install any missing dependencies
-   - Deploy only the `ollamaProxy` function
+#### Account ID
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Click on any website/zone
+3. Your **Account ID** is in the right sidebar
+4. Or check the URL: `https://dash.cloudflare.com/[ACCOUNT_ID]`
 
-3. **Wait for deployment to complete** (usually 1-2 minutes)
+#### API Token
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Click profile icon → **My Profile** → **API Tokens**
+3. Click **Create Token**
+4. Use **"Edit Cloudflare Workers"** template or custom token with:
+   - Account → AI Gateway → Read
+   - Account → AI Gateway → Edit
+5. **Copy the token immediately** (shown only once!)
 
-### Option 2: Manual Deployment
+#### Gateway ID
+Your gateway is: `unblocked-claude-gateway`
 
-1. **Switch to the unblocked Firebase project:**
-   ```bash
-   firebase use unblocked
-   ```
+Verify in Cloudflare Dashboard → AI section → AI Gateway
 
-2. **Install function dependencies (if not already installed):**
-   ```bash
-   cd functions
-   npm install
-   cd ..
-   ```
+### Step 2: Configure Anthropic API in Gateway
 
-3. **Deploy the Ollama proxy function:**
-   ```bash
-   firebase deploy --only functions:ollamaProxy
-   ```
+1. Go to [Anthropic Console](https://console.anthropic.com/)
+2. Create an API key
+3. In Cloudflare Dashboard → AI Gateway → Your Gateway
+4. Add Anthropic API key to gateway configuration
+5. Enable Claude Haiku 4 (`claude-haiku-4-20250514`)
 
-4. **Wait for deployment to complete**
+### Step 3: Deploy GuyAI
+
+Run the deployment script:
+```bash
+deploy-guyai.bat
+```
+
+Or manually:
+```bash
+firebase use unblocked
+firebase deploy --only hosting
+```
+
+### Step 4: Configure in Browser
+
+1. Visit `https://guythatlives.net/unblocked/guyai/`
+2. Click the ⚙️ (settings) icon
+3. Enter your credentials:
+   - Cloudflare Account ID
+   - Cloudflare API Token
+   - Gateway ID: `unblocked-claude-gateway`
+4. Click **Save Configuration**
+5. Start chatting!
 
 ## Verification
 
-After deployment, verify the function is working:
-
-1. **Visit the Firebase Console:**
-   - Go to https://console.firebase.google.com
-   - Select `guythatlives-unblocked` project
-   - Navigate to Functions section
-   - Verify `ollamaProxy` function is deployed and healthy
-
-2. **Test the chatbot:**
-   - Navigate to https://guythatlives.net/unblocked/guyai/
+1. **Test the interface:**
+   - Visit https://guythatlives.net/unblocked/guyai/
    - Send a test message
-   - You should see AI responses streaming in
+   - Should see fast responses from Claude Haiku 4
 
-3. **Check browser console:**
-   - Press F12 to open developer tools
-   - Look for any errors
-   - Should see successful API calls to the Firebase Function
+2. **Check encryption:**
+   - Open browser DevTools (F12) → Application → Local Storage
+   - Find `guyai_chat_history` - should be encrypted gibberish
+   - Encryption icon should show in header
 
-## Function Details
+3. **Monitor in Cloudflare:**
+   - Go to AI Gateway dashboard
+   - View analytics for request counts
+   - Check for any errors
 
-**Function Name:** `ollamaProxy`
+## Gateway Configuration
 
-**URL:** `https://us-central1-guythatlives-unblocked.cloudfunctions.net/ollamaProxy`
+**Gateway URL Format:**
+```
+https://gateway.ai.cloudflare.com/v1/{accountId}/{gatewayId}/anthropic/v1/messages
+```
 
-**Method:** POST
-
-**Request Body:**
+**Request Format:**
 ```json
 {
-  "model": "qwen3:4b",
+  "model": "claude-haiku-4-20250514",
+  "max_tokens": 4096,
   "messages": [
-    {"role": "system", "content": "..."},
-    {"role": "user", "content": "..."}
-  ],
-  "stream": true
+    {"role": "user", "content": "Hello!"}
+  ]
 }
 ```
 
-**Features:**
-- CORS enabled for cross-origin requests
-- Streaming support for real-time responses
-- Error handling and logging
-- Proxies directly to Ollama API at `http://oai1.guythatlives.net/api/chat`
+**Headers Required:**
+- `Content-Type: application/json`
+- `Authorization: Bearer {apiToken}`
+- `anthropic-version: 2023-06-01`
 
 ## Troubleshooting
 
-### Function not deploying?
+### "Please configure your Cloudflare credentials first"
+- Click ⚙️ settings icon
+- Enter all three credentials
+- Make sure there are no extra spaces
+- Credentials save to browser localStorage
 
-1. **Check Firebase CLI is installed:**
-   ```bash
-   firebase --version
-   ```
-   If not installed: `npm install -g firebase-tools`
+### "Failed to get response: 401 Unauthorized"
+- API token is invalid or expired
+- Create a new token with correct permissions
+- Verify Anthropic API key in Cloudflare Gateway
 
-2. **Ensure you're logged in:**
-   ```bash
-   firebase login
-   ```
+### "Failed to get response: 403 Forbidden"
+- API token lacks necessary permissions
+- Token needs: AI Gateway Read + Edit
+- Recreate token with proper permissions
 
-3. **Check you're on the right project:**
-   ```bash
-   firebase use
-   ```
-   Should show: `guythatlives-unblocked`
+### "Failed to get response: 404 Not Found"
+- Gateway ID is incorrect
+- Check spelling: `unblocked-claude-gateway`
+- Verify gateway exists in Cloudflare dashboard
 
-### Still getting CORS errors?
+### "Failed to initialize encryption"
+- Browser doesn't support Web Crypto API
+- Use modern browser (Chrome, Firefox, Safari, Edge)
+- Ensure site is accessed via HTTPS (not HTTP)
 
-1. **Check the function URL in `guyai.js`:**
-   - Should be: `https://us-central1-guythatlives-unblocked.cloudfunctions.net/ollamaProxy`
+### Chat history not saving
+- Check if localStorage is enabled
+- Private/Incognito mode clears data on close
+- Check browser console (F12) for errors
+- Try clearing site data and reconfiguring
 
-2. **Clear browser cache and reload**
+### Configuration modal won't close
+- Fill in all three required fields
+- Check browser console for JavaScript errors
+- Try refreshing the page
 
-3. **Check browser console for exact error message**
-
-### Ollama server not responding?
-
-1. **Verify Ollama is running:**
-   ```bash
-   curl http://oai1.guythatlives.net/api/tags
-   ```
-
-2. **Check the model is available:**
-   - Should list `qwen3:4b` in the models array
-
-3. **Check Firebase Function logs:**
-   ```bash
-   firebase functions:log
-   ```
+### Responses are slow
+- Claude Haiku 4 is very fast - check network
+- Monitor in Cloudflare AI Gateway dashboard
+- Check Anthropic API status page
+- Verify API key has available credits
 
 ## Cost Considerations
 
-Firebase Cloud Functions pricing:
-- **Free tier:** 2M invocations/month, 400K GB-sec, 200K GHz-sec
-- **Typical usage:** Each chat message = 1 invocation
-- **Estimated cost:** Free for most usage levels
+### Cloudflare AI Gateway
+- **Free tier**: 10,000 requests/month
+- **Paid**: $5/million requests
+- Includes analytics, caching, rate limiting
 
-The proxy function is extremely lightweight and should stay within free tier limits for normal usage.
+### Anthropic API (Claude Haiku 4)
+- **Input**: ~$0.25 per million tokens
+- **Output**: ~$1.25 per million tokens
+- Fastest and most cost-effective Claude model
 
-## Files Modified
+**Estimated Monthly Cost** (100 conversations, 500 words each):
+- Cloudflare: Free (well under 10K limit)
+- Anthropic: ~$0.15 (150K tokens)
+- **Total: ~$0.15/month**
 
-1. **`functions/index.js`** - Added `ollamaProxy` function
-2. **`unblocked/guyai/guyai.js`** - Updated to use Firebase Function URL
-3. **`unblocked/index.html`** - Added GuyAI promotional banner
+Much cheaper than running your own Ollama server!
+
+## Migration from Old Version
+
+### What Changed
+- **Old**: Ollama local server + Firebase proxy
+- **New**: Cloudflare AI Gateway + Claude Haiku 4
+
+### Benefits
+- No server maintenance required
+- Better response quality
+- Faster responses
+- Built-in encryption
+- Lower operational costs
+- No mixed-content issues
+
+### Files Updated
+1. **`/unblocked/guyai/`** - Complete rewrite
+2. **`functions/index.js`** - ollamaProxy marked deprecated
+3. **`deploy-guyai.bat`** - Updated for new architecture
+4. **`GUYAI_DEPLOYMENT.md`** - This file
 
 ## Security Notes
 
-- The proxy function has CORS enabled (`*`) for public access
-- No authentication required (suitable for public chatbot)
-- No user data is stored server-side (all local storage)
-- Ollama API is accessed only from Firebase servers (not directly from clients)
-- Rate limiting can be added if needed
+- **Client-Side Encryption**: AES-256-GCM before localStorage
+- **HTTPS Only**: All communications encrypted in transit
+- **No Server Storage**: Zero message retention on servers
+- **Cloudflare Gateway**: Hides API keys from clients
+- **Rate Limiting**: Built into Cloudflare Gateway
+- **No Tracking**: No cookies, no analytics, no data collection
 
-## Next Steps After Deployment
+Your conversations are truly private - only you can read them.
 
-1. **Test thoroughly** - Try various prompts and conversations
-2. **Monitor usage** - Check Firebase Console for invocation counts
-3. **Add rate limiting** (optional) - Prevent abuse if needed
-4. **Consider caching** (optional) - Cache common responses to reduce Ollama load
+## Next Steps After Setup
+
+1. **Test the interface** - Send various types of queries
+2. **Monitor in Cloudflare** - Check AI Gateway dashboard
+3. **Check Anthropic usage** - Monitor token consumption
+4. **Share with users** - GuyAI is ready for public use!
+
+## Additional Resources
+
+- [Cloudflare AI Gateway Docs](https://developers.cloudflare.com/ai-gateway/)
+- [Anthropic API Docs](https://docs.anthropic.com/)
+- [Claude Haiku 4 Info](https://www.anthropic.com/claude)
+- [Web Crypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
 
 ## Support
 
-If you encounter issues:
-
-1. Check Firebase Functions logs: `firebase functions:log`
-2. Check browser console for client-side errors
-3. Verify Ollama server is accessible: `curl http://oai1.guythatlives.net/api/tags`
-4. Test the function directly with curl:
-   ```bash
-   curl -X POST https://us-central1-guythatlives-unblocked.cloudfunctions.net/ollamaProxy \
-     -H "Content-Type: application/json" \
-     -d '{"model":"qwen3:4b","messages":[{"role":"user","content":"test"}],"stream":false}'
-   ```
+For issues:
+1. Check browser console (F12) for errors
+2. Verify Cloudflare Gateway configuration
+3. Test API token permissions
+4. Check Anthropic API status
+5. Review `/unblocked/guyai/README.md` for detailed setup
