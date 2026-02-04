@@ -6,7 +6,8 @@
 class AuthManager {
     constructor(app) {
         this.app = app;
-        this.workerUrl = 'https://guythatlives.net/api/gchat';
+        // Cloudflare Worker URL
+        this.workerUrl = 'https://gchat-auth.zorbyteofficial.workers.dev';
         this.setupEventListeners();
     }
 
