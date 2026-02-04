@@ -72,7 +72,18 @@ class AuthManager {
                 body: JSON.stringify({ username, password })
             });
 
-            const result = await response.json();
+            // Debug: log response details
+            console.log('Response status:', response.status);
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse response:', responseText);
+                throw new Error('Server returned invalid response');
+            }
 
             if (!response.ok) {
                 throw new Error(result.error || 'Login failed');
@@ -152,7 +163,20 @@ class AuthManager {
                 })
             });
 
-            const result = await response.json();
+            // Debug: log response details
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            const responseText = await response.text();
+            console.log('Response text:', responseText);
+
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('Failed to parse response:', responseText);
+                throw new Error('Server returned invalid response: ' + responseText.substring(0, 100));
+            }
 
             if (!response.ok) {
                 throw new Error(result.error || 'Signup failed');
