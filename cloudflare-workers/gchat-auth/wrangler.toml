@@ -1,0 +1,23 @@
+name = "gchat-auth"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV Namespaces for data storage
+kv_namespaces = [
+  { binding = "GCHAT_ACCOUNTS", id = "your-accounts-namespace-id", preview_id = "your-accounts-preview-id" },
+  { binding = "GCHAT_SESSIONS", id = "your-sessions-namespace-id", preview_id = "your-sessions-preview-id" }
+]
+
+# Routes (update to your domain)
+routes = [
+  { pattern = "guythatlives.net/api/gchat/*", zone_name = "guythatlives.net" }
+]
+
+# Or use workers.dev subdomain for testing
+# workers_dev = true
+
+[build]
+command = "npm install"
+
+[env.production]
+name = "gchat-auth-production"

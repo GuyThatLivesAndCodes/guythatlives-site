@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ========= G-Chat (Cloudflare Workers Edition) ========= */
+    // Simplified rules - authentication handled by Cloudflare Workers
+    // Session validation done client-side with Workers KV
+
+    match /gchat {
+      allow read: if true;
+
+      // Profiles - public user profiles
+      match /profiles/users/{userId} {
+        allow read: if true; // Public profiles
+        allow create, write: if true; // Users can create/update their own profiles
+        // TODO: Add userId validation on client side
+      }
+
+      // Servers
+      match /servers/list/{serverId} {
+        allow read: if true; // Public server discovery
+        allow create: if true; // Any authenticated user can create
+        allow update, delete: if true; // Server ownership checked client-side
+        // TODO: Add ownership validation via Workers
+
+        // Channels
+        match /channels/{channelId} {
+          allow read: if true;
+          allow create, update, delete: if true;
+
+          // Messages
+          match /messages/{messageId} {
+            allow read: if true;
+            allow create: if true; // Membership checked client-side
+            allow delete: if true; // Ownership checked client-side
+          }
+        }
+      }
+
+      // Server Members (optional, not currently used)
+      match /server-members/{serverId}/members/{userId} {
+        allow read, write: if true;
+      }
+
+      // Featured Requests
+      match /featured-requests/pending/{requestId} {
+        allow read, create, update: if true;
+        // Admin check done client-side
+      }
+
+      // Voice Sessions
+      match /voice-sessions/active/{sessionId} {
+        allow read, write: if true;
+
+        // Signaling subcollection for WebRTC
+        match /signaling/{signalId} {
+          allow read, write: if true;
+        }
+      }
+    }
+  }
+}

@@ -4,7 +4,8 @@
       "Bash(curl:*)",
       "Bash(firebase use:*)",
       "Bash(find:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(firebase deploy:*)"
     ]
   }
 }
