@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    /* ========= G-Chat Storage ========= */
+
+    // User avatars
+    match /gchat/avatars/{userId}/{fileName} {
+      // Anyone can read avatars (public)
+      allow read: if true;
+
+      // Only the user can upload their own avatar
+      allow write: if request.auth != null &&
+        request.auth.uid == userId &&
+        request.resource.size < 5 * 1024 * 1024 && // Max 5MB
+        request.resource.contentType.matches('image/.*');
+    }
+
+    // Server icons
+    match /gchat/server-icons/{fileName} {
+      // Anyone can read server icons (public)
+      allow read: if true;
+
+      // Authenticated users can upload server icons
+      allow write: if request.auth != null &&
+        request.resource.size < 2 * 1024 * 1024 && // Max 2MB
+        request.resource.contentType.matches('image/.*');
+    }
+
+    /* ========= Default Deny ========= */
+    // Deny all other paths by default
+  }
+}

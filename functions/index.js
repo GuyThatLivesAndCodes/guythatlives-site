@@ -7,6 +7,8 @@ const functions = require('firebase-functions');
 const https = require('https');
 const http = require('http');
 const admin = require('firebase-admin');
+const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -301,3 +303,432 @@ exports.ollamaProxy = functions.https.onRequest(async (req, res) => {
         }
     });
 });
+
+/* ========= G-Chat Authentication Functions ========= */
+
+/**
+ * G-Chat Signup - Create new account with username/password
+ * Password is hashed with bcrypt server-side
+ */
+exports.gchatSignup = functions.https.onCall(async (data, context) => {
+    const { username, displayName, password, email } = data;
+
+    // Validation
+    if (!username || !password) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Username and password are required'
+        );
+    }
+
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Username must be 3-20 characters (lowercase alphanumeric and underscore only)'
+        );
+    }
+
+    if (password.length < 8) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Password must be at least 8 characters'
+        );
+    }
+
+    const db = admin.firestore();
+
+    try {
+        // Check if username already exists
+        const accountRef = db.collection('gchat').doc('accounts').collection('users').doc(username);
+        const accountDoc = await accountRef.get();
+
+        if (accountDoc.exists) {
+            throw new functions.https.HttpsError(
+                'already-exists',
+                'Username is already taken'
+            );
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        // Generate userId
+        const userId = uuidv4();
+
+        // Create account document
+        await accountRef.set({
+            username,
+            displayName: displayName || username,
+            passwordHash,
+            userId,
+            email: email || null,
+            isAdmin: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            bannedUntil: null
+        });
+
+        // Create profile document
+        await db.collection('gchat').doc('profiles').collection('users').doc(userId).set({
+            username,
+            bio: '',
+            status: 'online',
+            statusMessage: '',
+            avatarUrl: '',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastSeen: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Create session
+        const sessionId = uuidv4();
+        const expiresAt = admin.firestore.Timestamp.fromDate(
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+        );
+
+        await db.collection('gchat').doc('sessions').collection('active').doc(sessionId).set({
+            userId,
+            username,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            expiresAt,
+            lastActive: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Generate custom token
+        const customToken = await admin.auth().createCustomToken(userId, {
+            sessionId,
+            username,
+            isAdmin: false
+        });
+
+        return {
+            customToken,
+            sessionId,
+            userId,
+            username,
+            isAdmin: false
+        };
+
+    } catch (error) {
+        console.error('Signup error:', error);
+
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+
+        throw new functions.https.HttpsError(
+            'internal',
+            'Failed to create account'
+        );
+    }
+});
+
+/**
+ * G-Chat Login - Validate credentials and create session
+ */
+exports.gchatLogin = functions.https.onCall(async (data, context) => {
+    const { username, password } = data;
+
+    if (!username || !password) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Username and password are required'
+        );
+    }
+
+    const db = admin.firestore();
+
+    try {
+        // Get account
+        const accountRef = db.collection('gchat').doc('accounts').collection('users').doc(username.toLowerCase());
+        const accountDoc = await accountRef.get();
+
+        if (!accountDoc.exists) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'Invalid credentials'
+            );
+        }
+
+        const account = accountDoc.data();
+
+        // Check if banned
+        if (account.bannedUntil && account.bannedUntil.toDate() > new Date()) {
+            throw new functions.https.HttpsError(
+                'permission-denied',
+                `Account banned until ${account.bannedUntil.toDate().toLocaleString()}`
+            );
+        }
+
+        // Verify password
+        const passwordMatch = await bcrypt.compare(password, account.passwordHash);
+
+        if (!passwordMatch) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'Invalid credentials'
+            );
+        }
+
+        // Create session
+        const sessionId = uuidv4();
+        const expiresAt = admin.firestore.Timestamp.fromDate(
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+        );
+
+        await db.collection('gchat').doc('sessions').collection('active').doc(sessionId).set({
+            userId: account.userId,
+            username: account.username,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            expiresAt,
+            lastActive: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Update profile last seen
+        await db.collection('gchat').doc('profiles').collection('users').doc(account.userId).update({
+            lastSeen: admin.firestore.FieldValue.serverTimestamp(),
+            status: 'online'
+        });
+
+        // Generate custom token
+        const customToken = await admin.auth().createCustomToken(account.userId, {
+            sessionId,
+            username: account.username,
+            isAdmin: account.isAdmin || false
+        });
+
+        return {
+            customToken,
+            sessionId,
+            userId: account.userId,
+            username: account.username,
+            isAdmin: account.isAdmin || false
+        };
+
+    } catch (error) {
+        console.error('Login error:', error);
+
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+
+        throw new functions.https.HttpsError(
+            'internal',
+            'Login failed'
+        );
+    }
+});
+
+/**
+ * G-Chat Session Validation - Check if session is still valid
+ */
+exports.gchatValidateSession = functions.https.onCall(async (data, context) => {
+    const { sessionId } = data;
+
+    if (!sessionId) {
+        return { valid: false };
+    }
+
+    const db = admin.firestore();
+
+    try {
+        const sessionRef = db.collection('gchat').doc('sessions').collection('active').doc(sessionId);
+        const sessionDoc = await sessionRef.get();
+
+        if (!sessionDoc.exists) {
+            return { valid: false };
+        }
+
+        const session = sessionDoc.data();
+
+        // Check expiration
+        if (session.expiresAt.toDate() < new Date()) {
+            await sessionRef.delete();
+            return { valid: false };
+        }
+
+        // Update heartbeat
+        await sessionRef.update({
+            lastActive: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Generate new custom token
+        const customToken = await admin.auth().createCustomToken(session.userId, {
+            sessionId,
+            username: session.username,
+            isAdmin: false // TODO: Fetch from account if needed
+        });
+
+        return {
+            valid: true,
+            customToken
+        };
+
+    } catch (error) {
+        console.error('Session validation error:', error);
+        return { valid: false };
+    }
+});
+
+/**
+ * G-Chat Change Password
+ */
+exports.gchatChangePassword = functions.https.onCall(async (data, context) => {
+    const { sessionId, oldPassword, newPassword } = data;
+
+    if (!sessionId || !oldPassword || !newPassword) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'All fields are required'
+        );
+    }
+
+    if (newPassword.length < 8) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'New password must be at least 8 characters'
+        );
+    }
+
+    const db = admin.firestore();
+
+    try {
+        // Validate session
+        const sessionDoc = await db.collection('gchat').doc('sessions').collection('active').doc(sessionId).get();
+
+        if (!sessionDoc.exists) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'Invalid session'
+            );
+        }
+
+        const session = sessionDoc.data();
+
+        // Get account
+        const accountsSnapshot = await db.collection('gchat').doc('accounts').collection('users')
+            .where('userId', '==', session.userId)
+            .limit(1)
+            .get();
+
+        if (accountsSnapshot.empty) {
+            throw new functions.https.HttpsError(
+                'not-found',
+                'Account not found'
+            );
+        }
+
+        const accountDoc = accountsSnapshot.docs[0];
+        const account = accountDoc.data();
+
+        // Verify old password
+        const passwordMatch = await bcrypt.compare(oldPassword, account.passwordHash);
+
+        if (!passwordMatch) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'Current password is incorrect'
+            );
+        }
+
+        // Hash new password
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await accountDoc.ref.update({
+            passwordHash: newPasswordHash
+        });
+
+        return { success: true };
+
+    } catch (error) {
+        console.error('Change password error:', error);
+
+        if (error instanceof functions.https.HttpsError) {
+            throw error;
+        }
+
+        throw new functions.https.HttpsError(
+            'internal',
+            'Failed to change password'
+        );
+    }
+});
+
+/**
+ * G-Chat Cleanup Expired Sessions
+ * Runs daily to clean up expired sessions
+ */
+exports.gchatCleanupSessions = functions.pubsub
+    .schedule('every 24 hours')
+    .onRun(async (context) => {
+        const db = admin.firestore();
+        const now = admin.firestore.Timestamp.now();
+
+        try {
+            const expiredSessions = await db.collection('gchat')
+                .doc('sessions')
+                .collection('active')
+                .where('expiresAt', '<', now)
+                .get();
+
+            const batch = db.batch();
+            let deleteCount = 0;
+
+            expiredSessions.forEach((doc) => {
+                batch.delete(doc.ref);
+                deleteCount++;
+            });
+
+            if (deleteCount > 0) {
+                await batch.commit();
+                console.log(`G-Chat cleanup: Removed ${deleteCount} expired sessions`);
+            }
+
+            return null;
+        } catch (error) {
+            console.error('G-Chat session cleanup error:', error);
+            return null;
+        }
+    });
+
+/**
+ * G-Chat Expire Featured Servers
+ * Runs daily to expire temporary featured servers
+ */
+exports.gchatExpireFeatured = functions.pubsub
+    .schedule('every 24 hours')
+    .onRun(async (context) => {
+        const db = admin.firestore();
+        const now = admin.firestore.Timestamp.now();
+
+        try {
+            const expiredServers = await db.collection('gchat')
+                .doc('servers')
+                .collection('list')
+                .where('featured', '==', true)
+                .where('featuredType', '==', 'temporary')
+                .where('featuredExpiration', '<', now)
+                .get();
+
+            const batch = db.batch();
+            let updateCount = 0;
+
+            expiredServers.forEach((doc) => {
+                batch.update(doc.ref, {
+                    featured: false,
+                    featuredType: null,
+                    featuredExpiration: null
+                });
+                updateCount++;
+            });
+
+            if (updateCount > 0) {
+                await batch.commit();
+                console.log(`G-Chat: Expired ${updateCount} temporary featured servers`);
+            }
+
+            return null;
+        } catch (error) {
+            console.error('G-Chat featured expiration error:', error);
+            return null;
+        }
+    });

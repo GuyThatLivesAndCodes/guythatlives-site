@@ -3,7 +3,8 @@
     "allow": [
       "Bash(curl:*)",
       "Bash(firebase use:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm install)"
     ]
   }
 }

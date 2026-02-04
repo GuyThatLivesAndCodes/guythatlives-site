@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Chat - Community Platform</title>
+    <link rel="stylesheet" href="../shared/games-styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+    <!-- Authentication Screen -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-box">
+            <h1>Welcome to G-Chat</h1>
+            <p class="subtitle">Connect with communities</p>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p class="form-error" id="login-error"></p>
+                <p class="form-toggle">Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" required autocomplete="username"
+                           pattern="[a-zA-Z0-9_]{3,20}"
+                           title="3-20 characters, alphanumeric and underscore only">
+                    <small>3-20 characters, alphanumeric and underscore only</small>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email (optional)</label>
+                    <input type="email" id="signup-email" autocomplete="email">
+                    <small>For password recovery</small>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" required autocomplete="new-password"
+                           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                           title="At least 8 characters with uppercase, lowercase, and number">
+                    <small>Min 8 characters with uppercase, lowercase, and number</small>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <input type="password" id="signup-confirm" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+                <p class="form-error" id="signup-error"></p>
+                <p class="form-toggle">Already have an account? <a href="#" id="show-login">Login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Discord-style layout) -->
+    <div id="app" class="hidden">
+        <!-- Server List (Column 1) -->
+        <nav class="server-list">
+            <button class="server-icon home-icon" data-server="home" title="Home">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+                </svg>
+            </button>
+            <div class="server-separator"></div>
+            <div id="server-list-container"></div>
+            <button class="server-icon add-server-btn" id="create-server-btn" title="Create Server">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                </svg>
+            </button>
+            <button class="server-icon discover-btn" id="discover-btn" title="Discover Servers">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Channel List (Column 2) -->
+        <aside class="channel-sidebar">
+            <div class="server-header">
+                <h2 id="current-server-name">Select a Server</h2>
+                <button class="server-menu-btn" id="server-menu-btn">⋮</button>
+            </div>
+            <div id="channel-list-container" class="channel-list"></div>
+            <div class="user-panel">
+                <div class="user-info">
+                    <img id="user-avatar" src="" alt="Avatar" class="user-avatar">
+                    <div class="user-details">
+                        <span id="user-display-name"></span>
+                        <span class="user-status" id="user-status">Online</span>
+                    </div>
+                </div>
+                <div class="user-controls">
+                    <button class="icon-btn" id="user-settings-btn" title="Settings">⚙️</button>
+                    <button class="icon-btn" id="admin-panel-btn" title="Admin Panel" style="display: none;">👑</button>
+                    <button class="icon-btn" id="logout-btn" title="Logout">🚪</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Chat Area (Column 3) -->
+        <main class="chat-area">
+            <div class="channel-header">
+                <h3 id="current-channel-name"># Welcome</h3>
+                <div class="channel-actions">
+                    <button class="icon-btn" id="voice-connect-btn" style="display: none;">🔊 Join Voice</button>
+                </div>
+            </div>
+            <div id="messages-container" class="messages-container"></div>
+            <div id="message-input-container" class="message-input-container">
+                <input type="text" id="message-input" placeholder="Message #channel" disabled>
+                <button id="send-message-btn" class="btn btn-primary" disabled>Send</button>
+            </div>
+
+            <!-- Voice Panel (shows when in voice channel) -->
+            <div id="voice-panel" class="voice-panel hidden">
+                <div class="voice-header">
+                    <span>🔊 Voice Channel</span>
+                    <button id="voice-disconnect-btn" class="btn btn-danger">Disconnect</button>
+                </div>
+                <div id="voice-participants" class="voice-participants"></div>
+                <div class="voice-controls">
+                    <button id="mute-btn" class="icon-btn" title="Mute">🎤</button>
+                    <button id="deafen-btn" class="icon-btn" title="Deafen">🔇</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Member List (Column 4) -->
+        <aside class="member-sidebar">
+            <h4>Members</h4>
+            <div id="member-list-container" class="member-list"></div>
+        </aside>
+    </div>
+
+    <!-- Modals -->
+    <div id="create-server-modal" class="modal">
+        <div class="modal-content">
+            <h2>Create Server</h2>
+            <form id="create-server-form">
+                <div class="form-group">
+                    <label for="server-name">Server Name</label>
+                    <input type="text" id="server-name" required maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="server-description">Description</label>
+                    <textarea id="server-description" maxlength="500" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="server-icon">Server Icon</label>
+                    <input type="file" id="server-icon" accept="image/*">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancel-server-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+
+    <!-- G-Chat Modules -->
+    <script src="auth-manager.js"></script>
+    <script src="server-manager.js"></script>
+    <script src="channel-manager.js"></script>
+    <script src="voice-manager.js"></script>
+    <script src="ui-controller.js"></script>
+    <script src="featured-manager.js"></script>
+    <script src="admin-dashboard.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
