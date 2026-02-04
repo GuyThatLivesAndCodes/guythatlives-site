@@ -91,8 +91,8 @@ class GChatApp {
         try {
             const profileDoc = await this.db.collection('gchat')
                 .doc('profiles')
-                .collection(this.currentUser.userId)
-                .doc('profile')
+                .collection('users')
+                .doc(this.currentUser.userId)
                 .get();
 
             if (profileDoc.exists) {
@@ -100,16 +100,64 @@ class GChatApp {
                 this.currentUser.profile = profile;
 
                 // Update UI
-                document.getElementById('user-display-name').textContent = this.currentUser.username;
-                document.getElementById('user-status').textContent = profile.status || 'Online';
+                const displayName = this.currentUser.displayName || this.currentUser.username;
+                document.getElementById('user-display-name').textContent = displayName;
+                document.getElementById('user-status').textContent = profile.status || 'online';
 
-                if (profile.avatarUrl) {
-                    document.getElementById('user-avatar').src = profile.avatarUrl;
-                }
+                // Set avatar
+                this.setAvatar(document.getElementById('user-avatar'), profile.avatarUrl, displayName);
             }
         } catch (error) {
             console.error('Error loading profile:', error);
         }
+    }
+
+    // Generate avatar with random color and initials
+    setAvatar(imgElement, avatarUrl, displayName) {
+        if (avatarUrl) {
+            imgElement.src = avatarUrl;
+            imgElement.style.display = 'block';
+            const initialsEl = imgElement.nextElementSibling;
+            if (initialsEl && initialsEl.classList.contains('avatar-initials')) {
+                initialsEl.style.display = 'none';
+            }
+        } else {
+            // Hide img, show initials
+            imgElement.style.display = 'none';
+
+            // Create or update initials element
+            let initialsEl = imgElement.nextElementSibling;
+            if (!initialsEl || !initialsEl.classList.contains('avatar-initials')) {
+                initialsEl = document.createElement('div');
+                initialsEl.className = 'avatar-initials';
+                imgElement.parentNode.insertBefore(initialsEl, imgElement.nextSibling);
+            }
+
+            // Get initials (first 2 letters of username)
+            const initials = displayName.substring(0, 2).toUpperCase();
+            initialsEl.textContent = initials;
+
+            // Generate consistent color from username
+            const color = this.getColorFromString(displayName);
+            initialsEl.style.backgroundColor = color;
+            initialsEl.style.display = 'flex';
+        }
+    }
+
+    // Generate consistent color from string (for avatars)
+    getColorFromString(str) {
+        const colors = [
+            '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3',
+            '#00bcd4', '#009688', '#4caf50', '#ff9800', '#ff5722',
+            '#795548', '#607d8b'
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        return colors[Math.abs(hash) % colors.length];
     }
 
     showAuthScreen() {

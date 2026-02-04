@@ -183,4 +183,101 @@ class ServerManager {
 
         return url;
     }
+
+    async saveServerSettings() {
+        if (!this.app.currentServer) return;
+
+        const name = document.getElementById('edit-server-name').value.trim();
+        const description = document.getElementById('edit-server-description').value.trim();
+        const iconFile = document.getElementById('edit-server-icon').files[0];
+
+        if (!name) {
+            alert('Please enter a server name');
+            return;
+        }
+
+        try {
+            const updates = {
+                name,
+                description
+            };
+
+            // Upload new icon if provided
+            if (iconFile) {
+                updates.iconUrl = await this.uploadServerIcon(iconFile);
+            }
+
+            // Update server
+            await this.app.db.collection('gchat')
+                .doc('servers')
+                .collection('list')
+                .doc(this.app.currentServer.id)
+                .update(updates);
+
+            // Update local state
+            this.app.currentServer.name = name;
+            this.app.currentServer.description = description;
+            if (updates.iconUrl) {
+                this.app.currentServer.iconUrl = updates.iconUrl;
+            }
+
+            // Update UI
+            document.getElementById('current-server-name').textContent = name;
+            await this.loadUserServers();
+
+            this.app.uiController.hideModal('server-settings-modal');
+            this.app.uiController.showSuccess('Server updated successfully!');
+
+        } catch (error) {
+            console.error('Error updating server:', error);
+            alert('Failed to update server. Please try again.');
+        }
+    }
+
+    async deleteServer() {
+        if (!this.app.currentServer) return;
+
+        try {
+            // Delete server and all its channels/messages
+            const serverRef = this.app.db.collection('gchat')
+                .doc('servers')
+                .collection('list')
+                .doc(this.app.currentServer.id);
+
+            // Get all channels
+            const channelsSnapshot = await serverRef.collection('channels').get();
+
+            // Delete all channels and their messages
+            const batch = this.app.db.batch();
+
+            for (const channelDoc of channelsSnapshot.docs) {
+                // Delete messages in this channel
+                const messagesSnapshot = await channelDoc.ref.collection('messages').get();
+                messagesSnapshot.forEach(msgDoc => {
+                    batch.delete(msgDoc.ref);
+                });
+
+                // Delete channel
+                batch.delete(channelDoc.ref);
+            }
+
+            // Delete server
+            batch.delete(serverRef);
+
+            await batch.commit();
+
+            // Clear current server
+            this.app.currentServer = null;
+
+            // Reload servers
+            await this.loadUserServers();
+
+            this.app.uiController.hideModal('server-settings-modal');
+            this.app.uiController.showSuccess('Server deleted');
+
+        } catch (error) {
+            console.error('Error deleting server:', error);
+            alert('Failed to delete server. Please try again.');
+        }
+    }
 }

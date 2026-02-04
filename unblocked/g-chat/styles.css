@@ -290,6 +290,20 @@
     height: 32px;
     border-radius: 50%;
     background: var(--bg-secondary);
+    object-fit: cover;
+}
+
+.avatar-initials {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
 }
 
 .user-details {
@@ -374,12 +388,21 @@
     background: var(--bg-secondary);
 }
 
+.message-avatar-container {
+    flex-shrink: 0;
+}
+
 .message-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     background: var(--bg-secondary);
     flex-shrink: 0;
+    object-fit: cover;
+}
+
+.message-avatar.avatar-initials {
+    font-size: 1rem;
 }
 
 .message-content {

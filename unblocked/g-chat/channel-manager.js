@@ -187,17 +187,30 @@ class ChannelManager {
             const timestamp = msg.timestamp?.toDate?.() || new Date();
             const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            messageEl.innerHTML = `
-                <img src="${msg.senderAvatar || ''}" class="message-avatar" alt="">
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="message-author">${msg.senderName}</span>
-                        <span class="message-timestamp">${timeStr}</span>
-                    </div>
-                    <div class="message-text">${this.escapeHtml(msg.content)}</div>
+            // Create avatar element
+            const avatarContainer = document.createElement('div');
+            avatarContainer.className = 'message-avatar-container';
+
+            if (msg.senderAvatar) {
+                avatarContainer.innerHTML = `<img src="${msg.senderAvatar}" class="message-avatar" alt="">`;
+            } else {
+                const initials = msg.senderName.substring(0, 2).toUpperCase();
+                const color = this.app.getColorFromString(msg.senderName);
+                avatarContainer.innerHTML = `<div class="message-avatar avatar-initials" style="background-color: ${color}">${initials}</div>`;
+            }
+
+            const contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            contentEl.innerHTML = `
+                <div class="message-header">
+                    <span class="message-author">${this.escapeHtml(msg.senderName)}</span>
+                    <span class="message-timestamp">${timeStr}</span>
                 </div>
+                <div class="message-text">${this.escapeHtml(msg.content)}</div>
             `;
 
+            messageEl.appendChild(avatarContainer);
+            messageEl.appendChild(contentEl);
             container.appendChild(messageEl);
         });
 
