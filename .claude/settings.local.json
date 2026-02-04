@@ -8,7 +8,10 @@
       "Bash(firebase deploy:*)",
       "Bash(wrangler kv:namespace:*)",
       "Bash(wrangler kv namespace create:*)",
-      "Bash(wrangler deploy:*)"
+      "Bash(wrangler deploy:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }
