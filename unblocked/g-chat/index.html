@@ -79,11 +79,11 @@
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
                 </svg>
             </button>
-            <button class="server-icon discover-btn" id="discover-btn" title="Discover Servers">
+            <a href="discover.html" class="server-icon discover-btn" id="discover-btn" title="Discover Servers" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-            </button>
+            </a>
         </nav>
 
         <!-- Channel List (Column 2) -->
@@ -93,6 +93,19 @@
                 <button class="server-menu-btn" id="server-menu-btn">⋮</button>
             </div>
             <div id="channel-list-container" class="channel-list"></div>
+
+            <!-- Voice Panel (shows when in voice channel) -->
+            <div id="voice-panel" class="voice-panel-sidebar hidden">
+                <div class="voice-header">
+                    <span id="voice-channel-name">🔊 Voice</span>
+                    <button id="voice-disconnect-btn" class="icon-btn" title="Disconnect">✕</button>
+                </div>
+                <div class="voice-controls">
+                    <button id="mute-btn" class="voice-control-btn" title="Mute">🎤</button>
+                    <button id="deafen-btn" class="voice-control-btn" title="Deafen">🔊</button>
+                </div>
+            </div>
+
             <div class="channel-actions">
                 <button class="btn btn-secondary btn-small" id="create-channel-btn">+ Create Channel</button>
             </div>
@@ -126,18 +139,6 @@
                 <button id="send-message-btn" class="btn btn-primary" disabled>Send</button>
             </div>
 
-            <!-- Voice Panel (shows when in voice channel) -->
-            <div id="voice-panel" class="voice-panel hidden">
-                <div class="voice-header">
-                    <span>🔊 Voice Channel</span>
-                    <button id="voice-disconnect-btn" class="btn btn-danger">Disconnect</button>
-                </div>
-                <div id="voice-participants" class="voice-participants"></div>
-                <div class="voice-controls">
-                    <button id="mute-btn" class="icon-btn" title="Mute">🎤</button>
-                    <button id="deafen-btn" class="icon-btn" title="Deafen">🔇</button>
-                </div>
-            </div>
         </main>
 
         <!-- Member List (Column 4) -->

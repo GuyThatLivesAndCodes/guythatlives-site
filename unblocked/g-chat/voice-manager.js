@@ -15,10 +15,6 @@ class VoiceManager {
     }
 
     setupEventListeners() {
-        document.getElementById('voice-connect-btn')?.addEventListener('click', () => {
-            this.joinVoiceChannel();
-        });
-
         document.getElementById('voice-disconnect-btn')?.addEventListener('click', () => {
             this.leaveVoiceChannel();
         });
@@ -32,10 +28,17 @@ class VoiceManager {
         });
     }
 
-    async joinVoiceChannel() {
-        if (!this.app.currentChannel || this.app.currentChannel.type !== 'voice') {
+    async joinVoiceChannel(channel) {
+        if (!channel || channel.type !== 'voice') {
             return;
         }
+
+        // Leave current voice if in one
+        if (this.currentVoiceSession) {
+            await this.leaveVoiceChannel();
+        }
+
+        this.currentVoiceChannel = channel;
 
         try {
             // Get user media
@@ -61,7 +64,13 @@ class VoiceManager {
             }
 
             // Show voice panel
-            document.getElementById('voice-panel').classList.remove('hidden');
+            const voicePanel = document.getElementById('voice-panel');
+            voicePanel.classList.remove('hidden');
+            document.getElementById('voice-channel-name').textContent = '🔊 ' + channel.name;
+
+            // Highlight voice channel in sidebar
+            document.querySelectorAll('.voice-channel').forEach(el => el.classList.remove('voice-active'));
+            document.querySelector(`[data-channel-id="${channel.id}"]`)?.classList.add('voice-active');
 
         } catch (error) {
             console.error('Error joining voice channel:', error);
@@ -291,6 +300,11 @@ class VoiceManager {
 
         // Hide voice panel
         document.getElementById('voice-panel').classList.add('hidden');
+
+        // Remove voice-active class from all voice channels
+        document.querySelectorAll('.voice-channel').forEach(el => el.classList.remove('voice-active'));
+
+        this.currentVoiceChannel = null;
     }
 
     toggleMute() {

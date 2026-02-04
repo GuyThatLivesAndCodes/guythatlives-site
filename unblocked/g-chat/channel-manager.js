@@ -23,6 +23,69 @@ class ChannelManager {
                 this.sendMessage();
             }
         });
+
+        // Create channel
+        document.getElementById('create-channel-btn')?.addEventListener('click', () => {
+            this.showCreateChannelModal();
+        });
+
+        document.getElementById('cancel-channel-btn')?.addEventListener('click', () => {
+            this.app.uiController.hideModal('create-channel-modal');
+        });
+
+        document.getElementById('create-channel-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.createChannel();
+        });
+    }
+
+    showCreateChannelModal() {
+        if (!this.app.currentServer) {
+            alert('Please select a server first');
+            return;
+        }
+        this.app.uiController.showModal('create-channel-modal');
+    }
+
+    async createChannel() {
+        const type = document.getElementById('channel-type').value;
+        const name = document.getElementById('channel-name').value.trim().toLowerCase().replace(/\s+/g, '-');
+
+        if (!name) {
+            alert('Please enter a channel name');
+            return;
+        }
+
+        try {
+            const channelsRef = this.app.db.collection('gchat')
+                .doc('servers')
+                .collection('list')
+                .doc(this.app.currentServer.id)
+                .collection('channels');
+
+            // Get current max position
+            const snapshot = await channelsRef.get();
+            const maxPosition = snapshot.docs.reduce((max, doc) => {
+                const pos = doc.data().position || 0;
+                return pos > max ? pos : max;
+            }, 0);
+
+            await channelsRef.add({
+                name,
+                type,
+                position: maxPosition + 1,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Reload channels
+            await this.loadChannels(this.app.currentServer.id);
+
+            this.app.uiController.hideModal('create-channel-modal');
+
+        } catch (error) {
+            console.error('Error creating channel:', error);
+            alert('Failed to create channel');
+        }
     }
 
     async loadChannels(serverId) {
@@ -95,6 +158,9 @@ class ChannelManager {
     createChannelItem(channel, icon) {
         const item = document.createElement('div');
         item.className = 'channel-item';
+        if (channel.type === 'voice') {
+            item.classList.add('voice-channel');
+        }
         item.dataset.channelId = channel.id;
 
         item.innerHTML = `
@@ -110,35 +176,31 @@ class ChannelManager {
     }
 
     async selectChannel(channel) {
+        if (channel.type === 'voice') {
+            // Voice channels: join immediately, don't change main view
+            await this.app.voiceManager.joinVoiceChannel(channel);
+            return;
+        }
+
+        // Text channels: switch the main chat view
         this.app.currentChannel = channel;
 
-        // Update UI
+        // Update UI - only highlight text channels
         document.querySelectorAll('.channel-item').forEach(el => {
-            el.classList.remove('active');
+            if (!el.classList.contains('voice-channel')) {
+                el.classList.remove('active');
+            }
         });
         document.querySelector(`[data-channel-id="${channel.id}"]`)?.classList.add('active');
 
-        document.getElementById('current-channel-name').textContent =
-            (channel.type === 'text' ? '#' : '🔊') + channel.name;
+        document.getElementById('current-channel-name').textContent = '#' + channel.name;
 
-        if (channel.type === 'text') {
-            // Enable message input
-            document.getElementById('message-input').disabled = false;
-            document.getElementById('send-message-btn').disabled = false;
-            document.getElementById('voice-connect-btn').style.display = 'none';
+        // Enable message input
+        document.getElementById('message-input').disabled = false;
+        document.getElementById('send-message-btn').disabled = false;
 
-            // Load messages
-            await this.loadMessages(channel.id);
-
-        } else if (channel.type === 'voice') {
-            // Show voice connect button
-            document.getElementById('message-input').disabled = true;
-            document.getElementById('send-message-btn').disabled = true;
-            document.getElementById('voice-connect-btn').style.display = 'block';
-
-            // Clear messages
-            document.getElementById('messages-container').innerHTML = '';
-        }
+        // Load messages
+        await this.loadMessages(channel.id);
     }
 
     async loadMessages(channelId) {
