@@ -138,6 +138,11 @@
     color: #000;
 }
 
+.status-badge.problematic {
+    background: #ff3b3b;
+    color: #000;
+}
+
 .tool-description {
     color: var(--text-secondary, #aaa);
     line-height: 1.6;
