@@ -43,36 +43,89 @@
     // ── Game Metadata Extraction ─────────────────────────────
     function getGameId() {
         try {
+            // First, try to get from URL query parameter
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('game');
+            const gameParam = urlParams.get('game');
+            if (gameParam) {
+                console.log('Game ID from URL param:', gameParam);
+                return gameParam;
+            }
         } catch (e) {
-            console.warn('Failed to extract game ID:', e);
-            return null;
+            console.warn('Failed to extract game ID from URL:', e);
         }
+        return null;
+    }
+
+    function extractGameSlugFromUrl() {
+        try {
+            // Try to extract game slug from iframe src or base tag
+            const gameFrame = document.getElementById('game-frame');
+            let gameUrl = null;
+
+            if (gameFrame) {
+                if (gameFrame.src && !gameFrame.src.includes('about:blank')) {
+                    gameUrl = gameFrame.src;
+                } else if (gameFrame.srcdoc) {
+                    // Try to extract from base tag in srcdoc
+                    const baseMatch = gameFrame.srcdoc.match(/<base\s+href=["']([^"']+)["']/i);
+                    if (baseMatch) {
+                        gameUrl = baseMatch[1];
+                    }
+                }
+            }
+
+            if (gameUrl) {
+                console.log('Extracted game URL:', gameUrl);
+                // Extract game slug from URL (e.g., "worldhardestgame2" from ".../games/worldhardestgame2/")
+                const slugMatch = gameUrl.match(/\/games\/([^\/]+)\/?/);
+                if (slugMatch && slugMatch[1]) {
+                    console.log('Extracted game slug:', slugMatch[1]);
+                    return slugMatch[1];
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to extract game slug from URL:', e);
+        }
+        return null;
     }
 
     async function getGameMetadata() {
         const gameId = getGameId();
-        if (!gameId) {
-            return { gameId: null, gameTitle: null, gameUrl: null };
+        const gameSlug = extractGameSlugFromUrl();
+
+        console.log('Getting game metadata - ID:', gameId, 'Slug:', gameSlug);
+
+        // If no game ID from URL param, use slug as fallback
+        const effectiveGameId = gameId || gameSlug;
+
+        if (!effectiveGameId) {
+            console.warn('No game identifier found');
+            return { gameId: null, gameTitle: null, gameUrl: null, gameSlug: null };
         }
 
         try {
             // Check if gameManager is available (game page context)
             if (window.gameManager && typeof window.gameManager.getGame === 'function') {
-                const gameData = await window.gameManager.getGame(gameId);
+                console.log('Fetching game data from gameManager for ID:', effectiveGameId);
+                const gameData = await window.gameManager.getGame(effectiveGameId);
                 return {
-                    gameId: gameId,
+                    gameId: effectiveGameId,
                     gameTitle: gameData.title || null,
-                    gameUrl: gameData.gameUrl || null
+                    gameUrl: gameData.gameUrl || null,
+                    gameSlug: gameSlug
                 };
             }
         } catch (e) {
-            console.warn('Failed to fetch game metadata:', e);
+            console.warn('Failed to fetch game metadata from gameManager:', e);
         }
 
-        // Fallback: just return the gameId
-        return { gameId: gameId, gameTitle: null, gameUrl: null };
+        // Fallback: return what we have
+        return {
+            gameId: effectiveGameId,
+            gameTitle: gameSlug ? gameSlug.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null,
+            gameUrl: null,
+            gameSlug: gameSlug
+        };
     }
 
     // ── Environment Context Capture ──────────────────────────
@@ -130,27 +183,38 @@
             // Capture the game frame wrapper (includes the game iframe)
             const gameWrapper = document.querySelector('.game-frame-wrapper') || document.body;
 
+            console.log('Capturing screenshot of element:', gameWrapper.className || 'body');
+
             const canvas = await html2canvas(gameWrapper, {
                 allowTaint: true,
                 useCORS: false,
                 logging: false,
-                scale: 0.5, // Reduce scale for smaller file size
+                scale: 0.7, // Increased from 0.5 for better quality
                 width: Math.min(gameWrapper.scrollWidth, 1280),
                 height: Math.min(gameWrapper.scrollHeight, 720)
             });
 
+            console.log('Canvas created:', canvas.width, 'x', canvas.height);
+
             // Convert to compressed base64
-            // Start with quality 0.4 and increase max size to 250KB
-            let quality = 0.4;
+            // Start with quality 0.7 (increased from 0.4) and allow up to 500KB (increased from 250KB)
+            let quality = 0.7;
             let base64 = canvas.toDataURL('image/jpeg', quality);
 
-            // If still too large, reduce quality further
-            while (base64.length > 250000 && quality > 0.1) {
+            // If still too large, reduce quality gradually
+            while (base64.length > 500000 && quality > 0.3) {
                 quality -= 0.1;
                 base64 = canvas.toDataURL('image/jpeg', quality);
             }
 
+            // Ensure proper Base64 format with data URI prefix
+            if (!base64.startsWith('data:image/')) {
+                console.error('Invalid Base64 format, adding prefix');
+                base64 = 'data:image/jpeg;base64,' + base64;
+            }
+
             console.log(`Screenshot captured: ${Math.round(base64.length / 1024)}KB at quality ${quality.toFixed(1)}`);
+            console.log('Screenshot Base64 prefix:', base64.substring(0, 50));
             return base64;
         } catch (err) {
             console.error('Screenshot capture failed:', err);
@@ -521,14 +585,16 @@
             const reportData = {
                 // Basic info
                 page: window.location.pathname,
+                fullUrl: window.location.href,
                 description: description.substring(0, 2000),
                 submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 resolved: false,
 
-                // Game metadata
-                gameId: gameMetadata.gameId,
-                gameTitle: gameMetadata.gameTitle,
-                gameUrl: gameMetadata.gameUrl,
+                // Game metadata (ensure all fields are present)
+                gameId: gameMetadata.gameId || null,
+                gameTitle: gameMetadata.gameTitle || null,
+                gameUrl: gameMetadata.gameUrl || null,
+                gameSlug: gameMetadata.gameSlug || null,
 
                 // Environment context
                 environment: {
@@ -546,8 +612,30 @@
                 consoleLogs: logs,
 
                 // Screenshot (if captured)
-                screenshot: screenshot
+                screenshot: screenshot,
+                hasScreenshot: screenshot !== null,
+                screenshotSize: screenshot ? Math.round(screenshot.length / 1024) : 0
             };
+
+            // DEBUG: Log the complete payload before submission
+            console.log('═══════════════════════════════════════════════════');
+            console.log('Final Report Payload:');
+            console.log('═══════════════════════════════════════════════════');
+            console.log('Page:', reportData.page);
+            console.log('Full URL:', reportData.fullUrl);
+            console.log('Game ID:', reportData.gameId);
+            console.log('Game Title:', reportData.gameTitle);
+            console.log('Game Slug:', reportData.gameSlug);
+            console.log('Game URL:', reportData.gameUrl);
+            console.log('Description:', reportData.description);
+            console.log('Console Logs:', reportData.consoleLogs.length, 'entries');
+            console.log('Environment:', reportData.environment);
+            console.log('Has Screenshot:', reportData.hasScreenshot);
+            console.log('Screenshot Size:', reportData.screenshotSize, 'KB');
+            if (reportData.screenshot) {
+                console.log('Screenshot Preview:', reportData.screenshot.substring(0, 100) + '...');
+            }
+            console.log('═══════════════════════════════════════════════════');
 
             await firebase.firestore().collection('bugReports').add(reportData);
 

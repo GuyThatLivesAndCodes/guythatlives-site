@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Reporter Fixes - Test Page</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --primary-color: #6366f1;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .test-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .test-card h2 {
+            margin-top: 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .status-badge.new {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-badge.fixed {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .test-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .test-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .test-list li::before {
+            content: '✓';
+            color: var(--success-color);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .code-block {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .game-frame-wrapper {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .game-frame-wrapper::before {
+            content: '🎮';
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 2rem;
+        }
+
+        .game-content {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .game-content h2 {
+            margin: 0 0 1rem 0;
+            font-size: 2rem;
+        }
+
+        .game-content p {
+            margin: 0.5rem 0;
+            opacity: 0.9;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        button:hover {
+            background: #818cf8;
+            transform: translateY(-1px);
+        }
+
+        .button-secondary {
+            background: var(--bg-tertiary);
+        }
+
+        .button-secondary:hover {
+            background: #475569;
+        }
+
+        .alert {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: #10b981;
+        }
+
+        .checklist {
+            margin: 1rem 0;
+        }
+
+        .checklist-item {
+            background: var(--bg-tertiary);
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Bug Reporter - Fixes Verification</h1>
+        <p class="subtitle">Test page to verify all fixes are working correctly</p>
+
+        <div class="alert">
+            <strong>📋 Open Browser Console (F12)</strong> to see detailed logging during testing
+        </div>
+
+        <!-- Test 1: Game Identification -->
+        <div class="test-card">
+            <h2>
+                ✅ Test 1: Game Name Identification
+                <span class="status-badge fixed">FIXED</span>
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Verify that the game name is extracted from the URL and displayed in the report.
+            </p>
+
+            <div class="alert-success">
+                <strong>Current URL:</strong> <code id="current-url"></code>
+            </div>
+
+            <div style="margin: 1rem 0;">
+                <button onclick="testGameId()">Add ?game=worldhardestgame2 to URL</button>
+                <button class="button-secondary" onclick="window.location.search = ''">Clear Query Params</button>
+            </div>
+
+            <div class="test-list">
+                <p style="color: var(--text-secondary); margin: 0.5rem 0;"><strong>What to check:</strong></p>
+                <ul>
+                    <li>Console shows "Game ID from URL param: worldhardestgame2"</li>
+                    <li>Bug report modal displays game name</li>
+                    <li>Final payload includes gameId, gameTitle, gameSlug</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 2: Screenshot Quality -->
+        <div class="test-card">
+            <h2>
+                ✅ Test 2: Screenshot Quality
+                <span class="status-badge fixed">FIXED</span>
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Verify that screenshots are captured at high quality (100-300KB, not 5KB).
+            </p>
+
+            <div class="game-frame-wrapper" id="game-frame">
+                <div class="game-content">
+                    <h2>🎯 World's Hardest Game 2</h2>
+                    <p>This is a simulated game screen</p>
+                    <p style="font-size: 0.875rem; opacity: 0.7;">
+                        Level 3 | Score: 1,234 | Lives: 3
+                    </p>
+                    <p style="margin-top: 2rem;">
+                        <strong>Error Message:</strong> Game crashed on checkpoint
+                    </p>
+                </div>
+            </div>
+
+            <div class="test-list">
+                <p style="color: var(--text-secondary); margin: 0.5rem 0;"><strong>What to check:</strong></p>
+                <ul>
+                    <li>Console shows "Canvas created: XXX x YYY"</li>
+                    <li>Console shows "Screenshot captured: XXX KB at quality 0.7"</li>
+                    <li>Screenshot size should be 100-300KB (not 5KB)</li>
+                    <li>Console shows proper Base64 prefix: "data:image/jpeg;base64,..."</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 3: Debug Output -->
+        <div class="test-card">
+            <h2>
+                ✅ Test 3: Debug Console Output
+                <span class="status-badge new">NEW</span>
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Verify that comprehensive debug logging appears before submission.
+            </p>
+
+            <div class="console-output">
+                <div>═══════════════════════════════════════════════════</div>
+                <div>Final Report Payload:</div>
+                <div>═══════════════════════════════════════════════════</div>
+                <div>Page: /test-bug-reporter-fixes.html</div>
+                <div>Full URL: http://localhost/test-bug-reporter-fixes.html?game=worldhardestgame2</div>
+                <div>Game ID: worldhardestgame2</div>
+                <div>Game Title: World's Hardest Game 2</div>
+                <div>Game Slug: worldhardestgame2</div>
+                <div>Game URL: https://cdn.guythatlives.net/games/worldhardestgame2/index.html</div>
+                <div>Description: Game crashed on level 3</div>
+                <div>Console Logs: 12 entries</div>
+                <div>Environment: {userAgent: "...", screenResolution: "1920x1080", ...}</div>
+                <div>Has Screenshot: true</div>
+                <div>Screenshot Size: 234 KB</div>
+                <div>Screenshot Preview: data:image/jpeg;base64,/9j/4AAQSkZJRg...</div>
+                <div>═══════════════════════════════════════════════════</div>
+            </div>
+
+            <div class="test-list">
+                <p style="color: var(--text-secondary); margin: 0.5rem 0;"><strong>What to check:</strong></p>
+                <ul>
+                    <li>This exact format appears in console when submitting a report</li>
+                    <li>All fields are populated (no "undefined" or "null" for game data)</li>
+                    <li>Screenshot data is present when checkbox is checked</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 4: Testing Checklist -->
+        <div class="test-card">
+            <h2>📝 Complete Testing Checklist</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Follow these steps to verify all fixes:
+            </p>
+
+            <div class="checklist">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Add <code>?game=worldhardestgame2</code> to URL</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Click "Report Bug" button (bottom-left)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Verify game name shows in modal</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Check "Capture screenshot" checkbox</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Enter test description: "Testing new bug reporter"</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Watch console for debug output</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Verify screenshot is 100-300KB (not 5KB)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check8">
+                    <label for="check8">Click "Submit Report"</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check9">
+                    <label for="check9">Go to Firebase Console → bugReports</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check10">
+                    <label for="check10">Verify report has gameId, gameTitle, gameSlug</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Console Commands -->
+        <div class="test-card">
+            <h2>💻 Quick Console Commands</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                Paste these into your browser console for quick testing:
+            </p>
+
+            <div class="code-block">
+<strong>// View latest bug report</strong>
+firebase.firestore().collection('bugReports')
+    .orderBy('submittedAt', 'desc')
+    .limit(1)
+    .get()
+    .then(snapshot => {
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log('Game ID:', data.gameId);
+            console.log('Game Title:', data.gameTitle);
+            console.log('Game Slug:', data.gameSlug);
+            console.log('Screenshot Size:', data.screenshotSize, 'KB');
+
+            if (data.screenshot) {
+                const img = document.createElement('img');
+                img.src = data.screenshot;
+                img.style.maxWidth = '800px';
+                img.style.border = '3px solid lime';
+                img.style.position = 'fixed';
+                img.style.top = '50px';
+                img.style.left = '50%';
+                img.style.transform = 'translateX(-50%)';
+                img.style.zIndex = '99999';
+                document.body.appendChild(img);
+
+                // Close after 5 seconds
+                setTimeout(() => img.remove(), 5000);
+            }
+        });
+    });
+            </div>
+
+            <button onclick="copyToClipboard(this.previousElementSibling.textContent)">
+                📋 Copy to Clipboard
+            </button>
+        </div>
+
+        <!-- Expected Results -->
+        <div class="test-card">
+            <h2>✅ Expected Results Summary</h2>
+            <div class="test-list">
+                <ul style="margin: 0;">
+                    <li><strong>Game ID:</strong> Should be "worldhardestgame2" or similar</li>
+                    <li><strong>Game Title:</strong> Should be "World's Hardest Game 2" or readable name</li>
+                    <li><strong>Game Slug:</strong> Should be URL-safe identifier</li>
+                    <li><strong>Screenshot Size:</strong> Should be 100-500KB (not 5KB)</li>
+                    <li><strong>Screenshot Quality:</strong> Text should be readable</li>
+                    <li><strong>Console Output:</strong> Should show complete debug block</li>
+                    <li><strong>Firestore Document:</strong> All fields populated correctly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyBJM9kLqW-OznE2H5R90WJN1OqpQN7aCAQ",
+            authDomain: "guythatlives.firebaseapp.com",
+            projectId: "guythatlives",
+            storageBucket: "guythatlives.firebasestorage.app",
+            messagingSenderId: "1068234768326",
+            appId: "1:1068234768326:web:a5f3a06b62c5c5b0f87f2f"
+        });
+        console.log('✅ Firebase initialized');
+    </script>
+
+    <!-- Enhanced Bug Reporter -->
+    <script src="unblocked/shared/bug-reporter.js"></script>
+
+    <!-- Test Functions -->
+    <script>
+        // Update current URL display
+        document.getElementById('current-url').textContent = window.location.href;
+
+        function testGameId() {
+            const url = new URL(window.location);
+            url.searchParams.set('game', 'worldhardestgame2');
+            window.location = url;
+        }
+
+        function copyToClipboard(text) {
+            // Clean up the text
+            text = text.replace(/<strong>|<\/strong>/g, '').trim();
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Copied to clipboard! Paste into browser console (F12)');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Log test page loaded
+        console.log('%c🧪 Bug Reporter Test Page Loaded', 'color: #10b981; font-size: 16px; font-weight: bold');
+        console.log('Current URL:', window.location.href);
+        console.log('Has game param:', new URLSearchParams(window.location.search).get('game'));
+        console.log('');
+        console.log('📋 Instructions:');
+        console.log('1. Add ?game=worldhardestgame2 to the URL');
+        console.log('2. Click "Report Bug" button in bottom-left');
+        console.log('3. Check screenshot checkbox');
+        console.log('4. Submit and watch console for debug output');
+        console.log('');
+
+        // Generate some test console logs
+        setTimeout(() => {
+            console.log('Test log message 1');
+            console.warn('Test warning message');
+            console.error('Test error message');
+            console.log('Test log message 2');
+        }, 1000);
+    </script>
+</body>
+</html>
