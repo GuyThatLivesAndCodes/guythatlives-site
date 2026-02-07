@@ -710,20 +710,29 @@ async function loadBugReports() {
             const resolvedLabel = report.resolved ? 'Resolved' : 'Open';
             const actionLabel = report.resolved ? 'Reopen' : 'Resolve';
 
+            // Extract game information
+            const gameName = report.gameTitle || report.gameSlug || report.gameId || null;
+            const hasScreenshot = report.screenshot && report.screenshot.startsWith('data:image/');
+            const screenshotSize = report.screenshotSize || 0;
+
             // Truncate description for table display
             const descPreview = (report.description || '').substring(0, 80) +
                 ((report.description || '').length > 80 ? '…' : '');
 
             return `
                 <tr>
-                    <td style="color: var(--primary-light); font-size: 0.82rem; word-break: break-all;">${report.page || '—'}</td>
+                    <td style="color: var(--primary-light); font-size: 0.82rem; word-break: break-all;">
+                        ${report.page || '—'}
+                        ${gameName ? `<br><span style="font-size: 0.75rem; color: var(--warning-color); font-weight: 600;">🎮 ${gameName}</span>` : ''}
+                    </td>
                     <td>
                         <span style="font-size: 0.875rem;" title="${report.description || ''}">${descPreview}</span>
                         <span style="${resolvedClass} font-size: 0.72rem; margin-left: 0.5rem;">${resolvedLabel}</span>
+                        ${hasScreenshot ? '<br><span style="font-size: 0.7rem; color: var(--primary-light);">📸 Screenshot (' + screenshotSize + 'KB)</span>' : ''}
                     </td>
                     <td>
                         <button class="btn btn-sm btn-secondary" onclick="toggleBugReportLogs('${report.id}')" style="font-size: 0.75rem;">
-                            ${logCount} log${logCount !== 1 ? 's' : ''}
+                            View Details
                         </button>
                     </td>
                     <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${date}</td>
@@ -735,20 +744,81 @@ async function loadBugReports() {
                 </tr>
                 <tr id="bug-report-logs-${report.id}" style="display: none;">
                     <td colspan="5">
-                        <div style="padding: 0.75rem 1rem; background: var(--bg-tertiary); border-radius: var(--border-radius-sm); max-height: 240px; overflow-y: auto;">
-                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">FULL DESCRIPTION</p>
-                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 0.75rem; white-space: pre-wrap;">${report.description || '(empty)'}</p>
-                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">CONSOLE LOGS (last ${logCount})</p>
+                        <div style="padding: 1rem 1.25rem; background: var(--bg-tertiary); border-radius: var(--border-radius-sm); max-height: 600px; overflow-y: auto;">
+
+                            <!-- Game Information (Prominent) -->
+                            ${gameName ? `
+                            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem; border-left: 3px solid var(--primary-color);">
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.25rem; font-weight: 600;">🎮 GAME</p>
+                                <p style="font-size: 1rem; color: var(--text-primary); margin: 0; font-weight: 600;">${gameName}</p>
+                                ${report.gameId ? `<p style="font-size: 0.7rem; color: var(--text-muted); margin: 0.25rem 0 0;">ID: ${report.gameId}</p>` : ''}
+                                ${report.gameUrl ? `<p style="font-size: 0.7rem; color: var(--text-muted); margin: 0.25rem 0 0; word-break: break-all;">URL: ${report.gameUrl}</p>` : ''}
+                            </div>
+                            ` : ''}
+
+                            <!-- Screenshot -->
+                            ${hasScreenshot ? `
+                            <div style="margin-bottom: 1rem;">
+                                <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📸 SCREENSHOT (${screenshotSize}KB)</p>
+                                <div style="text-align: center; background: #000; padding: 0.5rem; border-radius: var(--border-radius-sm);">
+                                    <img src="${report.screenshot}"
+                                         alt="Bug Screenshot"
+                                         style="max-width: 100%; max-height: 500px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;"
+                                         onclick="window.open('${report.screenshot}', '_blank')"
+                                         title="Click to open in new tab">
+                                </div>
+                                <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0.5rem 0 0; text-align: center;">Click image to open in new tab</p>
+                            </div>
+                            ` : ''}
+
+                            <!-- Description -->
+                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📝 FULL DESCRIPTION</p>
+                            <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 0.75rem; white-space: pre-wrap; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">${report.description || '(empty)'}</p>
+
+                            <!-- Environment Info -->
+                            ${report.environment ? `
+                            <details style="margin-bottom: 0.75rem;">
+                                <summary style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; cursor: pointer; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">🖥️ ENVIRONMENT INFO</summary>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                                    <p style="margin: 0.25rem 0;"><strong>User Agent:</strong> ${report.environment.userAgent || 'N/A'}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>Screen:</strong> ${report.environment.screenResolution || 'N/A'} | <strong>Viewport:</strong> ${report.environment.viewportSize || 'N/A'}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>Platform:</strong> ${report.environment.platform || 'N/A'} | <strong>Language:</strong> ${report.environment.language || 'N/A'}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>Timezone:</strong> ${report.environment.timezone || 'N/A'}</p>
+                                    ${report.environment.iframeSource ? `<p style="margin: 0.25rem 0; word-break: break-all;"><strong>iframe Source:</strong> ${report.environment.iframeSource}</p>` : ''}
+                                </div>
+                            </details>
+                            ` : ''}
+
+                            <!-- Console Logs -->
+                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📋 CONSOLE LOGS (${logCount})</p>
                             ${logCount > 0
-                                ? `<pre style="font-size: 0.72rem; color: var(--text-secondary); margin: 0; white-space: pre-wrap; line-height: 1.5;">${
+                                ? `<pre style="font-size: 0.72rem; color: var(--text-secondary); margin: 0; white-space: pre-wrap; line-height: 1.5; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px; max-height: 300px; overflow-y: auto;">${
                                     (report.consoleLogs || []).map((entry) => {
                                         const levelColors = { error: '#ef4444', warn: '#f59e0b', info: '#60a5fa', debug: '#94a3b8', log: '#cbd5e1' };
                                         const color = levelColors[entry.level] || '#cbd5e1';
                                         return `<span style="color:${color};">[${(entry.level || 'log').toUpperCase()}]</span> ${entry.timestamp || ''} ${entry.message || ''}`;
                                     }).join('\n')
                                 }</pre>`
-                                : '<p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">(no logs captured)</p>'
+                                : '<p style="font-size: 0.78rem; color: var(--text-muted); margin: 0; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">(no logs captured)</p>'
                             }
+
+                            <!-- Report Metadata -->
+                            <details style="margin-top: 0.75rem;">
+                                <summary style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 4px;">🔍 RAW METADATA</summary>
+                                <pre style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-radius: 4px; overflow-x: auto;">${JSON.stringify({
+                                    id: report.id,
+                                    page: report.page,
+                                    fullUrl: report.fullUrl,
+                                    gameId: report.gameId,
+                                    gameTitle: report.gameTitle,
+                                    gameSlug: report.gameSlug,
+                                    gameUrl: report.gameUrl,
+                                    resolved: report.resolved,
+                                    submittedAt: date,
+                                    hasScreenshot: hasScreenshot,
+                                    screenshotSize: screenshotSize
+                                }, null, 2)}</pre>
+                            </details>
                         </div>
                     </td>
                 </tr>`;

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Reports Dashboard - Visual Guide</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        .mockup {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .table-mockup {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-mockup th {
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            text-align: left;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-mockup td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .game-name {
+            color: var(--warning-color);
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .screenshot-indicator {
+            color: var(--primary-light);
+            font-size: 0.7rem;
+        }
+
+        .status-open {
+            color: var(--warning-color);
+        }
+
+        .status-resolved {
+            color: var(--success-color);
+        }
+
+        .game-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+            margin: 1rem 0;
+        }
+
+        .screenshot-container {
+            background: #000;
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .mock-image {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .before, .after {
+            padding: 1rem;
+            border-radius: 6px;
+        }
+
+        .before {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+        }
+
+        .after {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+        }
+
+        .before h3 {
+            color: var(--danger-color);
+            margin-top: 0;
+        }
+
+        .after h3 {
+            color: var(--success-color);
+            margin-top: 0;
+        }
+
+        details {
+            background: rgba(0,0,0,0.2);
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.5rem 0;
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0.25rem;
+        }
+
+        .highlight {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Bug Reports Dashboard - Visual Guide</h1>
+        <p class="subtitle">Complete guide to the enhanced bug reports admin interface</p>
+
+        <!-- Overview -->
+        <div class="section">
+            <h2>📋 Overview</h2>
+            <p>The bug reports dashboard now displays comprehensive diagnostic data including:</p>
+            <div style="margin-top: 1rem;">
+                <span class="feature-tag">🎮 Game Names</span>
+                <span class="feature-tag">📸 Screenshots</span>
+                <span class="feature-tag">🖥️ Environment Data</span>
+                <span class="feature-tag">📋 Console Logs</span>
+                <span class="feature-tag">🔍 Raw Metadata</span>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="section">
+            <h2>📊 Table View</h2>
+            <p>Each bug report row displays key information at a glance:</p>
+
+            <div class="mockup">
+                <table class="table-mockup">
+                    <thead>
+                        <tr>
+                            <th>Page / Game</th>
+                            <th>Description / Media</th>
+                            <th>Details</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span style="color: var(--primary-light);">/unblocked/game/</span><br>
+                                <span class="game-name">🎮 World's Hardest Game 2</span>
+                            </td>
+                            <td>
+                                Game crashes when clicking start button<br>
+                                <span class="status-open">Open</span><br>
+                                <span class="screenshot-indicator">📸 Screenshot (234KB)</span>
+                            </td>
+                            <td>
+                                <button style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.375rem 0.75rem; border-radius: 4px; cursor: pointer;">View Details</button>
+                            </td>
+                            <td style="color: var(--text-muted);">2/7/2026, 8:30 PM</td>
+                            <td>
+                                <button style="background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.375rem 0.75rem; border-radius: 4px; cursor: pointer;">Resolve</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p style="margin-top: 1rem; color: var(--text-secondary);">Key features:</p>
+            <ul style="color: var(--text-secondary);">
+                <li><span class="highlight">Game name</span> in yellow with 🎮 icon for instant identification</li>
+                <li><span class="highlight">Screenshot indicator</span> shows presence and size</li>
+                <li><span class="highlight">Status badge</span> (Open/Resolved) with color coding</li>
+                <li><span class="highlight">View Details</span> button to expand full report</li>
+            </ul>
+        </div>
+
+        <!-- Expanded Details -->
+        <div class="section">
+            <h2>🔍 Expanded Details View</h2>
+            <p>Clicking "View Details" reveals comprehensive diagnostic information:</p>
+
+            <div class="mockup">
+                <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0;">Expanded Report Contents:</h3>
+
+                <!-- Game Info -->
+                <div class="game-box">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.25rem; font-weight: 600;">🎮 GAME</p>
+                    <p style="font-size: 1rem; color: var(--text-primary); margin: 0; font-weight: 600;">World's Hardest Game 2</p>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0.25rem 0 0;">ID: worldhardestgame2</p>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin: 0.25rem 0 0;">URL: https://cdn.guythatlives.net/games/worldhardestgame2/index.html</p>
+                </div>
+
+                <!-- Screenshot -->
+                <div style="margin: 1rem 0;">
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📸 SCREENSHOT (234KB)</p>
+                    <div class="screenshot-container">
+                        <div class="mock-image">
+                            <div style="text-align: center;">
+                                <p style="margin: 0; font-size: 1.5rem;">🎮</p>
+                                <p style="margin: 0.5rem 0 0; font-size: 0.875rem;">Screenshot Preview</p>
+                                <p style="margin: 0.25rem 0 0; font-size: 0.7rem; opacity: 0.7;">Click to open in new tab</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div style="margin: 1rem 0;">
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📝 FULL DESCRIPTION</p>
+                    <div class="code-block" style="background: rgba(0,0,0,0.2);">
+                        Game crashes when I click the start button on level 3. The screen freezes and shows an error message.
+                    </div>
+                </div>
+
+                <!-- Environment Info -->
+                <details style="margin: 1rem 0;">
+                    <summary style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">🖥️ ENVIRONMENT INFO</summary>
+                    <div class="code-block" style="font-size: 0.7rem; margin-top: 0.5rem;">
+                        <p style="margin: 0.25rem 0;"><strong>User Agent:</strong> Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0</p>
+                        <p style="margin: 0.25rem 0;"><strong>Screen:</strong> 1920x1080 | <strong>Viewport:</strong> 1366x768</p>
+                        <p style="margin: 0.25rem 0;"><strong>Platform:</strong> Win32 | <strong>Language:</strong> en-US</p>
+                        <p style="margin: 0.25rem 0;"><strong>Timezone:</strong> America/New_York</p>
+                    </div>
+                </details>
+
+                <!-- Console Logs -->
+                <div style="margin: 1rem 0;">
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0 0 0.5rem; font-weight: 600;">📋 CONSOLE LOGS (3)</p>
+                    <div class="code-block" style="font-size: 0.72rem; line-height: 1.5;">
+                        <span style="color: #cbd5e1;">[LOG]</span> 2026-02-07T20:30:44.123Z Game initialized<br>
+                        <span style="color: #f59e0b;">[WARN]</span> 2026-02-07T20:30:44.456Z Level 3 assets not loaded<br>
+                        <span style="color: #ef4444;">[ERROR]</span> 2026-02-07T20:30:44.789Z Uncaught TypeError: Cannot read property 'start' of undefined
+                    </div>
+                </div>
+
+                <!-- Raw Metadata -->
+                <details style="margin: 1rem 0;">
+                    <summary style="font-size: 0.7rem; color: var(--text-muted);">🔍 RAW METADATA</summary>
+                    <div class="code-block" style="font-size: 0.65rem; margin-top: 0.5rem;">
+{
+  "id": "abc123def456",
+  "page": "/unblocked/game/",
+  "gameId": "worldhardestgame2",
+  "gameTitle": "World's Hardest Game 2",
+  "resolved": false,
+  "hasScreenshot": true,
+  "screenshotSize": 234
+}
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Before vs After -->
+        <div class="section">
+            <h2>📊 Before vs After Comparison</h2>
+            <div class="comparison">
+                <div class="before">
+                    <h3>❌ Before (Missing Data)</h3>
+                    <ul style="font-size: 0.875rem;">
+                        <li>Only page path shown</li>
+                        <li>No game identification</li>
+                        <li>Screenshot saved but not displayed</li>
+                        <li>Environment data hidden</li>
+                        <li>Hard to identify which game has issues</li>
+                    </ul>
+                </div>
+                <div class="after">
+                    <h3>✅ After (Complete Data)</h3>
+                    <ul style="font-size: 0.875rem;">
+                        <li>Game name prominently displayed</li>
+                        <li>Screenshot visible and clickable</li>
+                        <li>Environment info in collapsible section</li>
+                        <li>All metadata accessible</li>
+                        <li>Easy to identify and debug issues</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features -->
+        <div class="section">
+            <h2>✨ Key Features</h2>
+
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">1. Game Name Visibility</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>Appears in <span class="highlight">yellow color</span> with 🎮 icon</li>
+                <li>Shows in table row and expanded view</li>
+                <li>Falls back to slug or ID if title unavailable</li>
+                <li>Helps quickly identify which game has issues</li>
+            </ul>
+
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">2. Screenshot Display</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>Size indicator in table row (e.g., "234KB")</li>
+                <li>Full image in expanded view</li>
+                <li>Click to open in new tab</li>
+                <li>Max size constraints for page performance</li>
+            </ul>
+
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">3. Environment Data</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>User Agent, screen resolution, viewport size</li>
+                <li>Platform, language, timezone</li>
+                <li>iframe source (for games loaded in iframes)</li>
+                <li>Collapsible to save space</li>
+            </ul>
+
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">4. Console Logs</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>Color-coded by level (error, warn, info, log)</li>
+                <li>Timestamps included</li>
+                <li>Scrollable container (max 300px height)</li>
+                <li>Last 50 messages captured</li>
+            </ul>
+
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">5. Raw Metadata</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>JSON dump of all report fields</li>
+                <li>Collapsible for debugging</li>
+                <li>Shows exact data structure</li>
+                <li>Useful for troubleshooting</li>
+            </ul>
+        </div>
+
+        <!-- Access Instructions -->
+        <div class="section">
+            <h2>🚀 How to Access</h2>
+            <ol style="color: var(--text-secondary); line-height: 1.8;">
+                <li>Navigate to <code style="background: var(--bg-tertiary); padding: 0.125rem 0.375rem; border-radius: 3px;">/unblocked/editor/</code></li>
+                <li>Sign in with admin credentials</li>
+                <li>Click on the <span class="highlight">"Bug Reports"</span> tab</li>
+                <li>Use the filter dropdown to view:
+                    <ul>
+                        <li><strong>Open Reports</strong> - Unresolved issues</li>
+                        <li><strong>Resolved</strong> - Fixed issues</li>
+                        <li><strong>All Reports</strong> - Everything</li>
+                    </ul>
+                </li>
+                <li>Click <span class="highlight">"View Details"</span> on any report to see full information</li>
+                <li>Click <span class="highlight">"Resolve"</span> to mark an issue as fixed</li>
+            </ol>
+        </div>
+
+        <!-- Tips -->
+        <div class="section">
+            <h2>💡 Tips & Best Practices</h2>
+            <ul style="color: var(--text-secondary); line-height: 1.8;">
+                <li><strong>Screenshot Analysis:</strong> Click screenshots to open full-size in new tab for better readability</li>
+                <li><strong>Environment Data:</strong> Check user agent and screen resolution to identify browser-specific issues</li>
+                <li><strong>Console Logs:</strong> Look for error messages (red) first - they often show the root cause</li>
+                <li><strong>Game Identification:</strong> Use game name to group similar issues from the same game</li>
+                <li><strong>Mark as Resolved:</strong> Don't forget to mark reports as resolved after fixing the issue</li>
+                <li><strong>Raw Metadata:</strong> Use the metadata section when you need exact field values for debugging</li>
+            </ul>
+        </div>
+
+        <!-- Summary -->
+        <div class="section" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1)); border-left: 3px solid var(--primary-color);">
+            <h2>✅ Summary</h2>
+            <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">
+                The enhanced bug reports dashboard provides complete visibility into user-submitted issues with
+                <span class="highlight">game identification</span>,
+                <span class="highlight">visual screenshots</span>,
+                <span class="highlight">environment diagnostics</span>, and
+                <span class="highlight">console logs</span>
+                - all organized in an easy-to-navigate interface.
+            </p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 1rem; margin-bottom: 0;">
+                For technical documentation, see <code style="background: var(--bg-tertiary); padding: 0.125rem 0.375rem; border-radius: 3px;">BUG_REPORTER_DASHBOARD_FIXES.md</code>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
