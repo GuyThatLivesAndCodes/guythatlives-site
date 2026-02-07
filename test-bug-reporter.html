@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Reporter Test Page</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-hover: #475569;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-light);
+            margin-bottom: 1rem;
+        }
+
+        .info-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-box h2 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+        }
+
+        .info-box ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .info-box li {
+            margin: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .test-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: var(--primary-light);
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--primary-light);
+        }
+
+        .game-frame-wrapper {
+            background: #000;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        code {
+            background: var(--bg-tertiary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-light);
+        }
+
+        .success {
+            color: var(--success-color);
+        }
+
+        .error {
+            color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐛 Bug Reporter Test Page</h1>
+
+        <div class="info-box">
+            <h2>✅ Enhanced Bug Reporter Features</h2>
+            <ul>
+                <li><strong>Game Metadata:</strong> Extracts game ID from URL <code>?game=XXX</code></li>
+                <li><strong>Screenshot Capture:</strong> Optional screenshot with html2canvas</li>
+                <li><strong>Environment Context:</strong> User-Agent, resolution, viewport, timezone</li>
+                <li><strong>Console Logs:</strong> Last 50 messages automatically captured</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h2>🧪 Testing Instructions</h2>
+            <ul>
+                <li>Look for the <strong>"Report Bug" FAB button</strong> in the bottom-left corner</li>
+                <li>Click it to open the bug report modal</li>
+                <li>The page path should show: <code>/test-bug-reporter.html</code></li>
+                <li>If you add <code>?game=test123</code> to the URL, game info will appear</li>
+                <li>Try checking the "Capture Screenshot" checkbox</li>
+                <li>Submit a test report and check your Firestore <code>bugReports</code> collection</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>Test Console Logging</h3>
+            <p>Click these buttons to generate console messages that will be captured:</p>
+            <button onclick="console.log('Test log message')">Log Message</button>
+            <button onclick="console.warn('Test warning')">Warn Message</button>
+            <button onclick="console.error('Test error')">Error Message</button>
+        </div>
+
+        <div class="test-section">
+            <h3>Simulated Game Frame</h3>
+            <p>This div has class <code>.game-frame-wrapper</code> which the screenshot function targets:</p>
+            <div class="game-frame-wrapper" id="game-frame">
+                <h2 style="color: white; margin: 0;">🎮 Simulated Game Content</h2>
+                <p style="color: #888;">This is what would be captured in the screenshot</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Check Submitted Reports</h3>
+            <p>After submitting a bug report, run this in your browser console:</p>
+            <code style="display: block; white-space: pre; background: var(--bg-tertiary); padding: 1rem; border-radius: 6px; margin-top: 0.5rem;">
+firebase.firestore().collection('bugReports')
+    .orderBy('submittedAt', 'desc')
+    .limit(1)
+    .get()
+    .then(snapshot => {
+        snapshot.forEach(doc => {
+            console.log('Latest report:', doc.data());
+        });
+    });
+            </code>
+        </div>
+
+        <div class="info-box">
+            <h2>📊 Expected Report Structure</h2>
+            <ul>
+                <li><code>page</code> - "/test-bug-reporter.html"</li>
+                <li><code>description</code> - User's text input</li>
+                <li><code>gameId</code> - null (unless ?game= is in URL)</li>
+                <li><code>gameTitle</code> - null (unless gameManager provides it)</li>
+                <li><code>gameUrl</code> - null</li>
+                <li><code>environment</code> - Object with userAgent, screenResolution, etc.</li>
+                <li><code>consoleLogs</code> - Array of captured console messages</li>
+                <li><code>screenshot</code> - Base64 string (if checkbox was checked)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (use your config) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Initialize Firebase -->
+    <script>
+        // TODO: Replace with your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJM9kLqW-OznE2H5R90WJN1OqpQN7aCAQ",
+            authDomain: "guythatlives.firebaseapp.com",
+            projectId: "guythatlives",
+            storageBucket: "guythatlives.firebasestorage.app",
+            messagingSenderId: "1068234768326",
+            appId: "1:1068234768326:web:a5f3a06b62c5c5b0f87f2f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        console.log('Firebase initialized for bug reporter test');
+    </script>
+
+    <!-- Enhanced Bug Reporter -->
+    <script src="unblocked/shared/bug-reporter.js"></script>
+
+    <script>
+        // Simulate game context
+        console.log('Test page loaded - Bug Reporter should initialize');
+        console.log('URL params:', new URLSearchParams(window.location.search).toString());
+
+        // Helper: Test with game ID
+        function testWithGameId() {
+            const url = new URL(window.location);
+            url.searchParams.set('game', 'test-game-123');
+            window.location = url;
+        }
+
+        // Make it available in console
+        window.testWithGameId = testWithGameId;
+
+        console.log('Tip: Run testWithGameId() to add ?game= parameter to URL');
+    </script>
+</body>
+</html>

@@ -1,12 +1,14 @@
 /**
- * Bug Reporter — shared module for all /unblocked/ pages.
+ * Enhanced Bug Reporter — shared module for all /unblocked/ pages.
  *
- * Patches console so the last 50 messages are captured in memory,
- * then provides a floating "Report Bug" button that opens a modal.
- * On submit it calls the submitBugReport Cloud Function with the
- * user's description + the captured console log.
+ * Features:
+ * - Captures last 50 console messages
+ * - Extracts game metadata (ID, title, URL) from query params and gameManager
+ * - Optional screenshot capture with html2canvas
+ * - Automatic environment context (User-Agent, resolution, iframe source)
+ * - Submits to Firestore with comprehensive diagnostic data
  *
- * Usage: include this script after the Firebase SDK scripts.
+ * Usage: include this script after the Firebase SDK scripts and game-manager.js
  * It self-initializes on DOMContentLoaded.
  */
 (function () {
@@ -38,6 +40,124 @@
         });
     }
 
+    // ── Game Metadata Extraction ─────────────────────────────
+    function getGameId() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('game');
+        } catch (e) {
+            console.warn('Failed to extract game ID:', e);
+            return null;
+        }
+    }
+
+    async function getGameMetadata() {
+        const gameId = getGameId();
+        if (!gameId) {
+            return { gameId: null, gameTitle: null, gameUrl: null };
+        }
+
+        try {
+            // Check if gameManager is available (game page context)
+            if (window.gameManager && typeof window.gameManager.getGame === 'function') {
+                const gameData = await window.gameManager.getGame(gameId);
+                return {
+                    gameId: gameId,
+                    gameTitle: gameData.title || null,
+                    gameUrl: gameData.gameUrl || null
+                };
+            }
+        } catch (e) {
+            console.warn('Failed to fetch game metadata:', e);
+        }
+
+        // Fallback: just return the gameId
+        return { gameId: gameId, gameTitle: null, gameUrl: null };
+    }
+
+    // ── Environment Context Capture ──────────────────────────
+    function getEnvironmentContext() {
+        const gameFrame = document.getElementById('game-frame');
+        let iframeSource = null;
+
+        if (gameFrame) {
+            if (gameFrame.srcdoc) {
+                iframeSource = '[srcdoc] ' + gameFrame.srcdoc.substring(0, 100) + '...';
+            } else if (gameFrame.src) {
+                iframeSource = gameFrame.src;
+            }
+        }
+
+        return {
+            userAgent: navigator.userAgent || 'Unknown',
+            screenResolution: `${screen.width}x${screen.height}`,
+            viewportSize: `${window.innerWidth}x${window.innerHeight}`,
+            iframeSource: iframeSource,
+            timestamp: new Date().toISOString(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+            platform: navigator.platform || 'Unknown',
+            language: navigator.language || 'Unknown'
+        };
+    }
+
+    // ── Screenshot Capture ───────────────────────────────────
+    let html2canvasLoaded = false;
+
+    async function loadHtml2Canvas() {
+        if (html2canvasLoaded) return;
+
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+            script.onload = () => {
+                html2canvasLoaded = true;
+                console.log('html2canvas loaded');
+                resolve();
+            };
+            script.onerror = () => reject(new Error('Failed to load html2canvas'));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function captureScreenshot() {
+        try {
+            await loadHtml2Canvas();
+
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('html2canvas not available');
+            }
+
+            // Capture the game frame wrapper (includes the game iframe)
+            const gameWrapper = document.querySelector('.game-frame-wrapper') || document.body;
+
+            const canvas = await html2canvas(gameWrapper, {
+                allowTaint: true,
+                useCORS: false,
+                logging: false,
+                scale: 0.5, // Reduce scale for smaller file size
+                width: Math.min(gameWrapper.scrollWidth, 1280),
+                height: Math.min(gameWrapper.scrollHeight, 720)
+            });
+
+            // Convert to compressed base64
+            // Start with quality 0.4 and increase max size to 250KB
+            let quality = 0.4;
+            let base64 = canvas.toDataURL('image/jpeg', quality);
+
+            // If still too large, reduce quality further
+            while (base64.length > 250000 && quality > 0.1) {
+                quality -= 0.1;
+                base64 = canvas.toDataURL('image/jpeg', quality);
+            }
+
+            console.log(`Screenshot captured: ${Math.round(base64.length / 1024)}KB at quality ${quality.toFixed(1)}`);
+            return base64;
+        } catch (err) {
+            console.error('Screenshot capture failed:', err);
+            return null;
+        }
+    }
+
     // ── Modal HTML ───────────────────────────────────────────
     function getModalHTML() {
         return `
@@ -54,9 +174,18 @@
         </div>
         <div class="bug-report-modal-body">
             <p class="bug-report-page-label">Page: <span id="bug-report-page-name"></span></p>
+            <p class="bug-report-game-label" id="bug-report-game-info" style="display:none;">
+                Game: <span id="bug-report-game-name"></span>
+            </p>
             <label class="bug-report-label">Describe what went wrong</label>
             <textarea id="bug-report-textarea" class="bug-report-textarea" placeholder="e.g. The game freezes when I click the start button…" maxlength="2000"></textarea>
-            <p class="bug-report-hint">We automatically include your last 50 console messages to help debug.</p>
+
+            <label class="bug-report-checkbox-label">
+                <input type="checkbox" id="bug-report-screenshot-checkbox" class="bug-report-checkbox">
+                <span>Capture screenshot (helps us debug faster)</span>
+            </label>
+
+            <p class="bug-report-hint">We automatically include your last 50 console messages, environment details, and game information to help debug.</p>
         </div>
         <div class="bug-report-modal-footer">
             <button id="bug-report-cancel-btn" class="bug-report-btn bug-report-btn-secondary">Cancel</button>
@@ -127,7 +256,7 @@
     border: 1px solid var(--border-color, #334155);
     border-radius: 0.75rem;
     width: 100%;
-    max-width: 480px;
+    max-width: 520px;
     box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);
     display: flex;
     flex-direction: column;
@@ -164,13 +293,16 @@
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    overflow-y: auto;
 }
-.bug-report-page-label {
+.bug-report-page-label,
+.bug-report-game-label {
     font-size: 0.75rem;
     color: var(--text-muted, #94a3b8);
     margin: 0;
 }
-.bug-report-page-label span {
+.bug-report-page-label span,
+.bug-report-game-label span {
     color: var(--primary-light, #818cf8);
     font-weight: 500;
 }
@@ -200,6 +332,23 @@
 .bug-report-textarea::placeholder {
     color: var(--text-muted, #94a3b8);
 }
+
+.bug-report-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary, #cbd5e1);
+    cursor: pointer;
+    user-select: none;
+}
+.bug-report-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-color, #6366f1);
+}
+
 .bug-report-hint {
     font-size: 0.72rem;
     color: var(--text-muted, #94a3b8);
@@ -293,14 +442,28 @@
         });
     }
 
-    function openModal() {
+    async function openModal() {
         const modal = document.getElementById('bug-report-modal');
         const pageLabel = document.getElementById('bug-report-page-name');
+        const gameInfo = document.getElementById('bug-report-game-info');
+        const gameName = document.getElementById('bug-report-game-name');
         const textarea = document.getElementById('bug-report-textarea');
         const status = document.getElementById('bug-report-status');
+        const screenshotCheckbox = document.getElementById('bug-report-screenshot-checkbox');
 
         pageLabel.textContent = window.location.pathname;
+
+        // Load game metadata if available
+        const gameMetadata = await getGameMetadata();
+        if (gameMetadata.gameId) {
+            gameName.textContent = gameMetadata.gameTitle || gameMetadata.gameId;
+            gameInfo.style.display = 'block';
+        } else {
+            gameInfo.style.display = 'none';
+        }
+
         textarea.value = '';
+        screenshotCheckbox.checked = false;
         status.style.display = 'none';
         status.className = 'bug-report-status';
         document.getElementById('bug-report-submit-btn').disabled = false;
@@ -317,6 +480,7 @@
         const textarea = document.getElementById('bug-report-textarea');
         const submitBtn = document.getElementById('bug-report-submit-btn');
         const status = document.getElementById('bug-report-status');
+        const screenshotCheckbox = document.getElementById('bug-report-screenshot-checkbox');
         const description = textarea.value.trim();
 
         if (!description) {
@@ -327,11 +491,24 @@
         }
 
         submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
         status.style.display = 'none';
 
         try {
-            // Write directly to Firestore — no Cloud Function needed.
-            // Security rules allow anyone to create; only admins can read.
+            // Gather all diagnostic data
+            const gameMetadata = await getGameMetadata();
+            const environmentContext = getEnvironmentContext();
+
+            // Capture screenshot if requested
+            let screenshot = null;
+            if (screenshotCheckbox.checked) {
+                status.textContent = 'Capturing screenshot...';
+                status.className = 'bug-report-status';
+                status.style.display = 'block';
+                screenshot = await captureScreenshot();
+            }
+
+            // Prepare console logs
             const logs = capturedLogs.slice(-50).map(function (entry) {
                 return {
                     level: entry.level || 'log',
@@ -340,26 +517,56 @@
                 };
             });
 
-            await firebase.firestore().collection('bugReports').add({
+            // Submit to Firestore
+            const reportData = {
+                // Basic info
                 page: window.location.pathname,
                 description: description.substring(0, 2000),
-                consoleLogs: logs,
                 submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                resolved: false
-            });
+                resolved: false,
+
+                // Game metadata
+                gameId: gameMetadata.gameId,
+                gameTitle: gameMetadata.gameTitle,
+                gameUrl: gameMetadata.gameUrl,
+
+                // Environment context
+                environment: {
+                    userAgent: environmentContext.userAgent,
+                    screenResolution: environmentContext.screenResolution,
+                    viewportSize: environmentContext.viewportSize,
+                    iframeSource: environmentContext.iframeSource,
+                    timestamp: environmentContext.timestamp,
+                    timezone: environmentContext.timezone,
+                    platform: environmentContext.platform,
+                    language: environmentContext.language
+                },
+
+                // Console logs
+                consoleLogs: logs,
+
+                // Screenshot (if captured)
+                screenshot: screenshot
+            };
+
+            await firebase.firestore().collection('bugReports').add(reportData);
 
             status.textContent = 'Bug report submitted — thank you!';
             status.className = 'bug-report-status success';
             status.style.display = 'block';
 
             textarea.value = '';
+            submitBtn.textContent = 'Submit Report';
+
             // Close after 2.5 s
             setTimeout(closeModal, 2500);
         } catch (err) {
+            console.error('Bug report submission error:', err);
             status.textContent = 'Failed to submit: ' + (err.message || 'unknown error');
             status.className = 'bug-report-status error';
             status.style.display = 'block';
             submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Report';
         }
     }
 
