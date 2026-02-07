@@ -135,12 +135,16 @@
 
                     <!-- Tool Interface (hidden until TOS accepted) -->
                     <div class="tool-interface" id="tool-interface" style="display: none;">
+                        <div class="setup-info">
+                            <p><strong>💡 First time using this?</strong> This tool runs in demo mode by default. For real Kahoot data, you'll need to set up the proxy server. See <a href="SETUP.md" target="_blank">SETUP.md</a> for instructions.</p>
+                        </div>
+
                         <div class="input-section">
                             <label for="game-pin">Game PIN</label>
                             <input
                                 type="text"
                                 id="game-pin"
-                                placeholder="Enter Kahoot game PIN"
+                                placeholder="Enter Kahoot game PIN (e.g., 1234567)"
                                 maxlength="8"
                             >
                             <button class="btn-primary" onclick="findAnswers()">

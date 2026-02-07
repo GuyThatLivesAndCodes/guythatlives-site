@@ -163,19 +163,26 @@ All styles are in `style.css`. The theme uses CSS variables from the main games 
 
 ## Troubleshooting
 
+**Error: "NetworkError when attempting to fetch resource"**
+- This is normal! It happens when trying direct Kahoot API calls (blocked by CORS)
+- The tool will automatically fall back to demo mode
+- To get real data, set up the cloudflared proxy (see above)
+
 **Error: "Cloudflared endpoint not available"**
-- Make sure your proxy server is running
+- Make sure your proxy server is running (`npm start`)
 - Check that cloudflared tunnel is active
-- Verify the URL in `kahoot-finder.js` is correct
+- Verify the URL in `kahoot-finder.js` line 67 matches your tunnel URL
 
 **Error: "CORS policy blocked"**
-- This is expected for direct API calls
+- This is expected for direct API calls from browsers
+- Kahoot blocks cross-origin requests for security
 - Use the cloudflared proxy method instead
 
 **Only seeing demo data**
-- This means all API methods failed
-- Check your cloudflared setup
+- This means all API methods failed (normal without proxy setup)
+- Check your cloudflared setup if you want real data
 - Verify network connectivity
+- Make sure proxy server is accessible
 
 ## Contributing
 

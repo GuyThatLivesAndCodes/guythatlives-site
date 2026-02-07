@@ -31,7 +31,8 @@ function acceptTOS() {
 
 function showStatus(message, type = 'info') {
     const statusEl = document.getElementById('status-message');
-    statusEl.textContent = message;
+    // Use innerHTML to support HTML formatting in messages
+    statusEl.innerHTML = message;
     statusEl.className = `status-message ${type}`;
     statusEl.style.display = 'block';
 }
@@ -62,76 +63,100 @@ async function findAnswers() {
     document.getElementById('results-container').style.display = 'none';
     showStatus('Searching for answers...', 'info');
 
+    let quizData = null;
+    const attemptedMethods = [];
+
+    // Method 1: Try cloudflared endpoint (if you have it configured)
+    const cloudflaredUrl = 'http://localhost:8080'; // Replace with your actual cloudflared URL
+
     try {
-        // Method 1: Try cloudflared endpoint (if you have it configured)
-        const cloudflaredUrl = 'http://localhost:8080'; // Replace with your actual cloudflared URL
-        let quizData = null;
+        showStatus('Attempting cloudflared proxy...', 'info');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
 
+        const cloudflaredResponse = await fetch(`${cloudflaredUrl}/api/kahoot/${gamePin}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (cloudflaredResponse.ok) {
+            const data = await cloudflaredResponse.json();
+            if (data && data.questions) {
+                quizData = data;
+                attemptedMethods.push('✓ Cloudflared proxy');
+            }
+        }
+    } catch (cloudflaredError) {
+        attemptedMethods.push('✗ Cloudflared proxy (not running)');
+        console.log('Cloudflared endpoint not available:', cloudflaredError.message);
+    }
+
+    // Method 2: Try CORS proxy with proper error handling
+    if (!quizData) {
         try {
-            const cloudflaredResponse = await fetch(`${cloudflaredUrl}/api/kahoot/${gamePin}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            showStatus('Trying alternative proxy method...', 'info');
 
-            if (cloudflaredResponse.ok) {
-                quizData = await cloudflaredResponse.json();
-            }
-        } catch (cloudflaredError) {
-            console.log('Cloudflared endpoint not available, trying alternative method');
-        }
-
-        // Method 2: Try direct Kahoot API (this is a simplified approach)
-        // Note: This may not work due to CORS and Kahoot's API protection
-        if (!quizData) {
-            try {
-                // First, check if the game exists
-                const checkResponse = await fetch(`https://kahoot.it/rest/kahoots/${gamePin}`, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (checkResponse.ok) {
-                    quizData = await checkResponse.json();
-                }
-            } catch (apiError) {
-                console.error('Direct API error:', apiError);
-            }
-        }
-
-        // Method 3: Use a CORS proxy (educational purposes only)
-        if (!quizData) {
-            showStatus('Setting up alternative connection method...', 'info');
-
-            // This is a placeholder - you would need to implement your own proxy
-            // or use your cloudflared setup
-            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            // Try with allorigins.win which returns JSON with contents field
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
             const targetUrl = `https://create.kahoot.it/rest/kahoots/${gamePin}`;
 
-            try {
-                const proxyResponse = await fetch(proxyUrl + encodeURIComponent(targetUrl));
-                if (proxyResponse.ok) {
-                    quizData = await proxyResponse.json();
-                }
-            } catch (proxyError) {
-                console.error('Proxy error:', proxyError);
-            }
-        }
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        if (quizData && quizData.questions) {
-            displayResults(quizData);
-            showStatus('Answers found successfully!', 'success');
-        } else {
-            // Display demo data for testing purposes
-            showDemoResults(gamePin);
-            showStatus('Connected to demo mode. Configure your cloudflared endpoint for live data.', 'info');
+            const proxyResponse = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (proxyResponse.ok) {
+                const proxyData = await proxyResponse.json();
+                if (proxyData.contents) {
+                    try {
+                        const parsedData = JSON.parse(proxyData.contents);
+                        if (parsedData && parsedData.questions) {
+                            quizData = parsedData;
+                            attemptedMethods.push('✓ CORS proxy');
+                        }
+                    } catch (parseError) {
+                        console.log('Failed to parse proxy response:', parseError);
+                        attemptedMethods.push('✗ CORS proxy (invalid response)');
+                    }
+                } else {
+                    attemptedMethods.push('✗ CORS proxy (no data)');
+                }
+            } else {
+                attemptedMethods.push('✗ CORS proxy (request failed)');
+            }
+        } catch (proxyError) {
+            attemptedMethods.push('✗ CORS proxy (timeout/error)');
+            console.log('CORS proxy error:', proxyError.message);
         }
-    } catch (error) {
-        console.error('Error finding answers:', error);
-        showStatus(`Error: ${error.message}. Make sure your cloudflared endpoint is running.`, 'error');
+    }
+
+    // Display results or fall back to demo mode
+    if (quizData && quizData.questions) {
+        displayResults(quizData);
+        showStatus('✓ Answers found successfully!', 'success');
+        console.log('Methods attempted:', attemptedMethods.join(', '));
+    } else {
+        // Display demo data with helpful message
+        showDemoResults(gamePin);
+        showStatus(
+            `<strong>⚠️ Demo Mode Active</strong><br>` +
+            `Real Kahoot data is unavailable because the proxy server is not configured. ` +
+            `To get actual quiz answers, you need to set up the cloudflared proxy server.<br><br>` +
+            `<strong>Quick Setup:</strong> Run <code>npm install && npm start</code> in the hack-client folder, ` +
+            `then run <code>cloudflared tunnel --url http://localhost:8080</code><br>` +
+            `See <a href="SETUP.md" target="_blank" style="color: #667eea; text-decoration: underline;">SETUP.md</a> for full instructions.`,
+            'info'
+        );
+        console.log('All methods failed. Attempted:', attemptedMethods);
     }
 }
 
