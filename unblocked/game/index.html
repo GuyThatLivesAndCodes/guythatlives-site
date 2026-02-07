@@ -502,30 +502,86 @@
 
                 // List of games that need direct loading (no storage isolation)
                 // These games require canvas pixel access which srcdoc blocks
+                // Common patterns: Construct 2/3 games, Unity games, games with WebGL
                 const DIRECT_LOAD_GAMES = [
+                    // FNAF series - canvas pixel access
                     'fnaf1', 'fnaf2', 'fnaf3', 'fnaf4',
+                    // Minecraft-like games
                     'minecraft', 'eaglercraft',
-                    'slope', 'run3', 'geometrydash'
+                    // Physics/3D games
+                    'slope', 'run3', 'geometrydash',
+                    // Construct 2/3 games (canvas tainting issues)
+                    'ovo', 'vex', 'getaway-shootout', 'basket-random',
+                    'driftboss', 'tunnelrush', 'retrohaunt',
+                    // Unity WebGL games
+                    'unity', 'webgl',
+                    // Games known to use canvas.getImageData()
+                    'btd', 'bloons', 'papas', 'jacksmith',
+                    // Add more as needed
+                    'construct2', 'construct3', 'c2runtime', 'c3runtime'
                 ];
 
                 // Check if this game needs direct loading
-                const needsDirectLoad = DIRECT_LOAD_GAMES.some(game =>
+                let needsDirectLoad = DIRECT_LOAD_GAMES.some(game =>
                     gameId.toLowerCase().includes(game) ||
                     currentGame.title.toLowerCase().includes(game)
                 );
+
+                // Fetch game HTML once to check for special requirements
+                let gameHtml = null;
+                let isConstruct = false;
+
+                if (!needsDirectLoad) {
+                    try {
+                        const response = await fetch(currentGame.gameUrl);
+                        gameHtml = await response.text();
+
+                        // Check for Construct 2/3 indicators
+                        const construct2Indicators = [
+                            'c2runtime.js',
+                            'c3runtime.js',
+                            'c2canvas',
+                            'Construct 2',
+                            'Construct 3',
+                            'Construct2',
+                            'cr_getC2Runtime',
+                            'C2_RuntimeObject'
+                        ];
+
+                        isConstruct = construct2Indicators.some(indicator =>
+                            gameHtml.includes(indicator)
+                        );
+
+                        if (isConstruct) {
+                            console.log('Detected Construct 2/3 game - using direct load');
+                            needsDirectLoad = true;
+                        }
+                    } catch (error) {
+                        console.warn('Could not check game type, using default method:', error);
+                    }
+                }
 
                 if (needsDirectLoad) {
                     // Direct load without storage isolation
                     console.log(`Loading ${gameId} directly (no storage isolation)`);
 
-                    // For FNAF games, we need to inject a canvas fix script
-                    const isFNAF = ['fnaf1', 'fnaf2', 'fnaf3', 'fnaf4'].some(game =>
+                    // Games that need canvas CORS fix (FNAF only)
+                    const needsCanvasFix = ['fnaf1', 'fnaf2', 'fnaf3', 'fnaf4'].some(game =>
                         gameId.toLowerCase().includes(game) ||
                         currentGame.title.toLowerCase().includes(game)
                     );
 
-                    if (isFNAF) {
-                        // Fetch the game HTML and inject canvas fix
+                    if (isConstruct) {
+                        // Construct 2/3 games MUST use direct loading (not srcdoc)
+                        // srcdoc creates a null origin which causes "insecure operation" errors
+                        console.log('Loading Construct 2/3 game directly (src) to avoid canvas tainting');
+                        gameFrame.src = currentGame.gameUrl;
+                        gameFrame.onload = () => {
+                            console.log('Construct game loaded successfully via direct src');
+                            document.getElementById('game-loading').classList.add('hidden');
+                        };
+                    } else if (needsCanvasFix) {
+                        // FNAF games can use srcdoc with canvas fix
                         try {
                             const response = await fetch(currentGame.gameUrl);
                             let html = await response.text();
