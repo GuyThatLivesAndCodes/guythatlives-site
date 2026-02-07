@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hack-Client (Beta) - Unblocked</title>
+    <link rel="stylesheet" href="../shared/games-styles.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav>
+                <div class="logo">
+                    <a href="../">← Back to Games</a>
+                </div>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/unblocked">Games</a>
+                    <a href="/unblocked/hack-client" class="active">Hack-Client</a>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <div class="hero-section">
+                <div class="beta-badge">BETA</div>
+                <h1>🔓 Hack-Client</h1>
+                <p class="subtitle">Educational tools for exploring web technologies</p>
+                <div class="warning-banner">
+                    <strong>⚠️ Important Notice:</strong>
+                    <p>These tools are provided for educational purposes only. Using them may violate the Terms of Service of certain websites. Always check and respect the terms of service before using any tool. You are solely responsible for your actions.</p>
+                </div>
+            </div>
+
+            <div class="tools-container">
+                <!-- Kahoot Answer Finder -->
+                <div class="tool-card" id="kahoot-tool">
+                    <div class="tool-header">
+                        <div class="tool-icon">🎯</div>
+                        <div class="tool-info">
+                            <h2>Kahoot Answer Finder</h2>
+                            <span class="status-badge active">Active</span>
+                        </div>
+                    </div>
+                    <p class="tool-description">
+                        Find answers to Kahoot quizzes by entering the game PIN. This tool retrieves quiz questions and answers for educational purposes.
+                    </p>
+                    <div class="tool-features">
+                        <span class="feature-tag">Real-time</span>
+                        <span class="feature-tag">Cloud-powered</span>
+                        <span class="feature-tag">Easy to use</span>
+                    </div>
+                    <button class="tool-button" onclick="openKahootTool()">
+                        Launch Tool →
+                    </button>
+                </div>
+
+                <!-- Placeholder Cards for Future Tools -->
+                <div class="tool-card disabled">
+                    <div class="tool-header">
+                        <div class="tool-icon">🔧</div>
+                        <div class="tool-info">
+                            <h2>Coming Soon</h2>
+                            <span class="status-badge upcoming">Upcoming</span>
+                        </div>
+                    </div>
+                    <p class="tool-description">
+                        More educational tools are in development. Stay tuned for updates!
+                    </p>
+                    <button class="tool-button" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+
+                <div class="tool-card disabled">
+                    <div class="tool-header">
+                        <div class="tool-icon">🛠️</div>
+                        <div class="tool-info">
+                            <h2>Coming Soon</h2>
+                            <span class="status-badge upcoming">Upcoming</span>
+                        </div>
+                    </div>
+                    <p class="tool-description">
+                        More educational tools are in development. Stay tuned for updates!
+                    </p>
+                    <button class="tool-button" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+
+                <div class="tool-card disabled">
+                    <div class="tool-header">
+                        <div class="tool-icon">⚡</div>
+                        <div class="tool-info">
+                            <h2>Coming Soon</h2>
+                            <span class="status-badge upcoming">Upcoming</span>
+                        </div>
+                    </div>
+                    <p class="tool-description">
+                        More educational tools are in development. Stay tuned for updates!
+                    </p>
+                    <button class="tool-button" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kahoot Tool Modal -->
+            <div id="kahoot-modal" class="tool-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>🎯 Kahoot Answer Finder</h2>
+                        <button class="close-btn" onclick="closeKahootModal()">&times;</button>
+                    </div>
+
+                    <!-- TOS Warning -->
+                    <div class="tos-warning" id="tos-warning">
+                        <div class="warning-icon">⚠️</div>
+                        <h3>Terms of Service Warning</h3>
+                        <p>Using this tool may violate Kahoot's Terms of Service. This tool is provided for educational purposes only to understand web technologies and API interactions.</p>
+                        <p><strong>By proceeding, you acknowledge that:</strong></p>
+                        <ul>
+                            <li>You understand this may violate Kahoot's TOS</li>
+                            <li>You use this tool at your own risk</li>
+                            <li>You are solely responsible for your actions</li>
+                            <li>This is for educational purposes only</li>
+                        </ul>
+                        <div class="tos-actions">
+                            <button class="btn-cancel" onclick="closeKahootModal()">Cancel</button>
+                            <button class="btn-accept" onclick="acceptTOS()">I Understand & Accept</button>
+                        </div>
+                    </div>
+
+                    <!-- Tool Interface (hidden until TOS accepted) -->
+                    <div class="tool-interface" id="tool-interface" style="display: none;">
+                        <div class="input-section">
+                            <label for="game-pin">Game PIN</label>
+                            <input
+                                type="text"
+                                id="game-pin"
+                                placeholder="Enter Kahoot game PIN"
+                                maxlength="8"
+                            >
+                            <button class="btn-primary" onclick="findAnswers()">
+                                Find Answers
+                            </button>
+                        </div>
+
+                        <div id="status-message" class="status-message"></div>
+
+                        <div id="results-container" class="results-container" style="display: none;">
+                            <h3>Quiz Information</h3>
+                            <div id="quiz-info" class="quiz-info"></div>
+
+                            <h3>Questions & Answers</h3>
+                            <div id="questions-list" class="questions-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Unblocked Games. Hack-Client is in beta.</p>
+            <p class="disclaimer">All tools are provided for educational purposes only. Use responsibly.</p>
+        </footer>
+    </div>
+
+    <script src="kahoot-finder.js"></script>
+</body>
+</html>
