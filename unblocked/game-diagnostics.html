@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Loading Diagnostics - GuyThatLives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e0e0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #6366f1;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            color: #8b5cf6;
+            margin: 2rem 0 1rem;
+        }
+
+        .test-section {
+            background: #1a1f3a;
+            border: 1px solid #2d3558;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .log {
+            background: #0d1117;
+            border: 1px solid #2d3558;
+            border-radius: 6px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+
+        .log-entry {
+            margin: 0.25rem 0;
+            padding: 0.25rem;
+            border-left: 3px solid transparent;
+        }
+
+        .log-entry.success {
+            color: #4ade80;
+            border-left-color: #4ade80;
+        }
+
+        .log-entry.error {
+            color: #f87171;
+            border-left-color: #f87171;
+        }
+
+        .log-entry.warning {
+            color: #fbbf24;
+            border-left-color: #fbbf24;
+        }
+
+        .log-entry.info {
+            color: #60a5fa;
+            border-left-color: #60a5fa;
+        }
+
+        input, select {
+            background: #0d1117;
+            border: 1px solid #2d3558;
+            color: #e0e0e0;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .test-frame {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #2d3558;
+            border-radius: 6px;
+            margin-top: 1rem;
+            background: #000;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .status.pass {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .status.fail {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Game Loading Diagnostics</h1>
+        <p>This tool helps diagnose issues with games loading from <code>cdn.guythatlives.net</code></p>
+
+        <div class="test-section">
+            <h2>1. CDN Connectivity Test</h2>
+            <p>Checks if the CDN is accessible and has proper CORS headers</p>
+            <button onclick="testCDN()">Run CDN Test</button>
+            <div id="cdn-log" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Game URL Test</h2>
+            <p>Test loading a specific game and check for issues</p>
+            <input type="text" id="game-url" placeholder="Enter game URL (e.g., https://cdn.guythatlives.net/games/osumania/)">
+            <button onclick="testGameURL()">Test Game URL</button>
+            <div id="game-url-log" class="log"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Base Tag Resolution Test</h2>
+            <p>Test if relative URLs are resolved correctly with base tag</p>
+            <button onclick="testBaseTag()">Run Base Tag Test</button>
+            <div id="base-tag-log" class="log"></div>
+            <iframe id="base-tag-frame" class="test-frame" style="display:none;"></iframe>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Live Game Test</h2>
+            <p>Test loading a game with different methods</p>
+            <select id="test-method">
+                <option value="srcdoc">Using srcdoc (with base tag)</option>
+                <option value="src">Using src (direct load)</option>
+            </select>
+            <input type="text" id="live-game-url" placeholder="Enter game URL">
+            <button onclick="testLiveGame()">Load Game</button>
+            <button onclick="clearTestFrame()">Clear</button>
+            <div id="live-game-log" class="log"></div>
+            <iframe id="live-game-frame" class="test-frame"></iframe>
+        </div>
+
+        <div class="test-section">
+            <h2>5. Cloudflare Status Check</h2>
+            <p>Verify Cloudflare configuration and CORS headers</p>
+            <button onclick="checkCloudflare()">Check Cloudflare</button>
+            <div id="cloudflare-log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLog(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        async function testCDN() {
+            clearLog('cdn-log');
+            log('cdn-log', 'Starting CDN connectivity test...', 'info');
+
+            const testUrls = [
+                'https://cdn.guythatlives.net/games/osumania/',
+                'https://cdn.guythatlives.net/games/osumania/script.js',
+                'https://cdn.guythatlives.net/games/osumania/assets/e6d8cb7a6e40f0c51e146bb1366aaad2.svg'
+            ];
+
+            for (const url of testUrls) {
+                try {
+                    log('cdn-log', `Testing: ${url}`, 'info');
+                    const response = await fetch(url, { method: 'HEAD' });
+
+                    if (response.ok) {
+                        log('cdn-log', `✓ Status: ${response.status} ${response.statusText}`, 'success');
+
+                        // Check CORS headers
+                        const corsOrigin = response.headers.get('Access-Control-Allow-Origin');
+                        const corsMethods = response.headers.get('Access-Control-Allow-Methods');
+
+                        if (corsOrigin) {
+                            log('cdn-log', `✓ CORS Origin: ${corsOrigin}`, 'success');
+                        } else {
+                            log('cdn-log', `✗ Missing CORS Origin header`, 'error');
+                        }
+
+                        if (corsMethods) {
+                            log('cdn-log', `✓ CORS Methods: ${corsMethods}`, 'success');
+                        }
+
+                        // Check content type
+                        const contentType = response.headers.get('Content-Type');
+                        log('cdn-log', `Content-Type: ${contentType}`, 'info');
+
+                    } else {
+                        log('cdn-log', `✗ Failed: ${response.status} ${response.statusText}`, 'error');
+                    }
+                } catch (error) {
+                    log('cdn-log', `✗ Error: ${error.message}`, 'error');
+                }
+                log('cdn-log', '---', 'info');
+            }
+
+            log('cdn-log', 'CDN test complete', 'success');
+        }
+
+        async function testGameURL() {
+            clearLog('game-url-log');
+            const url = document.getElementById('game-url').value.trim();
+
+            if (!url) {
+                log('game-url-log', 'Please enter a game URL', 'error');
+                return;
+            }
+
+            log('game-url-log', `Testing game URL: ${url}`, 'info');
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    log('game-url-log', `✗ HTTP ${response.status}: ${response.statusText}`, 'error');
+                    return;
+                }
+
+                log('game-url-log', `✓ Game HTML fetched successfully`, 'success');
+
+                const html = await response.text();
+                log('game-url-log', `HTML length: ${html.length} characters`, 'info');
+
+                // Check for base tag
+                const hasBaseTag = /<base[^>]*>/i.test(html);
+                if (hasBaseTag) {
+                    const baseMatch = html.match(/<base[^>]*href=["']([^"']+)["']/i);
+                    log('game-url-log', `✓ Has base tag: ${baseMatch ? baseMatch[1] : 'yes'}`, 'success');
+                } else {
+                    log('game-url-log', `⚠ No base tag found`, 'warning');
+                }
+
+                // Check for relative URLs
+                const relativeUrls = html.match(/(?:src|href)=["']\.\/[^"']+["']/gi);
+                if (relativeUrls && relativeUrls.length > 0) {
+                    log('game-url-log', `⚠ Found ${relativeUrls.length} relative URLs (./...)`, 'warning');
+                    relativeUrls.slice(0, 5).forEach(url => {
+                        log('game-url-log', `  ${url}`, 'warning');
+                    });
+                    if (relativeUrls.length > 5) {
+                        log('game-url-log', `  ... and ${relativeUrls.length - 5} more`, 'warning');
+                    }
+                } else {
+                    log('game-url-log', `✓ No relative URLs found`, 'success');
+                }
+
+                // Check for assets folder references
+                const assetsRefs = html.match(/(?:src|href)=["'][^"']*assets\/[^"']+["']/gi);
+                if (assetsRefs && assetsRefs.length > 0) {
+                    log('game-url-log', `Found ${assetsRefs.length} assets folder references`, 'info');
+                }
+
+            } catch (error) {
+                log('game-url-log', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBaseTag() {
+            clearLog('base-tag-log');
+            log('base-tag-log', 'Testing base tag URL resolution...', 'info');
+
+            const testHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <base href="https://cdn.guythatlives.net/games/osumania/">
+                    <title>Base Tag Test</title>
+                </head>
+                <body>
+                    <h1>Base Tag Test</h1>
+                    <p>If you see this, base tag is working!</p>
+                    <img src="./assets/test.svg" onerror="parent.postMessage({type:'base-tag-test',success:false,msg:'Failed to load relative URL'},'*')" onload="parent.postMessage({type:'base-tag-test',success:true,msg:'Relative URL loaded successfully'},'*')">
+                    <script>
+                        parent.postMessage({type:'base-tag-test',success:true,msg:'Script executed, base URL: ' + document.baseURI},'*');
+                    </script>
+                </body>
+                </html>
+            `;
+
+            const frame = document.getElementById('base-tag-frame');
+            frame.style.display = 'block';
+
+            window.addEventListener('message', function handler(e) {
+                if (e.data.type === 'base-tag-test') {
+                    if (e.data.success) {
+                        log('base-tag-log', `✓ ${e.data.msg}`, 'success');
+                    } else {
+                        log('base-tag-log', `✗ ${e.data.msg}`, 'error');
+                    }
+                }
+            });
+
+            frame.srcdoc = testHTML;
+            log('base-tag-log', 'Base tag test HTML loaded into iframe', 'info');
+
+            setTimeout(() => {
+                frame.style.display = 'none';
+                log('base-tag-log', 'Base tag test complete', 'info');
+            }, 3000);
+        }
+
+        async function testLiveGame() {
+            clearLog('live-game-log');
+            const url = document.getElementById('live-game-url').value.trim();
+            const method = document.getElementById('test-method').value;
+            const frame = document.getElementById('live-game-frame');
+
+            if (!url) {
+                log('live-game-log', 'Please enter a game URL', 'error');
+                return;
+            }
+
+            log('live-game-log', `Loading game: ${url}`, 'info');
+            log('live-game-log', `Method: ${method}`, 'info');
+
+            try {
+                if (method === 'src') {
+                    // Direct load
+                    frame.src = url;
+                    log('live-game-log', '✓ Game loaded via src attribute', 'success');
+                } else {
+                    // srcdoc with base tag
+                    log('live-game-log', 'Fetching game HTML...', 'info');
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    let html = await response.text();
+                    log('live-game-log', `✓ HTML fetched (${html.length} chars)`, 'success');
+
+                    // Determine base URL
+                    let baseUrl = url;
+                    if (baseUrl.endsWith('/index.html')) {
+                        baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
+                    } else if (!baseUrl.endsWith('/')) {
+                        baseUrl += '/';
+                    }
+
+                    log('live-game-log', `Base URL: ${baseUrl}`, 'info');
+
+                    // Remove existing base tags
+                    html = html.replace(/<base[^>]*>/gi, '');
+
+                    // Inject base tag
+                    const baseTag = `<base href="${baseUrl}">`;
+                    if (html.match(/<head[^>]*>/i)) {
+                        html = html.replace(/<head[^>]*>/i, match => `${match}${baseTag}`);
+                    } else {
+                        html = baseTag + html;
+                    }
+
+                    log('live-game-log', '✓ Base tag injected', 'success');
+
+                    frame.srcdoc = html;
+                    log('live-game-log', '✓ Game loaded via srcdoc', 'success');
+
+                    // Monitor for errors
+                    frame.onerror = (error) => {
+                        log('live-game-log', `✗ Frame error: ${error}`, 'error');
+                    };
+
+                    frame.onload = () => {
+                        log('live-game-log', '✓ Frame loaded successfully', 'success');
+                    };
+                }
+            } catch (error) {
+                log('live-game-log', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearTestFrame() {
+            document.getElementById('live-game-frame').src = 'about:blank';
+            clearLog('live-game-log');
+            log('live-game-log', 'Test frame cleared', 'info');
+        }
+
+        async function checkCloudflare() {
+            clearLog('cloudflare-log');
+            log('cloudflare-log', 'Checking Cloudflare configuration...', 'info');
+
+            const testUrl = 'https://cdn.guythatlives.net/games/osumania/script.js';
+
+            try {
+                const response = await fetch(testUrl);
+
+                log('cloudflare-log', `Status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+
+                // Check all relevant headers
+                const headers = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Max-Age': response.headers.get('Access-Control-Max-Age'),
+                    'CF-Cache-Status': response.headers.get('CF-Cache-Status'),
+                    'CF-Ray': response.headers.get('CF-Ray'),
+                    'Server': response.headers.get('Server')
+                };
+
+                Object.entries(headers).forEach(([key, value]) => {
+                    if (value) {
+                        log('cloudflare-log', `✓ ${key}: ${value}`, 'success');
+                    } else if (key.startsWith('Access-Control')) {
+                        log('cloudflare-log', `✗ ${key}: Missing`, 'error');
+                    } else {
+                        log('cloudflare-log', `${key}: Not present`, 'info');
+                    }
+                });
+
+                if (headers['Server'] === 'cloudflare') {
+                    log('cloudflare-log', '✓ Cloudflare is active', 'success');
+                } else {
+                    log('cloudflare-log', '⚠ Cloudflare might not be active', 'warning');
+                }
+
+                if (headers['Access-Control-Allow-Origin']) {
+                    log('cloudflare-log', '✓ CORS is configured correctly', 'success');
+                } else {
+                    log('cloudflare-log', '✗ CORS headers missing - check Transform Rules', 'error');
+                }
+
+            } catch (error) {
+                log('cloudflare-log', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
