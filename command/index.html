@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal • GuyThatLives Network</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.19/dist/interact.min.js"></script>
+    <link rel="stylesheet" href="terminal.css">
+</head>
+<body>
+    <div class="terminal-container">
+        <!-- Terminal Output Area -->
+        <div class="terminal-output" id="terminal-output">
+            <div class="terminal-line">
+                <span class="terminal-prompt">system@guythatlives:~$</span>
+                <span class="terminal-text">Terminal Interface v1.0.0</span>
+            </div>
+            <div class="terminal-line">
+                <span class="terminal-text">Type <span class="highlight">help</span> for available commands</span>
+            </div>
+        </div>
+
+        <!-- Terminal Input Area -->
+        <div class="terminal-input-line">
+            <span class="terminal-prompt" id="input-prompt">user@guythatlives:~$</span>
+            <input type="text" class="terminal-input" id="terminal-input" autofocus autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <!-- Window Container for spawned windows -->
+    <div class="windows-container" id="windows-container"></div>
+
+    <script src="terminal.js"></script>
+</body>
+</html>
