@@ -215,12 +215,17 @@ async function loadAllGames() {
             const addedDate = game.addedDate ? formatDate(game.addedDate) : 'N/A';
             const status = game.published ? '<span style="color: var(--success-color);">Published</span>' : '<span style="color: var(--text-muted);">Draft</span>';
             const categories = game.categories ? game.categories.join(', ') : 'None';
+            const hasThumbnail = game.thumbnail && game.thumbnail.trim().length > 0;
+            const thumbnailBadge = hasThumbnail
+                ? '<span style="color: var(--success-color); font-size: 0.75rem; margin-left: 0.5rem; font-weight: 600;">Thumb</span>'
+                : '<span style="color: var(--danger-color); font-size: 0.75rem; margin-left: 0.5rem; font-weight: 600;">No Thumb</span>';
 
             return `
                 <tr>
                     <td>
                         <strong>${game.title}</strong>
                         ${game.featured ? '<span style="color: var(--accent-color); margin-left: 0.5rem;">★</span>' : ''}
+                        ${thumbnailBadge}
                     </td>
                     <td>${categories}</td>
                     <td>${status}</td>
