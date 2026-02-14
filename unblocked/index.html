@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+    <script>
+        window.ezstandalone = window.ezstandalone || {};
+        ezstandalone.cmd = ezstandalone.cmd || [];
+    </script>
+    <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+    <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
     <meta charset="UTF-8">
     <meta name="google-adsense-account" content="ca-pub-6552523352090461">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -298,6 +305,16 @@
     </section>
 
     <div class="container">
+        <!-- Ad Placement 1: After Hero Section -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <div id="ezoic-pub-ad-placeholder-101"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(101);
+                });
+            </script>
+        </div>
+
         <!-- Search Results Section -->
         <section id="search-results-section" class="section" style="display: none;">
             <div class="section-header">
@@ -350,6 +367,16 @@
             </div>
         </section>
 
+        <!-- Ad Placement 2: After Featured Games -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <div id="ezoic-pub-ad-placeholder-102"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(102);
+                });
+            </script>
+        </div>
+
         <!-- Recently Played (for logged-in users) -->
         <section id="recent-section" class="section" style="display: none;">
             <div class="section-header">
@@ -377,6 +404,16 @@
             </div>
         </section>
 
+        <!-- Ad Placement 3: After Most Played Games -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <div id="ezoic-pub-ad-placeholder-103"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(103);
+                });
+            </script>
+        </div>
+
         <!-- All Games -->
         <section class="section">
             <div class="section-header">
@@ -393,6 +430,16 @@
             </div>
         </section>
 
+        <!-- Ad Placement 4: After All Games -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <div id="ezoic-pub-ad-placeholder-104"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(104);
+                });
+            </script>
+        </div>
+
         <!-- Newly Added Games -->
         <section class="section">
             <div class="section-header">
@@ -408,6 +455,16 @@
                 </div>
             </div>
         </section>
+
+        <!-- Ad Placement 5: After Newly Added Games -->
+        <div style="text-align: center; margin: 2rem 0;">
+            <div id="ezoic-pub-ad-placeholder-105"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(105);
+                });
+            </script>
+        </div>
 
         <!-- Quick Stats -->
         <section class="section">
@@ -497,6 +554,7 @@
     <script src="shared/announcement-display.js"></script>
     <script src="shared/disguise.js"></script>
     <script src="shared/bug-reporter.js"></script>
+    <script src="shared/feedback-manager.js"></script>
 
     <!-- Page Script -->
     <script>
@@ -558,6 +616,9 @@
                     document.getElementById('recent-section').style.display = 'none';
                 }
             });
+
+            // Initialize feedback system
+            await window.feedbackManager.initOnPageLoad();
         });
 
         // Fisher-Yates shuffle algorithm

@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+    <script>
+        window.ezstandalone = window.ezstandalone || {};
+        ezstandalone.cmd = ezstandalone.cmd || [];
+    </script>
+    <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+    <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
     <meta charset="UTF-8">
     <meta name="google-adsense-account" content="ca-pub-6552523352090461">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -406,9 +413,29 @@
             </div>
         </main>
 
+        <!-- Ad Placement 1: After Main Content -->
+        <div style="text-align: center; margin: 3rem 0;">
+            <div id="ezoic-pub-ad-placeholder-101"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(101);
+                });
+            </script>
+        </div>
+
         <div class="projects-hint">
             <h3>🚀 Coming Soon</h3>
             <p>Game development showcases, Minecraft plugins, and more educational innovations</p>
+        </div>
+
+        <!-- Ad Placement 2: Before Footer -->
+        <div style="text-align: center; margin: 3rem 0;">
+            <div id="ezoic-pub-ad-placeholder-102"></div>
+            <script>
+                ezstandalone.cmd.push(function () {
+                    ezstandalone.showAds(102);
+                });
+            </script>
         </div>
     </div>
 
