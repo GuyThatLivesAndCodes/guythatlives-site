@@ -373,6 +373,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 0.7rem;
+    position: relative;
 }
 
 .game-card {
@@ -385,12 +386,14 @@ body {
     color: inherit;
     display: block;
     min-height: 60px;
+    position: relative;
 }
 
 .game-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
     border-color: var(--primary-color);
+    z-index: 50;
 }
 
 .game-thumbnail {
@@ -443,7 +446,7 @@ body {
 .game-title {
     font-size: 0.925rem;
     font-weight: 500;
-    margin-bottom: 0rem;
+    margin-bottom: 0.25rem;
     color: var(--text-primary);
 }
 
@@ -461,11 +464,20 @@ body {
 .game-meta {
     display: flex;
     gap: 1rem;
-    font-size: 0.0rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
 .game-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.game-play-count {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -486,6 +498,90 @@ body {
     border-radius: var(--border-radius);
     font-size: 0.55rem;
     font-weight: 500;
+}
+
+/* ========================================
+   Game Hover Panel
+======================================== */
+
+.game-hover-panel {
+    position: fixed;
+    background: var(--bg-secondary);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius-lg);
+    padding: 1.25rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    max-width: 320px;
+    min-width: 280px;
+}
+
+.game-hover-panel.visible {
+    opacity: 1;
+}
+
+.game-hover-panel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, var(--primary-light), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.game-hover-panel-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.game-hover-panel-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.game-hover-panel-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.game-hover-panel-info-item strong {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.game-hover-panel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.game-hover-panel-tag {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--border-radius);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+    .game-hover-panel {
+        display: none;
+    }
 }
 
 /* ========================================

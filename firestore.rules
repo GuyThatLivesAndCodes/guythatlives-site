@@ -133,8 +133,13 @@ service cloud.firestore {
       // Admin can read all games (including unpublished)
       allow read: if isAdmin();
 
-      // Only admin can create, update, or delete games
-      allow create, update, delete: if isAdmin();
+      // Anyone can increment play count and update lastPlayed (even non-authenticated users)
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playCount', 'lastPlayed'])
+        && request.resource.data.playCount == resource.data.playCount + 1;
+
+      // Only admin can create or fully update/delete games
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin();
     }
 
     /* ========= Game Metadata ========= */

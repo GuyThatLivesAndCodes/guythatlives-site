@@ -605,7 +605,120 @@
 
             // Initialize feedback system
             await window.feedbackManager.initOnPageLoad();
+
+            // Initialize hover panel
+            initializeHoverPanel();
         });
+
+        // Initialize hover panel functionality
+        function initializeHoverPanel() {
+            // Create hover panel element
+            const hoverPanel = document.createElement('div');
+            hoverPanel.className = 'game-hover-panel';
+            hoverPanel.innerHTML = `
+                <div class="game-hover-panel-title"></div>
+                <div class="game-hover-panel-description"></div>
+                <div class="game-hover-panel-info">
+                    <div class="game-hover-panel-info-item">
+                        <strong>Plays:</strong> <span class="hover-plays"></span>
+                    </div>
+                    <div class="game-hover-panel-info-item">
+                        <strong>Added:</strong> <span class="hover-date"></span>
+                    </div>
+                </div>
+                <div class="game-hover-panel-tags"></div>
+            `;
+            document.body.appendChild(hoverPanel);
+
+            let hoverTimeout;
+
+            // Add hover listeners to game cards
+            document.addEventListener('mouseover', (e) => {
+                const gameCard = e.target.closest('.game-card');
+                if (!gameCard) {
+                    clearTimeout(hoverTimeout);
+                    hoverPanel.classList.remove('visible');
+                    return;
+                }
+
+                // Delay showing panel slightly
+                clearTimeout(hoverTimeout);
+                hoverTimeout = setTimeout(() => {
+                    showHoverPanel(gameCard, hoverPanel);
+                }, 200);
+            });
+
+            document.addEventListener('mouseout', (e) => {
+                const gameCard = e.target.closest('.game-card');
+                if (!gameCard) {
+                    clearTimeout(hoverTimeout);
+                    hoverPanel.classList.remove('visible');
+                }
+            });
+        }
+
+        function showHoverPanel(gameCard, panel) {
+            // Get game data from data attributes
+            const title = gameCard.dataset.gameTitle;
+            const description = gameCard.dataset.gameDescription;
+            const plays = gameCard.dataset.gamePlays;
+            const date = gameCard.dataset.gameDate;
+            const tags = gameCard.dataset.gameTags;
+
+            // Update panel content
+            panel.querySelector('.game-hover-panel-title').textContent = title;
+            panel.querySelector('.game-hover-panel-description').textContent = description;
+            panel.querySelector('.hover-plays').textContent = parseInt(plays).toLocaleString();
+            panel.querySelector('.hover-date').textContent = date;
+
+            // Update tags
+            const tagsContainer = panel.querySelector('.game-hover-panel-tags');
+            if (tags && tags.length > 0) {
+                const tagArray = tags.split(',');
+                tagsContainer.innerHTML = tagArray
+                    .slice(0, 5)
+                    .map(tag => `<span class="game-hover-panel-tag">${tag}</span>`)
+                    .join('');
+            } else {
+                tagsContainer.innerHTML = '<span class="game-hover-panel-tag">Untagged</span>';
+            }
+
+            // Position panel to the right of the card
+            const cardRect = gameCard.getBoundingClientRect();
+            const panelWidth = 300;
+            const padding = 15;
+
+            // Calculate position
+            let left = cardRect.right + padding;
+            let top = cardRect.top;
+
+            // Check if panel would go off screen to the right
+            if (left + panelWidth > window.innerWidth) {
+                // Position to the left instead
+                left = cardRect.left - panelWidth - padding;
+            }
+
+            // Check if panel would go off screen to the left
+            if (left < 0) {
+                // Position below instead
+                left = cardRect.left;
+                top = cardRect.bottom + padding;
+            }
+
+            // Check if panel would go off bottom of screen
+            if (top + panel.offsetHeight > window.innerHeight) {
+                top = window.innerHeight - panel.offsetHeight - padding;
+            }
+
+            // Ensure top is not negative
+            if (top < 0) {
+                top = padding;
+            }
+
+            panel.style.left = `${left}px`;
+            panel.style.top = `${top}px`;
+            panel.classList.add('visible');
+        }
 
         // Fisher-Yates shuffle algorithm
         function shuffleArray(array) {
@@ -696,14 +809,24 @@
             if (game.featured) badges.push('<span class="game-badge featured">Featured</span>');
             if (isNew) badges.push('<span class="game-badge new">New</span>');
 
+            const addedDate = game.addedDate ? (game.addedDate.toDate ? game.addedDate.toDate() : new Date(game.addedDate)) : null;
+            const formattedDate = addedDate ? addedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown';
+
             return `
-                <a href="/unblocked/game/?game=${game.id}" class="game-card">
+                <a href="/unblocked/game/?game=${game.id}" class="game-card"
+                   data-game-id="${game.id}"
+                   data-game-title="${escapeHtml(game.title)}"
+                   data-game-description="${escapeHtml(game.description || 'No description available')}"
+                   data-game-plays="${game.playCount || 0}"
+                   data-game-date="${formattedDate}"
+                   data-game-tags="${game.tags ? escapeHtml(game.tags.join(',')) : ''}">
                     <div class="game-thumbnail">
                         ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '<div class="game-thumbnail-placeholder">🎮</div>'}
                         ${badges.join('')}
                     </div>
                     <div class="game-info">
                         <h3 class="game-title">${game.title}</h3>
+                        <div class="game-play-count">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
                         <p class="game-description">${game.description || 'No description available'}</p>
                         <div class="game-meta">
                             <span class="game-meta-item">▶ ${game.playCount || 0} plays</span>
@@ -716,6 +839,13 @@
                     </div>
                 </a>
             `;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Check if game is new (added in last 7 days)
