@@ -1,6 +1,7 @@
 /**
  * TheChat - Discord-style chat application
  * Complete rewrite with DMs, profiles, and proper server loading
+ * Version 2.0 - Updated with full DM and profile system
  */
 
 // ============================================
