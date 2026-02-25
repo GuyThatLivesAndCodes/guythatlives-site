@@ -1173,3 +1173,618 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
         justify-content: center;
     }
 }
+
+/* ========================================
+   Stats Dashboard
+======================================== */
+
+/* Layout for Most Played with Stats Sidebar */
+.most-played-with-stats {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.most-played-main {
+    min-width: 0;
+}
+
+.stats-sidebar {
+    position: sticky;
+    top: 80px;
+}
+
+/* Make stats dashboard more compact in sidebar */
+.stats-dashboard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stats-dashboard-compact {
+    padding: 1.25rem;
+    margin-bottom: 0;
+}
+
+.stats-dashboard-compact .stats-header {
+    margin-bottom: 1.25rem;
+}
+
+.stats-dashboard-compact .stats-title {
+    font-size: 1.25rem;
+}
+
+.stats-dashboard-compact .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.stats-dashboard-compact .stat-box {
+    padding: 1rem;
+}
+
+.stats-dashboard-compact .stat-icon {
+    font-size: 1.75rem;
+}
+
+.stats-dashboard-compact .stat-value {
+    font-size: 1.5rem;
+}
+
+.stats-dashboard-compact .stat-label {
+    font-size: 0.75rem;
+}
+
+.stats-dashboard-compact .popular-games-title {
+    font-size: 1rem;
+}
+
+.stats-dashboard-compact .popular-game-item {
+    padding: 0.625rem;
+}
+
+.stats-dashboard-compact .popular-game-thumbnail {
+    width: 40px;
+    height: 40px;
+}
+
+.stats-dashboard-compact .popular-game-rank {
+    min-width: 24px;
+    font-size: 1rem;
+}
+
+.stats-dashboard-compact .popular-game-item:nth-child(1) .popular-game-rank {
+    font-size: 1.15rem;
+}
+
+.stats-dashboard-compact .popular-game-item:nth-child(2) .popular-game-rank {
+    font-size: 1.1rem;
+}
+
+.stats-dashboard-compact .popular-game-item:nth-child(3) .popular-game-rank {
+    font-size: 1.05rem;
+}
+
+.stats-dashboard-compact .popular-game-title {
+    font-size: 0.875rem;
+}
+
+.stats-dashboard-compact .popular-game-players {
+    font-size: 0.75rem;
+}
+
+/* Collapsed state */
+.stats-collapsed .stats-grid,
+.stats-collapsed .popular-games-section {
+    max-height: 0;
+    overflow: hidden;
+    margin: 0;
+    opacity: 0;
+}
+
+.stats-collapsed .stats-header {
+    margin-bottom: 0;
+}
+
+.stats-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stats-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.stats-collapse-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+
+.stats-collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: linear-gradient(135deg, var(--bg-primary), var(--bg-card));
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-box:hover::before {
+    opacity: 1;
+}
+
+.stat-primary {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), var(--bg-card));
+}
+
+.stat-secondary {
+    border-color: rgba(139, 92, 246, 0.3);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), var(--bg-card));
+}
+
+.stat-accent {
+    border-color: rgba(236, 72, 153, 0.3);
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), var(--bg-card));
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.popular-games-section {
+    margin-top: 2rem;
+}
+
+.popular-games-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.popular-games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 60px;
+}
+
+.popular-game-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.popular-game-item:hover {
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.popular-game-rank {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    min-width: 30px;
+    text-align: center;
+}
+
+.popular-game-item:nth-child(1) .popular-game-rank {
+    color: #fbbf24;
+    font-size: 1.5rem;
+}
+
+.popular-game-item:nth-child(2) .popular-game-rank {
+    color: #94a3b8;
+    font-size: 1.35rem;
+}
+
+.popular-game-item:nth-child(3) .popular-game-rank {
+    color: #cd7f32;
+    font-size: 1.25rem;
+}
+
+.popular-game-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+}
+
+.popular-game-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.popular-game-thumbnail .game-thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.5rem;
+}
+
+.popular-game-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.popular-game-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.popular-game-players {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.player-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.no-games-playing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.no-games-playing .emoji {
+    font-size: 1.5rem;
+}
+
+.loading-spinner-small {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 1rem auto;
+}
+
+/* Responsive adjustments for stats dashboard */
+@media (max-width: 1024px) {
+    .most-played-with-stats {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .stats-sidebar {
+        position: static;
+    }
+
+    .stats-dashboard-compact {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-dashboard {
+        padding: 1.5rem;
+    }
+
+    .stats-dashboard-compact {
+        padding: 1.25rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .stat-box {
+        padding: 1.25rem;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .popular-game-rank {
+        min-width: 25px;
+        font-size: 1rem;
+    }
+
+    .popular-game-item:nth-child(1) .popular-game-rank {
+        font-size: 1.25rem;
+    }
+
+    .popular-game-item:nth-child(2) .popular-game-rank {
+        font-size: 1.15rem;
+    }
+
+    .popular-game-item:nth-child(3) .popular-game-rank {
+        font-size: 1.1rem;
+    }
+
+    .popular-game-thumbnail {
+        width: 45px;
+        height: 45px;
+    }
+}
+
+/* ========================================
+   Stats Widget (Floating)
+======================================== */
+
+.stats-widget {
+    position: fixed;
+    z-index: 9999;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    min-width: 180px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.stats-widget-bottom-right {
+    bottom: 1.5rem;
+    right: 1.5rem;
+}
+
+.stats-widget-bottom-left {
+    bottom: 1.5rem;
+    left: 1.5rem;
+}
+
+.stats-widget-top-right {
+    top: 5rem;
+    right: 1.5rem;
+}
+
+.stats-widget-top-left {
+    top: 5rem;
+    left: 1.5rem;
+}
+
+.stats-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.stats-widget-title {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.stats-widget-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    border-radius: 0.25rem;
+}
+
+.stats-widget-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.pulse-dot-small {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.stats-widget-content {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.stats-widget-minimized .stats-widget-content {
+    max-height: 0;
+    padding: 0 1rem;
+    opacity: 0;
+}
+
+.stats-widget-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stats-widget-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.stats-widget-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-widget-value-update {
+    color: var(--primary-light);
+    transform: scale(1.1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .stats-widget {
+        min-width: 150px;
+        font-size: 0.8rem;
+    }
+
+    .stats-widget-bottom-right,
+    .stats-widget-bottom-left {
+        bottom: 1rem;
+    }
+
+    .stats-widget-bottom-right {
+        right: 1rem;
+    }
+
+    .stats-widget-bottom-left {
+        left: 1rem;
+    }
+
+    .stats-widget-header {
+        padding: 0.625rem 0.875rem;
+    }
+
+    .stats-widget-content {
+        padding: 0.625rem 0.875rem;
+    }
+
+    .stats-widget-label {
+        font-size: 0.75rem;
+    }
+
+    .stats-widget-value {
+        font-size: 0.85rem;
+    }
+}

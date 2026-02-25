@@ -1,0 +1,79 @@
+{
+  "rules": {
+    "servers": {
+      "$serverId": {
+        // Only authenticated users can read server data
+        ".read": "auth != null && root.child('servers').child($serverId).child('members').child(auth.uid).exists()",
+
+        // Server metadata (name, owner, createdAt)
+        ".write": "auth != null && (
+          !data.exists() ||
+          data.child('ownerId').val() === auth.uid
+        )",
+
+        // Members list
+        "members": {
+          "$memberId": {
+            // Users can add themselves to members
+            ".write": "auth != null && (
+              $memberId === auth.uid ||
+              root.child('servers').child($serverId).child('ownerId').val() === auth.uid
+            )"
+          }
+        },
+
+        // Channels
+        "channels": {
+          "$channelId": {
+            // Members can read all channels
+            ".read": "auth != null && root.child('servers').child($serverId).child('members').child(auth.uid).exists()",
+
+            // Only server owner can create/modify channels
+            ".write": "auth != null && root.child('servers').child($serverId).child('ownerId').val() === auth.uid",
+
+            // Messages within channels
+            "messages": {
+              "$messageId": {
+                // Members can read messages
+                ".read": "auth != null && root.child('servers').child($serverId).child('members').child(auth.uid).exists()",
+
+                // Members can create messages
+                ".write": "auth != null && (
+                  !data.exists() ||
+                  data.child('author_id').val() === auth.uid
+                )",
+
+                // Validate message structure
+                ".validate": "newData.hasChildren(['content', 'author', 'author_id', 'timestamp', 'edited'])",
+
+                "content": {
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"
+                },
+
+                "author": {
+                  ".validate": "newData.isString() && newData.val().length > 0"
+                },
+
+                "author_id": {
+                  ".validate": "newData.val() === auth.uid"
+                },
+
+                "timestamp": {
+                  ".validate": "newData.isNumber() || newData.val() === '.sv'"
+                },
+
+                "edited": {
+                  ".validate": "newData.isBoolean()"
+                },
+
+                "editedAt": {
+                  ".validate": "newData.isNumber() && data.child('author_id').val() === auth.uid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

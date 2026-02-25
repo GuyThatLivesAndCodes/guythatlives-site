@@ -337,6 +337,11 @@
                 <span id="game-category">Loading...</span>
                 <span>•</span>
                 <span id="game-plays">0 plays</span>
+                <span>•</span>
+                <span id="live-players" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="pulse-dot" style="width: 8px; height: 8px;"></span>
+                    <span id="live-player-count">0</span> playing now
+                </span>
             </div>
         </div>
 
@@ -415,6 +420,8 @@
     <script src="../shared/disguise.js"></script>
     <script src="../shared/game-saves.js"></script>
     <script src="../shared/bug-reporter.js"></script>
+    <script src="../shared/presence-tracker.js"></script>
+    <script src="../shared/stats-widget.js"></script>
 
     <!-- Game Player Script -->
     <script>
@@ -447,6 +454,19 @@
         function getGameId() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('game');
+        }
+
+        // Update live player count for current game
+        async function updateLivePlayerCount(gameId) {
+            try {
+                const count = await window.presenceTracker.getGamePlayerCount(gameId);
+                const countElement = document.getElementById('live-player-count');
+                if (countElement) {
+                    countElement.textContent = count;
+                }
+            } catch (error) {
+                console.error('Error updating live player count:', error);
+            }
         }
 
         // Load and display game
@@ -493,6 +513,15 @@
                     document.getElementById('game-tags').innerHTML =
                         '<span class="game-tag">Untagged</span>';
                 }
+
+                // Initialize presence tracking and track game play
+                await window.presenceTracker.initialize();
+                await window.presenceTracker.trackGamePlay(gameId);
+
+                // Update live player count
+                await updateLivePlayerCount(gameId);
+                // Update every 15 seconds
+                setInterval(() => updateLivePlayerCount(gameId), 15000);
 
                 // Load game iframe
                 const gameFrame = document.getElementById('game-frame');
@@ -846,6 +875,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Load game
             loadGame();
+
+            // Initialize stats widget (bottom-right, not draggable)
+            window.statsWidget.initialize('bottom-right');
 
             // Fullscreen button
             document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);

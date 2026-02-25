@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stats Demo - GuyThatLives</title>
+    <link rel="stylesheet" href="shared/games-styles.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-primary);
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .demo-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .demo-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .demo-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .demo-section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .demo-info {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .demo-info p {
+            margin: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .demo-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            color: var(--primary-light);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .status-indicator.active {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+
+        .test-game-card {
+            background: var(--bg-tertiary);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .test-game-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .test-game-card.active {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Shared Modules -->
+    <script src="shared/games-auth.js"></script>
+    <script src="shared/game-manager.js"></script>
+    <script src="shared/presence-tracker.js"></script>
+    <script src="shared/stats-dashboard.js"></script>
+    <script src="shared/stats-widget.js"></script>
+
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">🎮 Live Stats System Demo</h1>
+            <p class="demo-subtitle">Test the real-time visitor tracking system</p>
+        </div>
+
+        <!-- Status Section -->
+        <div class="demo-section">
+            <h2 class="demo-section-title">System Status</h2>
+            <div class="status-indicator" id="tracker-status">
+                <span class="pulse-dot"></span>
+                <span>Initializing tracker...</span>
+            </div>
+            <div class="demo-info">
+                <p><strong>Your Session ID:</strong> <code id="session-id">Loading...</code></p>
+                <p><strong>Current Page:</strong> <code id="current-page">/unblocked/stats-demo.html</code></p>
+                <p><strong>Heartbeat:</strong> Every 30 seconds</p>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="demo-section">
+            <h2 class="demo-section-title">Live Statistics Dashboard</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                This is the compact dashboard shown on the homepage sidebar. Stats update in real-time.
+            </p>
+            <div style="max-width: 320px; margin: 0 auto;">
+                <div id="stats-dashboard"></div>
+            </div>
+        </div>
+
+        <!-- Simulated Games -->
+        <div class="demo-section">
+            <h2 class="demo-section-title">Simulate Game Play</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                Click on a "game" below to simulate playing it. Your session will show up in the stats!
+            </p>
+
+            <div class="demo-grid">
+                <div class="test-game-card" data-game-id="test-game-1">
+                    <h3>🎮 Test Game 1</h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Click to "play"</p>
+                    <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                        <span class="player-count">0</span> playing now
+                    </div>
+                </div>
+
+                <div class="test-game-card" data-game-id="test-game-2">
+                    <h3>🏃 Test Game 2</h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Click to "play"</p>
+                    <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                        <span class="player-count">0</span> playing now
+                    </div>
+                </div>
+
+                <div class="test-game-card" data-game-id="test-game-3">
+                    <h3>🎯 Test Game 3</h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Click to "play"</p>
+                    <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                        <span class="player-count">0</span> playing now
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="stop-playing-btn">Stop Playing</button>
+            </div>
+        </div>
+
+        <!-- Testing Tools -->
+        <div class="demo-section">
+            <h2 class="demo-section-title">Testing Tools</h2>
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">
+                Use these tools to test the system functionality.
+            </p>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="refresh-stats-btn">🔄 Refresh Stats</button>
+                <button class="btn btn-secondary" id="toggle-widget-btn">Toggle Widget</button>
+                <button class="btn btn-ghost" id="simulate-users-btn">🤖 Simulate 10 Users</button>
+            </div>
+
+            <div class="demo-info" style="margin-top: 1.5rem;">
+                <p><strong>💡 Testing Tips:</strong></p>
+                <ul style="margin-left: 1.5rem; color: var(--text-secondary);">
+                    <li>Open this page in multiple browser tabs to see stats increase</li>
+                    <li>Click on test games to simulate playing</li>
+                    <li>Stats update every 5-10 seconds automatically</li>
+                    <li>Try opening in incognito mode to simulate another user</li>
+                    <li>Close tabs and watch the online count decrease after 90 seconds</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <div class="demo-section">
+            <h2 class="demo-section-title">📚 How It Works</h2>
+            <div class="demo-info">
+                <p><strong>Session Tracking:</strong> When you load this page, a unique session is created in Firebase</p>
+                <p><strong>Heartbeat:</strong> Every 30 seconds, your session sends a heartbeat to stay "online"</p>
+                <p><strong>Game Tracking:</strong> When you "play" a game, your session is tagged with that game ID</p>
+                <p><strong>Statistics:</strong> The dashboard queries all active sessions and aggregates the data</p>
+                <p><strong>Cleanup:</strong> Sessions without heartbeats for 90+ seconds are removed automatically</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPlayingGame = null;
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Demo page loaded');
+
+            // Initialize presence tracker
+            await window.presenceTracker.initialize();
+
+            // Update status
+            const statusEl = document.querySelector('#tracker-status');
+            const sessionIdEl = document.getElementById('session-id');
+
+            if (window.presenceTracker.sessionId) {
+                statusEl.classList.add('active');
+                statusEl.innerHTML = '<span class="pulse-dot"></span><span>Tracker Active</span>';
+                sessionIdEl.textContent = window.presenceTracker.sessionId;
+            }
+
+            // Initialize stats dashboard
+            await window.statsDashboard.initialize('stats-dashboard');
+
+            // Initialize floating widget (draggable for demo purposes)
+            await window.statsWidget.initialize('bottom-right', true);
+
+            // Set up game cards
+            setupGameCards();
+
+            // Set up action buttons
+            setupActionButtons();
+
+            // Update player counts for test games every 10 seconds
+            updateTestGameCounts();
+            setInterval(updateTestGameCounts, 10000);
+        });
+
+        // Set up game card interactions
+        function setupGameCards() {
+            const gameCards = document.querySelectorAll('.test-game-card');
+
+            gameCards.forEach(card => {
+                card.addEventListener('click', async () => {
+                    const gameId = card.dataset.gameId;
+
+                    // Remove active class from all cards
+                    gameCards.forEach(c => c.classList.remove('active'));
+
+                    // Add active to clicked card
+                    card.classList.add('active');
+
+                    // Track game play
+                    await window.presenceTracker.trackGamePlay(gameId);
+                    currentPlayingGame = gameId;
+
+                    console.log('Now playing:', gameId);
+                });
+            });
+        }
+
+        // Set up action buttons
+        function setupActionButtons() {
+            // Stop playing button
+            document.getElementById('stop-playing-btn').addEventListener('click', async () => {
+                await window.presenceTracker.stopTrackingGame();
+                currentPlayingGame = null;
+
+                // Remove active class from all cards
+                document.querySelectorAll('.test-game-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+
+                console.log('Stopped playing');
+            });
+
+            // Refresh stats button
+            document.getElementById('refresh-stats-btn').addEventListener('click', async () => {
+                await window.statsDashboard.updateStats();
+                await window.statsWidget.updateStats();
+                await updateTestGameCounts();
+                console.log('Stats refreshed');
+            });
+
+            // Toggle widget button
+            document.getElementById('toggle-widget-btn').addEventListener('click', () => {
+                window.statsWidget.toggleMinimize();
+            });
+
+            // Simulate users button
+            document.getElementById('simulate-users-btn').addEventListener('click', () => {
+                alert('To simulate multiple users, open this page in 10 different browser tabs or incognito windows!');
+            });
+        }
+
+        // Update player counts for test games
+        async function updateTestGameCounts() {
+            const gameCards = document.querySelectorAll('.test-game-card');
+
+            for (const card of gameCards) {
+                const gameId = card.dataset.gameId;
+                try {
+                    const count = await window.presenceTracker.getGamePlayerCount(gameId);
+                    const countEl = card.querySelector('.player-count');
+                    if (countEl) {
+                        countEl.textContent = count;
+                    }
+                } catch (error) {
+                    console.error('Error updating count for', gameId, error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

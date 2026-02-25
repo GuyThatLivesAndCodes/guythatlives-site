@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // Presence Tracking Collections
+    // ============================================
+
+    // Online sessions - tracks currently active users
+    match /online_sessions/{sessionId} {
+      // Allow anyone to create their session
+      allow create: if true;
+
+      // Allow updating only if the session ID matches
+      // This prevents users from modifying other sessions
+      allow update: if request.resource.data.sessionId == resource.data.sessionId;
+
+      // Allow deletion for cleanup
+      allow delete: if true;
+
+      // Allow reading for statistics calculation
+      allow read: if true;
+    }
+
+    // 24-hour sessions - tracks unique visitors
+    match /sessions_24h/{sessionId} {
+      // Allow anyone to create their session entry
+      allow create: if true;
+
+      // Allow deletion for cleanup (>24h old sessions)
+      allow delete: if true;
+
+      // Allow reading for statistics calculation
+      allow read: if true;
+    }
+
+    // ============================================
+    // Existing Game Collections (keep your existing rules)
+    // ============================================
+
+    // Add your existing games, users, etc. rules below
+    // Example:
+    // match /games/{gameId} {
+    //   allow read: if true;
+    //   allow write: if request.auth != null && request.auth.token.admin == true;
+    // }
+  }
+}

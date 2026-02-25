@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheChat - Discord Style Chat</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        discord: {
+                            dark: '#36393f',
+                            darker: '#2f3136',
+                            darkest: '#202225',
+                            blurple: '#5865f2',
+                            green: '#3ba55d',
+                            red: '#ed4245',
+                            gray: '#4e5058',
+                            lightgray: '#b9bbbe',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #202225 #2f3136;
+        }
+
+        *::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #2f3136;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: #202225;
+            border-radius: 4px;
+        }
+
+        .message-input:focus {
+            outline: none;
+        }
+
+        .server-icon {
+            transition: border-radius 0.2s ease;
+        }
+
+        .server-icon:hover {
+            border-radius: 35%;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-appear {
+            animation: slideIn 0.2s ease;
+        }
+
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .gif-item {
+            cursor: pointer;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .gif-item:hover {
+            transform: scale(1.05);
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+            padding: 4px 8px;
+            background: #18191c;
+            color: white;
+            border-radius: 4px;
+            white-space: nowrap;
+            font-size: 14px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="bg-discord-darkest text-white font-sans antialiased overflow-hidden">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-discord-darkest flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-discord-blurple"></div>
+            <p class="mt-4 text-discord-lightgray">Loading TheChat...</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="hidden h-screen flex overflow-hidden">
+
+        <!-- Server Sidebar -->
+        <div class="w-18 bg-discord-darkest flex flex-col items-center py-3 space-y-2 overflow-y-auto">
+            <!-- Home Button -->
+            <button class="server-icon w-12 h-12 bg-discord-dark hover:bg-discord-blurple rounded-full flex items-center justify-center transition-all duration-200 tooltip" data-tooltip="Home" onclick="loadHomeServer()">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+            </button>
+
+            <div class="w-8 h-0.5 bg-discord-gray rounded-full"></div>
+
+            <!-- Server List -->
+            <div id="server-list" class="space-y-2 flex flex-col items-center">
+                <!-- Servers will be dynamically loaded here -->
+            </div>
+
+            <div class="w-8 h-0.5 bg-discord-gray rounded-full"></div>
+
+            <!-- Add Server Button -->
+            <button class="server-icon w-12 h-12 bg-discord-dark hover:bg-discord-green rounded-full flex items-center justify-center transition-all duration-200 tooltip" data-tooltip="Join Server" onclick="showJoinServerModal()">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+
+            <!-- Create Server Button -->
+            <button class="server-icon w-12 h-12 bg-discord-dark hover:bg-discord-green rounded-full flex items-center justify-center transition-all duration-200 tooltip" data-tooltip="Create Server" onclick="showCreateServerModal()">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Channels Sidebar -->
+        <div class="w-60 bg-discord-darker flex flex-col">
+            <!-- Server Header -->
+            <div class="h-12 px-4 flex items-center justify-between border-b border-discord-darkest shadow-md">
+                <h2 id="server-name" class="font-semibold text-white">Select a Server</h2>
+                <button class="hover:text-discord-lightgray" onclick="showServerMenu()" title="Server Menu">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Channels List -->
+            <div class="flex-1 overflow-y-auto p-2">
+                <div class="mb-2">
+                    <div class="flex items-center px-2 py-1 text-xs font-semibold text-discord-lightgray uppercase">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        Text Channels
+                    </div>
+                    <div id="channels-list" class="space-y-0.5">
+                        <!-- Channels will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Footer -->
+            <div class="h-14 bg-discord-dark px-2 flex items-center justify-between">
+                <div class="flex items-center space-x-2 flex-1 min-w-0">
+                    <div id="user-avatar" class="w-8 h-8 rounded-full bg-discord-blurple flex items-center justify-center flex-shrink-0">
+                        <span id="user-avatar-text" class="text-sm font-semibold">?</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div id="user-display-name" class="text-sm font-semibold text-white truncate">Loading...</div>
+                        <div class="text-xs text-discord-lightgray">#0000</div>
+                    </div>
+                </div>
+                <button class="hover:text-discord-lightgray p-1" onclick="signOut()" title="Sign Out">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col bg-discord-dark">
+            <!-- Channel Header -->
+            <div class="h-12 px-4 flex items-center border-b border-discord-darkest shadow-sm">
+                <svg class="w-5 h-5 mr-2 text-discord-lightgray" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h2.94l.56-2.243a1 1 0 111.94.486L14.53 6H17a1 1 0 110 2h-2.97l-1 4H15a1 1 0 110 2h-2.47l-.56 2.242a1 1 0 11-1.94-.485L10.47 14H7.53l-.56 2.242a1 1 0 11-1.94-.485L5.47 14H3a1 1 0 110-2h2.97l1-4H5a1 1 0 110-2h2.47l.56-2.243a1 1 0 011.213-.727zM9.03 8l-1 4h2.938l1-4H9.031z" clip-rule="evenodd"/>
+                </svg>
+                <span id="channel-name" class="font-semibold text-white">general</span>
+                <div class="flex-1"></div>
+                <button class="hover:text-discord-lightgray p-1" onclick="showGifPicker()" title="Send GIF">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messages-container" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                <!-- Welcome Message -->
+                <div class="text-center text-discord-lightgray py-8">
+                    <div class="text-4xl mb-2">👋</div>
+                    <h3 class="text-xl font-bold mb-2">Welcome to TheChat!</h3>
+                    <p class="text-sm">This is the beginning of your chat history.</p>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="px-4 pb-6">
+                <div class="bg-discord-gray rounded-lg flex items-end p-2">
+                    <button class="p-2 hover:text-discord-lightgray" onclick="showGifPicker()" title="Add GIF">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <textarea
+                        id="message-input"
+                        class="flex-1 bg-transparent message-input text-white placeholder-discord-lightgray resize-none max-h-32 px-2"
+                        placeholder="Message #general"
+                        rows="1"
+                        onkeydown="handleMessageInput(event)"
+                    ></textarea>
+                    <button class="p-2 hover:text-discord-lightgray" onclick="sendMessage()" title="Send Message">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Members Sidebar (Optional) -->
+        <div id="members-sidebar" class="w-60 bg-discord-darker hidden lg:flex flex-col overflow-y-auto p-4">
+            <div class="text-xs font-semibold text-discord-lightgray uppercase mb-2">Members</div>
+            <div id="members-list" class="space-y-1">
+                <!-- Members will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Server Modal -->
+    <div id="join-server-modal" class="fixed inset-0 bg-black bg-opacity-70 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-discord-darker rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Join a Server</h2>
+            <p class="text-discord-lightgray mb-4">Enter an invite code to join a server</p>
+            <input
+                type="text"
+                id="join-server-input"
+                class="w-full bg-discord-darkest text-white px-4 py-2 rounded mb-4"
+                placeholder="Server ID"
+            />
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeJoinServerModal()" class="px-4 py-2 bg-discord-gray hover:bg-discord-dark rounded">Cancel</button>
+                <button onclick="joinServer()" class="px-4 py-2 bg-discord-blurple hover:bg-opacity-80 rounded">Join Server</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Server Modal -->
+    <div id="create-server-modal" class="fixed inset-0 bg-black bg-opacity-70 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-discord-darker rounded-lg p-6 w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Create a Server</h2>
+            <p class="text-discord-lightgray mb-4">Give your server a name</p>
+            <input
+                type="text"
+                id="create-server-input"
+                class="w-full bg-discord-darkest text-white px-4 py-2 rounded mb-4"
+                placeholder="My Awesome Server"
+                maxlength="50"
+            />
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeCreateServerModal()" class="px-4 py-2 bg-discord-gray hover:bg-discord-dark rounded">Cancel</button>
+                <button onclick="createServer()" class="px-4 py-2 bg-discord-blurple hover:bg-opacity-80 rounded">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GIF Picker Modal -->
+    <div id="gif-modal" class="fixed inset-0 bg-black bg-opacity-70 modal-backdrop hidden items-center justify-center z-50">
+        <div class="bg-discord-darker rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Choose a GIF</h2>
+                <button onclick="closeGifPicker()" class="text-discord-lightgray hover:text-white">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+            </div>
+            <input
+                type="text"
+                id="gif-search-input"
+                class="w-full bg-discord-darkest text-white px-4 py-2 rounded mb-4"
+                placeholder="Search for GIFs..."
+                onkeyup="searchGifs(event)"
+            />
+            <div id="gif-results" class="gif-grid">
+                <p class="text-discord-lightgray col-span-full text-center">Search for GIFs above</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Context Menu -->
+    <div id="message-context-menu" class="fixed bg-discord-darkest rounded-lg shadow-lg hidden z-50" style="min-width: 150px;">
+        <button onclick="editMessage()" class="w-full text-left px-4 py-2 hover:bg-discord-blurple hover:text-white">Edit Message</button>
+        <button onclick="deleteMessage()" class="w-full text-left px-4 py-2 hover:bg-discord-red hover:text-white">Delete Message</button>
+        <button onclick="closeContextMenu()" class="w-full text-left px-4 py-2 hover:bg-discord-gray">Cancel</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- Shared Auth Module -->
+    <script src="../shared/games-auth.js"></script>
+
+    <!-- Chat App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
