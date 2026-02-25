@@ -1,11 +1,108 @@
 {
   "rules": {
+    "users": {
+      "$userId": {
+        // Users can read their own profile
+        ".read": "auth != null && ($userId === auth.uid || root.child('users').child(auth.uid).child('friends').child($userId).exists())",
+
+        // Users can only write to their own profile
+        ".write": "auth != null && $userId === auth.uid",
+
+        // Validate user structure
+        ".validate": "newData.hasChildren(['username', 'status', 'createdAt'])",
+
+        "username": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 32"
+        },
+
+        "bio": {
+          ".validate": "newData.isString() && newData.val().length <= 190"
+        },
+
+        "status": {
+          ".validate": "newData.val() === 'online' || newData.val() === 'idle' || newData.val() === 'dnd' || newData.val() === 'invisible'"
+        },
+
+        "avatarUrl": {
+          ".validate": "newData.isString()"
+        },
+
+        "friendRequests": {
+          "$requesterId": {
+            ".write": "auth != null && $requesterId === auth.uid"
+          }
+        },
+
+        "friends": {
+          "$friendId": {
+            ".write": "auth != null && $userId === auth.uid"
+          }
+        },
+
+        "blocked": {
+          "$blockedId": {
+            ".write": "auth != null && $userId === auth.uid"
+          }
+        },
+
+        "servers": {
+          "$serverId": {
+            ".write": "auth != null && $userId === auth.uid"
+          }
+        }
+      }
+    },
+
+    "dms": {
+      "$roomId": {
+        // DM room IDs are formatted as "userId1_userId2" (sorted)
+        ".read": "auth != null && ($roomId.contains(auth.uid))",
+
+        "messages": {
+          "$messageId": {
+            ".read": "auth != null && ($roomId.contains(auth.uid))",
+
+            ".write": "auth != null && (
+              !data.exists() ||
+              data.child('author_id').val() === auth.uid
+            )",
+
+            ".validate": "newData.hasChildren(['content', 'author', 'author_id', 'timestamp', 'edited'])",
+
+            "content": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"
+            },
+
+            "author": {
+              ".validate": "newData.isString() && newData.val().length > 0"
+            },
+
+            "author_id": {
+              ".validate": "newData.val() === auth.uid"
+            },
+
+            "timestamp": {
+              ".validate": "newData.isNumber() || newData.val() === '.sv'"
+            },
+
+            "edited": {
+              ".validate": "newData.isBoolean()"
+            },
+
+            "editedAt": {
+              ".validate": "newData.isNumber() && data.child('author_id').val() === auth.uid"
+            }
+          }
+        }
+      }
+    },
+
     "servers": {
       "$serverId": {
-        // Only authenticated users can read server data
+        // Only authenticated users who are members can read server data
         ".read": "auth != null && root.child('servers').child($serverId).child('members').child(auth.uid).exists()",
 
-        // Server metadata (name, owner, createdAt)
+        // Server metadata (name, icon, owner, createdAt)
         ".write": "auth != null && (
           !data.exists() ||
           data.child('ownerId').val() === auth.uid
@@ -14,7 +111,7 @@
         // Members list
         "members": {
           "$memberId": {
-            // Users can add themselves to members
+            // Users can add themselves to members, or owner can add anyone
             ".write": "auth != null && (
               $memberId === auth.uid ||
               root.child('servers').child($serverId).child('ownerId').val() === auth.uid
@@ -37,7 +134,7 @@
                 // Members can read messages
                 ".read": "auth != null && root.child('servers').child($serverId).child('members').child(auth.uid).exists()",
 
-                // Members can create messages
+                // Members can create messages, only author can edit/delete
                 ".write": "auth != null && (
                   !data.exists() ||
                   data.child('author_id').val() === auth.uid
