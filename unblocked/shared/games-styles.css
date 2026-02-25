@@ -256,14 +256,14 @@ body {
 
 .search-bar {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.45rem;
     max-width: 600px;
     margin: 0 auto;
 }
 
 .search-input {
     flex: 1;
-    padding: 0.875rem 1.25rem;
+    padding: 0.75rem 1.15rem;
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
@@ -279,7 +279,7 @@ body {
 }
 
 .category-select {
-    padding: 0.875rem 1.25rem;
+    padding: 0.775rem 1rem;
     background: var(--bg-secondary);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
