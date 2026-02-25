@@ -827,15 +827,6 @@
                     <div class="game-info">
                         <h3 class="game-title">${game.title}</h3>
                         <div class="game-play-count">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
-                        <p class="game-description">${game.description || 'No description available'}</p>
-                        <div class="game-meta">
-                            <span class="game-meta-item">▶ ${game.playCount || 0} plays</span>
-                        </div>
-                        ${game.tags && game.tags.length > 0 ? `
-                            <div class="game-tags">
-                                ${game.tags.slice(0, 3).map(tag => `<span class="game-tag">${tag}</span>`).join('')}
-                            </div>
-                        ` : ''}
                     </div>
                 </a>
             `;
