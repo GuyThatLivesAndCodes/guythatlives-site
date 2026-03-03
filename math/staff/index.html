@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Dashboard — GuyThatLives Math</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="staff.css">
+</head>
+<body>
+<div class="bg-container"></div>
+<div class="grid-overlay"></div>
+
+<div class="staff-app">
+  <!-- Header -->
+  <header class="staff-header">
+    <a href="/math/staff/" class="logo">// staff</a>
+    <nav class="breadcrumb">
+      <span>Dashboard</span>
+    </nav>
+    <div class="header-actions">
+      <span class="save-indicator" id="roleDisplay" style="color:var(--text-muted);font-size:0.75rem;"></span>
+      <a href="/math/" class="btn btn-ghost btn-sm">← Math Home</a>
+    </div>
+  </header>
+
+  <div class="staff-body">
+    <!-- Sidebar -->
+    <nav class="staff-sidebar">
+      <div class="nav-section">Content</div>
+      <a href="/math/staff/" class="active">
+        <span class="nav-icon">⌂</span> Dashboard
+      </a>
+      <a href="/math/staff/courses.html">
+        <span class="nav-icon">📚</span> Courses
+      </a>
+      <div class="nav-section" style="margin-top:1rem">Admin</div>
+      <a href="/math/staff/roles.html" data-require-owner>
+        <span class="nav-icon">👥</span> Roles
+      </a>
+    </nav>
+
+    <!-- Main content -->
+    <main class="staff-content">
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle">Welcome back. Here's what's happening.</div>
+
+      <!-- Stats -->
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">–</div>
+          <div class="stat-label">Total Courses</div>
+        </div>
+        <div class="stat-card" style="--accent:#50fa7b">
+          <div class="stat-value" id="statPublished" style="color:var(--success)">–</div>
+          <div class="stat-label">Published</div>
+        </div>
+        <div class="stat-card" style="">
+          <div class="stat-value" id="statDraft" style="color:var(--warning)">–</div>
+          <div class="stat-label">Drafts</div>
+        </div>
+      </div>
+
+      <!-- Recent courses -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Courses</span>
+          <div style="display:flex;gap:0.5rem">
+            <a href="/math/staff/courses.html" class="btn btn-ghost btn-sm">View All</a>
+            <button class="btn btn-primary btn-sm" id="btnNewCourse" data-require-edit>+ New Course</button>
+          </div>
+        </div>
+        <div id="courseListBody">
+          <div style="padding:2rem;text-align:center;color:var(--text-muted)">
+            <div class="spinner" style="margin:0 auto 0.75rem"></div>
+            Loading...
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- New Course Modal -->
+<div class="modal-overlay" id="newCourseModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Create New Course</span>
+      <button class="modal-close" onclick="closeNewCourseModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Course Title <span class="required">*</span></label>
+        <input type="text" class="form-input" id="newCourseTitle" placeholder="e.g. Introduction to Pre-Algebra">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="newCourseDesc" rows="3" placeholder="Brief description of this course..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <select class="form-select" id="newCourseSubject">
+            <option value="math">Math</option>
+            <option value="science">Science</option>
+            <option value="english">English</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grade Level</label>
+          <input type="text" class="form-input" id="newCourseGrade" placeholder="e.g. Grade 6–8">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeNewCourseModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnCreateCourse">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="staff-toast" id="toastContainer"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../shared/firebase-auth.js"></script>
+<script src="staff-auth.js"></script>
+<script src="course-api.js"></script>
+<script>
+// ── Toast helper (shared across all staff pages via inline script) ──
+function showToast(message, type = 'info', duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+// ── Page init ──
+async function initDashboard() {
+    const ok = await staffAuth.checkAccess();
+    if (!ok) return;
+
+    // Show role
+    const roleDisplay = document.getElementById('roleDisplay');
+    roleDisplay.innerHTML = `Signed in as &nbsp;${staffAuth.getRoleBadgeHTML()}`;
+
+    // Load courses
+    await loadCourses();
+}
+
+async function loadCourses() {
+    try {
+        const courses = await courseApi.listCourses();
+        const published = courses.filter(c => c.status === 'published').length;
+        const draft = courses.filter(c => c.status !== 'published').length;
+
+        document.getElementById('statTotal').textContent = courses.length;
+        document.getElementById('statPublished').textContent = published;
+        document.getElementById('statDraft').textContent = draft;
+
+        const body = document.getElementById('courseListBody');
+
+        if (courses.length === 0) {
+            body.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <div class="empty-state-text">No courses yet. Create your first one!</div>
+                    <button class="btn btn-primary" onclick="openNewCourseModal()">+ New Course</button>
+                </div>`;
+            return;
+        }
+
+        const recent = courses.slice(0, 8);
+        body.innerHTML = `
+            <table class="staff-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Lessons</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${recent.map(c => `
+                    <tr>
+                        <td style="color:var(--text-primary);font-weight:600">${escHtml(c.title)}</td>
+                        <td>${escHtml(c.subject || '–')}</td>
+                        <td>${escHtml(c.gradeLevel || '–')}</td>
+                        <td><span class="badge badge-${c.status || 'draft'}">${c.status || 'draft'}</span></td>
+                        <td>${c.lessonCount || 0}</td>
+                        <td><div class="row-actions">
+                            <a href="course-editor.html?courseId=${c.id}" class="btn btn-ghost btn-sm">Edit →</a>
+                        </div></td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>`;
+    } catch (err) {
+        console.error(err);
+        document.getElementById('courseListBody').innerHTML =
+            `<div style="padding:1.5rem;color:var(--danger)">Failed to load courses: ${escHtml(err.message)}</div>`;
+    }
+}
+
+function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── New Course Modal ──
+function openNewCourseModal() {
+    document.getElementById('newCourseModal').classList.add('active');
+    document.getElementById('newCourseTitle').focus();
+}
+function closeNewCourseModal() {
+    document.getElementById('newCourseModal').classList.remove('active');
+    document.getElementById('newCourseTitle').value = '';
+    document.getElementById('newCourseDesc').value = '';
+    document.getElementById('newCourseGrade').value = '';
+}
+
+document.getElementById('btnNewCourse')?.addEventListener('click', openNewCourseModal);
+document.getElementById('newCourseTitle')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btnCreateCourse').click();
+});
+document.getElementById('btnCreateCourse')?.addEventListener('click', async () => {
+    const title = document.getElementById('newCourseTitle').value.trim();
+    if (!title) { showToast('Please enter a course title.', 'error'); return; }
+
+    const btn = document.getElementById('btnCreateCourse');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        const courseId = await courseApi.createCourse({
+            title,
+            description: document.getElementById('newCourseDesc').value.trim(),
+            subject: document.getElementById('newCourseSubject').value,
+            gradeLevel: document.getElementById('newCourseGrade').value.trim()
+        });
+        closeNewCourseModal();
+        window.location.href = `course-editor.html?courseId=${courseId}`;
+    } catch (err) {
+        showToast('Failed to create course: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Create Course';
+    }
+});
+
+// Close modal on overlay click
+document.getElementById('newCourseModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeNewCourseModal();
+});
+
+initDashboard();
+</script>
+</body>
+</html>

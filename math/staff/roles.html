@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="staff.css">
+</head>
+<body>
+<div class="bg-container"></div>
+<div class="grid-overlay"></div>
+
+<div class="staff-app">
+  <header class="staff-header">
+    <a href="/math/staff/" class="logo">// staff</a>
+    <nav class="breadcrumb">
+      <a href="/math/staff/">Dashboard</a><span>/</span>
+      <span>Roles</span>
+    </nav>
+    <div class="header-actions">
+      <span id="roleDisplay" style="color:var(--text-muted);font-size:0.75rem;"></span>
+      <a href="/math/" class="btn btn-ghost btn-sm">← Math Home</a>
+    </div>
+  </header>
+
+  <div class="staff-body">
+    <nav class="staff-sidebar">
+      <div class="nav-section">Content</div>
+      <a href="/math/staff/"><span class="nav-icon">⌂</span> Dashboard</a>
+      <a href="/math/staff/courses.html"><span class="nav-icon">📚</span> Courses</a>
+      <div class="nav-section" style="margin-top:1rem">Admin</div>
+      <a href="/math/staff/roles.html" class="active"><span class="nav-icon">👥</span> Roles</a>
+    </nav>
+
+    <main class="staff-content">
+      <div class="page-title">Role Management</div>
+      <div class="page-subtitle">Manage who can access the staff dashboard and what they can do.</div>
+
+      <!-- Bootstrap panel (shown only if caller has no Firestore role yet) -->
+      <div class="card" id="bootstrapPanel" style="margin-bottom:1.5rem;display:none;border-color:rgba(100,255,218,0.2)">
+        <div class="card-header">
+          <span class="card-title" style="color:var(--accent)">First-Time Setup</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem">
+            Your owner role needs to be registered in Firestore so other staff can see you in the list.
+            Click below to initialize your owner role. This is safe to run multiple times.
+          </p>
+          <button class="btn btn-primary" id="btnBootstrap">Initialize My Owner Role</button>
+        </div>
+      </div>
+
+      <!-- Role table -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header">
+          <span class="card-title">Staff Members</span>
+          <button class="btn btn-primary btn-sm" id="btnAddStaff">+ Add Staff Member</button>
+        </div>
+        <div id="rolesBody">
+          <div style="padding:2rem;text-align:center;color:var(--text-muted)">
+            <div class="spinner" style="margin:0 auto 0.75rem"></div>Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Role legend -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">Role Permissions</span></div>
+        <div class="card-body">
+          <table class="staff-table">
+            <thead><tr><th>Role</th><th>View Dashboard</th><th>Edit Courses</th><th>Publish</th><th>Manage Roles</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge badge-owner">owner</span></td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td></tr>
+              <tr><td><span class="badge badge-admin">admin</span></td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td><td style="color:var(--danger)">✗</td></tr>
+              <tr><td><span class="badge badge-editor">editor</span></td><td style="color:var(--success)">✓</td><td style="color:var(--success)">✓</td><td style="color:var(--danger)">✗</td><td style="color:var(--danger)">✗</td></tr>
+              <tr><td><span class="badge badge-viewer">viewer</span></td><td style="color:var(--success)">✓</td><td style="color:var(--danger)">✗</td><td style="color:var(--danger)">✗</td><td style="color:var(--danger)">✗</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal-overlay" id="addStaffModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Add Staff Member</span>
+      <button class="modal-close" onclick="closeAddModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Firebase UID <span class="required">*</span></label>
+        <input type="text" class="form-input" id="newStaffUid" placeholder="User's Firebase Auth UID">
+        <div class="form-hint">Find a user's UID in Firebase Console → Authentication → Users.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (display only)</label>
+        <input type="text" class="form-input" id="newStaffEmail" placeholder="user@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select" id="newStaffRole">
+          <option value="viewer">Viewer — can browse, not edit</option>
+          <option value="editor" selected>Editor — can create and edit courses</option>
+          <option value="admin">Admin — can also publish</option>
+          <option value="owner">Owner — full access</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnGrantRole">Grant Role</button>
+    </div>
+  </div>
+</div>
+
+<div class="staff-toast" id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script src="../shared/firebase-auth.js"></script>
+<script src="staff-auth.js"></script>
+<script src="course-api.js"></script>
+<script>
+function showToast(msg,type='info',dur=3500){const c=document.getElementById('toastContainer'),t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},dur);}
+function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+let staffList = [];
+
+async function initPage() {
+    // Roles page is owner-only
+    const ok = await staffAuth.checkAccess();
+    if (!ok) return;
+
+    if (!staffAuth.isOwner()) {
+        document.getElementById('rolesBody').innerHTML =
+            `<div class="empty-state"><div class="empty-state-icon">🔒</div><div class="empty-state-text">Only owners can manage roles.</div></div>`;
+        return;
+    }
+
+    document.getElementById('roleDisplay').innerHTML = staffAuth.getRoleBadgeHTML();
+
+    // Show bootstrap panel if the current user has no Firestore role doc
+    try {
+        const db = firebase.firestore();
+        const myRole = await db.collection('staffRoles').doc(staffAuth.user.uid).get();
+        if (!myRole.exists) {
+            document.getElementById('bootstrapPanel').style.display = '';
+        }
+    } catch(e) {}
+
+    await loadRoles();
+}
+
+async function loadRoles() {
+    try {
+        staffList = await courseApi.listStaffRoles();
+        renderRoles();
+    } catch(err) {
+        document.getElementById('rolesBody').innerHTML =
+            `<div style="padding:1.5rem;color:var(--danger)">Error loading roles: ${escHtml(err.message)}</div>`;
+    }
+}
+
+function renderRoles() {
+    const body = document.getElementById('rolesBody');
+    if (!staffList.length) {
+        body.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <div class="empty-state-text">No staff members yet. Add some above, or initialize your own owner role first.</div>
+        </div>`;
+        return;
+    }
+    const roleOrder = { owner:0, admin:1, editor:2, viewer:3 };
+    const sorted = [...staffList].sort((a,b) => (roleOrder[a.role]??9) - (roleOrder[b.role]??9));
+    body.innerHTML = `<table class="staff-table">
+        <thead><tr><th>Email</th><th>UID</th><th>Role</th><th>Granted by</th><th></th></tr></thead>
+        <tbody>
+        ${sorted.map(s => `<tr>
+            <td style="color:var(--text-primary)">${escHtml(s.email||'–')}</td>
+            <td style="color:var(--text-muted);font-size:0.72rem">${escHtml(s.uid.slice(0,12))}…</td>
+            <td>
+                <select class="form-select" style="padding:0.2rem 0.5rem;font-size:0.75rem;width:100px"
+                    onchange="changeRole('${s.uid}','${escHtml(s.email||'')}',this.value)">
+                    ${['owner','admin','editor','viewer'].map(r =>
+                        `<option value="${r}" ${s.role===r?'selected':''}>${r}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td style="color:var(--text-muted);font-size:0.72rem">${escHtml(s.grantedBy?.slice(0,8)||'–')}…</td>
+            <td><div class="row-actions">
+                <button class="btn btn-danger btn-sm" onclick="removeRole('${s.uid}','${escHtml(s.email||s.uid)}')">Remove</button>
+            </div></td>
+        </tr>`).join('')}
+        </tbody>
+    </table>`;
+}
+
+async function changeRole(uid, email, newRole) {
+    try {
+        const fn = firebase.functions().httpsCallable('setStaffRole');
+        await fn({ targetUid: uid, targetEmail: email, role: newRole });
+        showToast('Role updated.', 'success');
+        await loadRoles();
+    } catch(err) { showToast('Failed: ' + err.message, 'error'); }
+}
+
+async function removeRole(uid, display) {
+    if (!confirm(`Remove staff access for "${display}"?`)) return;
+    try {
+        const fn = firebase.functions().httpsCallable('removeStaffRole');
+        await fn({ targetUid: uid });
+        showToast('Role removed.', 'success');
+        await loadRoles();
+    } catch(err) { showToast('Failed: ' + err.message, 'error'); }
+}
+
+// Bootstrap
+document.getElementById('btnBootstrap')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btnBootstrap');
+    btn.disabled = true; btn.textContent = 'Initializing...';
+    try {
+        const fn = firebase.functions().httpsCallable('initializeOwnerRoles');
+        await fn({});
+        showToast('Owner role initialized!', 'success');
+        document.getElementById('bootstrapPanel').style.display = 'none';
+        await loadRoles();
+    } catch(err) { showToast('Failed: ' + err.message, 'error'); btn.disabled=false; btn.textContent='Initialize My Owner Role'; }
+});
+
+// Add staff modal
+document.getElementById('btnAddStaff')?.addEventListener('click', () => {
+    document.getElementById('addStaffModal').classList.add('active');
+    document.getElementById('newStaffUid').focus();
+});
+function closeAddModal() {
+    document.getElementById('addStaffModal').classList.remove('active');
+    document.getElementById('newStaffUid').value='';
+    document.getElementById('newStaffEmail').value='';
+}
+document.getElementById('addStaffModal')?.addEventListener('click', function(e){ if(e.target===this) closeAddModal(); });
+document.getElementById('btnGrantRole')?.addEventListener('click', async () => {
+    const uid = document.getElementById('newStaffUid').value.trim();
+    const email = document.getElementById('newStaffEmail').value.trim();
+    const role = document.getElementById('newStaffRole').value;
+    if (!uid) { showToast('UID is required.','error'); return; }
+    const btn = document.getElementById('btnGrantRole');
+    btn.disabled=true; btn.textContent='Granting...';
+    try {
+        const fn = firebase.functions().httpsCallable('setStaffRole');
+        await fn({ targetUid: uid, targetEmail: email, role });
+        closeAddModal();
+        showToast('Role granted!', 'success');
+        await loadRoles();
+    } catch(err) { showToast('Failed: '+err.message,'error'); }
+    btn.disabled=false; btn.textContent='Grant Role';
+});
+
+initPage();
+</script>
+</body>
+</html>

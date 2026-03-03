@@ -732,3 +732,198 @@ exports.gchatExpireFeatured = functions.pubsub
             return null;
         }
     });
+
+/* ========= Staff Course Builder Functions ========= */
+
+const OWNER_EMAILS = [
+    'zorbyteofficial@gmail.com',
+    'briston.miller@weatherfordisd.net'
+];
+
+/**
+ * Bootstrap owner roles for the hardcoded admin emails.
+ * Called once from the roles page by an owner. Idempotent.
+ */
+exports.initializeOwnerRoles = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
+    }
+    if (!OWNER_EMAILS.includes(context.auth.token.email)) {
+        throw new functions.https.HttpsError('permission-denied', 'Not an owner email.');
+    }
+
+    const db = admin.firestore();
+    await db.collection('staffRoles').doc(context.auth.uid).set({
+        role: 'owner',
+        email: context.auth.token.email,
+        grantedBy: context.auth.uid,
+        grantedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return { success: true };
+});
+
+/**
+ * Publish a course: copies the full draft tree to publishedCourses/ atomically.
+ * Sets status='published' on the draft as well.
+ */
+exports.publishCourse = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
+    }
+
+    const { courseId } = data;
+    if (!courseId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing courseId.');
+    }
+
+    const db = admin.firestore();
+
+    // Role check
+    const isHardcodedAdmin = OWNER_EMAILS.includes(context.auth.token.email);
+    if (!isHardcodedAdmin) {
+        const roleDoc = await db.collection('staffRoles').doc(context.auth.uid).get();
+        if (!roleDoc.exists) {
+            throw new functions.https.HttpsError('permission-denied', 'Not a staff member.');
+        }
+        if (!['owner', 'admin', 'editor'].includes(roleDoc.data().role)) {
+            throw new functions.https.HttpsError('permission-denied', 'Insufficient role.');
+        }
+    }
+
+    const courseRef = db.collection('courses').doc(courseId);
+    const courseSnap = await courseRef.get();
+    if (!courseSnap.exists) {
+        throw new functions.https.HttpsError('not-found', 'Course not found.');
+    }
+
+    const courseData = courseSnap.data();
+    const lessonsSnap = await courseRef.collection('lessons').orderBy('order').get();
+    const now = admin.firestore.FieldValue.serverTimestamp();
+
+    // Firestore batch limit is 500 ops; for typical courses this is fine
+    const batch = db.batch();
+
+    batch.update(courseRef, { status: 'published', publishedAt: now, updatedAt: now });
+
+    const pubCourseRef = db.collection('publishedCourses').doc(courseId);
+    batch.set(pubCourseRef, { ...courseData, status: 'published', publishedAt: now, updatedAt: now });
+
+    for (const lessonDoc of lessonsSnap.docs) {
+        const pubLessonRef = pubCourseRef.collection('lessons').doc(lessonDoc.id);
+        batch.set(pubLessonRef, lessonDoc.data());
+
+        const questionsSnap = await courseRef
+            .collection('lessons').doc(lessonDoc.id)
+            .collection('questions').orderBy('order').get();
+
+        for (const qDoc of questionsSnap.docs) {
+            batch.set(pubLessonRef.collection('questions').doc(qDoc.id), qDoc.data());
+        }
+    }
+
+    await batch.commit();
+    return { success: true, publishedAt: new Date().toISOString() };
+});
+
+/**
+ * Unpublish a course: removes publishedCourses root doc and resets draft status.
+ */
+exports.unpublishCourse = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
+    }
+
+    const { courseId } = data;
+    if (!courseId) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing courseId.');
+    }
+
+    const db = admin.firestore();
+
+    const isHardcodedAdmin = OWNER_EMAILS.includes(context.auth.token.email);
+    if (!isHardcodedAdmin) {
+        const roleDoc = await db.collection('staffRoles').doc(context.auth.uid).get();
+        if (!roleDoc.exists || roleDoc.data().role !== 'owner') {
+            throw new functions.https.HttpsError('permission-denied', 'Only owners can unpublish.');
+        }
+    }
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const batch = db.batch();
+
+    batch.update(db.collection('courses').doc(courseId), {
+        status: 'draft',
+        publishedAt: null,
+        updatedAt: now
+    });
+
+    // Delete publishedCourses root doc — subcollections become unreachable to students
+    batch.delete(db.collection('publishedCourses').doc(courseId));
+
+    await batch.commit();
+    return { success: true };
+});
+
+/**
+ * Update a staff member's role. Only callable by owners.
+ */
+exports.setStaffRole = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
+    }
+
+    const isHardcodedAdmin = OWNER_EMAILS.includes(context.auth.token.email);
+    if (!isHardcodedAdmin) {
+        const db = admin.firestore();
+        const callerRole = await db.collection('staffRoles').doc(context.auth.uid).get();
+        if (!callerRole.exists || callerRole.data().role !== 'owner') {
+            throw new functions.https.HttpsError('permission-denied', 'Only owners can manage roles.');
+        }
+    }
+
+    const { targetUid, targetEmail, role } = data;
+    if (!targetUid || !role) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing targetUid or role.');
+    }
+    if (!['owner', 'admin', 'editor', 'viewer'].includes(role)) {
+        throw new functions.https.HttpsError('invalid-argument', 'Invalid role value.');
+    }
+
+    const db = admin.firestore();
+    await db.collection('staffRoles').doc(targetUid).set({
+        role,
+        email: targetEmail || '',
+        grantedBy: context.auth.uid,
+        grantedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    return { success: true };
+});
+
+/**
+ * Remove a staff member's role. Only callable by owners.
+ */
+exports.removeStaffRole = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Must be signed in.');
+    }
+
+    const isHardcodedAdmin = OWNER_EMAILS.includes(context.auth.token.email);
+    if (!isHardcodedAdmin) {
+        const db = admin.firestore();
+        const callerRole = await db.collection('staffRoles').doc(context.auth.uid).get();
+        if (!callerRole.exists || callerRole.data().role !== 'owner') {
+            throw new functions.https.HttpsError('permission-denied', 'Only owners can manage roles.');
+        }
+    }
+
+    const { targetUid } = data;
+    if (!targetUid) {
+        throw new functions.https.HttpsError('invalid-argument', 'Missing targetUid.');
+    }
+
+    const db = admin.firestore();
+    await db.collection('staffRoles').doc(targetUid).delete();
+    return { success: true };
+});

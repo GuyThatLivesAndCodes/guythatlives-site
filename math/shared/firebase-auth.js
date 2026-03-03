@@ -95,12 +95,17 @@ class FirebaseAuthSystem {
         if (typeof window.onUserAuthenticated === 'function') {
             window.onUserAuthenticated(this.user);
         }
+
+        // Signal that auth state has settled (used by staff-auth.js)
+        this._authChecked = true;
     }
 
     handleUserLogout() {
         this.user = null;
         this.isLoggedIn = false;
         this.updateUIForLoggedOutUser();
+        // Signal that auth state has settled (used by staff-auth.js)
+        this._authChecked = true;
     }
 
     // Email/Password Sign Up

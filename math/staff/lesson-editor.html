@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Editor — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="staff.css">
+<style>
+.q-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(35,53,84,0.5);
+    transition: background var(--transition);
+}
+.q-row:last-child { border-bottom: none; }
+.q-row:hover { background: rgba(255,255,255,0.02); }
+.q-row.drag-over { border-top: 2px solid var(--accent); }
+.q-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--surface-light); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0;
+}
+.q-info { flex: 1; min-width: 0; }
+.q-title { font-weight:600; color:var(--text-primary); font-size:0.88rem; }
+.q-meta { font-size:0.75rem; color:var(--text-muted); margin-top:0.1rem; }
+.type-badge {
+    font-size: 0.68rem; padding: 0.1rem 0.45rem;
+    border-radius: 4px; border: 1px solid;
+    flex-shrink: 0;
+}
+.type-mc   { color:var(--info);  border-color:rgba(139,233,253,0.3); background:rgba(139,233,253,0.08); }
+.type-free { color:var(--purple);border-color:rgba(224,140,250,0.3); background:rgba(224,140,250,0.08); }
+</style>
+</head>
+<body>
+<div class="bg-container"></div>
+<div class="grid-overlay"></div>
+
+<div class="staff-app">
+  <header class="staff-header">
+    <a href="/math/staff/" class="logo">// staff</a>
+    <nav class="breadcrumb">
+      <a href="/math/staff/">Dashboard</a><span>/</span>
+      <a href="/math/staff/courses.html">Courses</a><span>/</span>
+      <a id="bcCourse" href="#">...</a><span>/</span>
+      <span id="bcLesson">...</span>
+    </nav>
+    <div class="header-actions">
+      <span class="save-indicator" id="saveIndicator">
+        <span class="save-dot"></span><span class="save-text">–</span>
+      </span>
+      <button class="btn btn-ghost btn-sm" id="btnSaveMeta" data-require-edit>Save</button>
+      <span id="roleDisplay" style="color:var(--text-muted);font-size:0.75rem;margin-left:0.5rem"></span>
+    </div>
+  </header>
+
+  <div class="staff-body">
+    <nav class="staff-sidebar">
+      <div class="nav-section">Content</div>
+      <a href="/math/staff/"><span class="nav-icon">⌂</span> Dashboard</a>
+      <a href="/math/staff/courses.html"><span class="nav-icon">📚</span> Courses</a>
+      <div class="nav-section" style="margin-top:1rem">Admin</div>
+      <a href="/math/staff/roles.html" data-require-owner><span class="nav-icon">👥</span> Roles</a>
+    </nav>
+
+    <main class="staff-content">
+      <div id="loadingState" style="text-align:center;padding:3rem;color:var(--text-muted)">
+        <div class="spinner" style="margin:0 auto 0.75rem"></div>Loading lesson...
+      </div>
+      <div id="pageContent" style="display:none">
+        <!-- Lesson metadata -->
+        <div class="card" style="margin-bottom:1.5rem">
+          <div class="card-header">
+            <span class="card-title">Lesson Details</span>
+          </div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label class="form-label">Title <span class="required">*</span></label>
+              <input type="text" class="form-input" id="metaTitle">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Description</label>
+              <textarea class="form-textarea" id="metaDesc" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Questions -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Questions</span>
+            <button class="btn btn-primary btn-sm" id="btnAddQuestion" data-require-edit>+ Add Question</button>
+          </div>
+          <div id="questionsBody">
+            <div style="padding:2rem;text-align:center;color:var(--text-muted)">
+              <div class="spinner" style="margin:0 auto 0.75rem"></div>Loading...
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="staff-toast" id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../shared/firebase-auth.js"></script>
+<script src="staff-auth.js"></script>
+<script src="course-api.js"></script>
+<script>
+function showToast(msg,type='info',dur=3500){const c=document.getElementById('toastContainer'),t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},dur);}
+function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+const params = new URLSearchParams(location.search);
+const courseId = params.get('courseId');
+const lessonId = params.get('lessonId');
+let lesson = null, questions = [], isDirty = false;
+
+function setSaveState(state, msg) {
+    const ind = document.getElementById('saveIndicator');
+    ind.className = `save-indicator ${state}`;
+    ind.querySelector('.save-dot').className = `save-dot ${state==='saving'?'pulse':''}`;
+    ind.querySelector('.save-text').textContent = msg;
+}
+function markDirty() { isDirty=true; setSaveState('unsaved','Unsaved changes'); }
+
+async function initPage() {
+    if (!courseId || !lessonId) { window.location.href = 'courses.html'; return; }
+    const ok = await staffAuth.checkAccess();
+    if (!ok) return;
+    document.getElementById('roleDisplay').innerHTML = staffAuth.getRoleBadgeHTML();
+    try {
+        const [course, les] = await Promise.all([
+            courseApi.getCourse(courseId),
+            courseApi.getLesson(courseId, lessonId)
+        ]);
+        lesson = les;
+        document.getElementById('bcCourse').textContent = course?.title || 'Course';
+        document.getElementById('bcCourse').href = `course-editor.html?courseId=${courseId}`;
+        document.getElementById('bcLesson').textContent = lesson.title;
+        document.getElementById('metaTitle').value = lesson.title || '';
+        document.getElementById('metaDesc').value = lesson.description || '';
+        ['metaTitle','metaDesc'].forEach(id => document.getElementById(id).addEventListener('input', markDirty));
+        await loadQuestions();
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('pageContent').style.display = '';
+        setSaveState('saved','All changes saved');
+    } catch (err) { showToast('Failed to load: ' + err.message, 'error'); }
+}
+
+async function saveMeta() {
+    if (!isDirty) return;
+    setSaveState('saving','Saving...');
+    try {
+        await courseApi.updateLesson(courseId, lessonId, {
+            title: document.getElementById('metaTitle').value.trim(),
+            description: document.getElementById('metaDesc').value.trim()
+        });
+        isDirty = false;
+        setSaveState('saved','Saved');
+        document.getElementById('bcLesson').textContent = document.getElementById('metaTitle').value.trim();
+    } catch(err) { setSaveState('unsaved','Save failed'); showToast('Save failed: '+err.message,'error'); }
+}
+document.getElementById('btnSaveMeta')?.addEventListener('click', saveMeta);
+setInterval(()=>{ if(isDirty) saveMeta(); }, 30000);
+window.addEventListener('beforeunload', e => { if(isDirty) e.returnValue='You have unsaved changes.'; });
+
+async function loadQuestions() {
+    questions = await courseApi.listQuestions(courseId, lessonId);
+    renderQuestions();
+}
+
+function renderQuestions() {
+    const body = document.getElementById('questionsBody');
+    if (questions.length === 0) {
+        body.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">❓</div>
+            <div class="empty-state-text">No questions yet. Add your first question!</div>
+        </div>`;
+        return;
+    }
+    body.innerHTML = questions.map((q, i) => {
+        const varCount = (q.variables||[]).length;
+        const type = q.template?.questionType || 'multiple-choice';
+        const typeLabel = type === 'multiple-choice' ? 'MC' : 'Free';
+        const typeCls = type === 'multiple-choice' ? 'type-mc' : 'type-free';
+        return `<div class="q-row" data-id="${q.id}" draggable="true">
+            <div class="drag-handle">⠿</div>
+            <div class="q-num">${i+1}</div>
+            <div class="q-info">
+                <div class="q-title">${escHtml(q.title||'Untitled Question')}</div>
+                <div class="q-meta">${varCount} variable${varCount!==1?'s':''}</div>
+            </div>
+            <span class="type-badge ${typeCls}">${typeLabel}</span>
+            <div class="row-actions">
+                <a href="question-editor.html?courseId=${courseId}&lessonId=${lessonId}&questionId=${q.id}" class="btn btn-ghost btn-sm">Edit →</a>
+                ${staffAuth.isOwner()?`<button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">×</button>`:''}
+            </div>
+        </div>`;
+    }).join('');
+    initDragReorder();
+}
+
+function initDragReorder() {
+    let dragging = null;
+    document.querySelectorAll('.q-row').forEach(row => {
+        row.addEventListener('dragstart', ()=>{ dragging=row; setTimeout(()=>row.style.opacity='0.4',0); });
+        row.addEventListener('dragend', ()=>{ row.style.opacity=''; document.querySelectorAll('.q-row').forEach(r=>r.classList.remove('drag-over')); saveNewOrder(); });
+        row.addEventListener('dragover', e=>{ e.preventDefault(); document.querySelectorAll('.q-row').forEach(r=>r.classList.remove('drag-over')); if(row!==dragging)row.classList.add('drag-over'); });
+        row.addEventListener('drop', e=>{ e.preventDefault(); if(dragging&&row!==dragging){ const rows=[...document.getElementById('questionsBody').querySelectorAll('.q-row')]; if(rows.indexOf(dragging)<rows.indexOf(row))row.after(dragging); else row.before(dragging); } });
+    });
+}
+
+async function saveNewOrder() {
+    const ids = [...document.querySelectorAll('.q-row')].map(r=>r.dataset.id);
+    await courseApi.reorderQuestions(courseId, lessonId, ids);
+    questions = await courseApi.listQuestions(courseId, lessonId);
+    renderQuestions();
+}
+
+async function deleteQuestion(qId) {
+    if (!confirm('Delete this question?')) return;
+    try {
+        await courseApi.deleteQuestion(courseId, lessonId, qId);
+        showToast('Question deleted.','success');
+        await loadQuestions();
+    } catch(err) { showToast('Error: '+err.message,'error'); }
+}
+
+document.getElementById('btnAddQuestion')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btnAddQuestion');
+    btn.disabled = true; btn.textContent = 'Adding...';
+    try {
+        const qId = await courseApi.createQuestion(courseId, lessonId, {
+            title: 'Untitled Question',
+            order: questions.length
+        });
+        window.location.href = `question-editor.html?courseId=${courseId}&lessonId=${lessonId}&questionId=${qId}`;
+    } catch(err) { showToast('Error: '+err.message,'error'); btn.disabled=false; btn.textContent='+ Add Question'; }
+});
+
+initPage();
+</script>
+</body>
+</html>

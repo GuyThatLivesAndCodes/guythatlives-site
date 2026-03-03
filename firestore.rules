@@ -270,6 +270,102 @@ service cloud.firestore {
       allow read, update: if isAdmin();
     }
 
+    /* ========= Staff Role Helpers ========= */
+
+    // ---- Staff Collections ----
+
+    match /staffRoles/{userId} {
+      // Any staff member or hardcoded admin can read the full roles list
+      allow read: if isAdmin() || (isSignedIn() &&
+        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
+
+      // Only owners (hardcoded admins or role=owner) can grant/revoke roles
+      allow create, update, delete: if isAdmin() || (isSignedIn() &&
+        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+    }
+
+    /* ========= Courses (Draft) ========= */
+
+    match /courses/{courseId} {
+      // Published courses are publicly readable; drafts only by staff
+      allow read: if resource == null ||
+                     resource.data.status == 'published' ||
+                     isAdmin() ||
+                     (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
+
+      // Editors and above can create/update
+      allow create, update: if isAdmin() ||
+        (isSignedIn() &&
+          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
+
+      // Only owners/hardcoded admins can delete
+      allow delete: if isAdmin() ||
+        (isSignedIn() &&
+          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+
+      match /lessons/{lessonId} {
+        allow read: if resource == null ||
+                       get(/databases/$(database)/documents/courses/$(courseId)).data.status == 'published' ||
+                       isAdmin() ||
+                       (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
+        allow create, update: if isAdmin() ||
+          (isSignedIn() &&
+            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
+        allow delete: if isAdmin() ||
+          (isSignedIn() &&
+            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+
+        match /questions/{questionId} {
+          allow read: if resource == null ||
+                         get(/databases/$(database)/documents/courses/$(courseId)).data.status == 'published' ||
+                         isAdmin() ||
+                         (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
+          allow create, update: if isAdmin() ||
+            (isSignedIn() &&
+              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
+          allow delete: if isAdmin() ||
+            (isSignedIn() &&
+              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+        }
+      }
+    }
+
+    /* ========= Published Courses (Student-facing snapshot) ========= */
+
+    match /publishedCourses/{courseId} {
+      // Fully public — students load course content without auth
+      allow read: if true;
+
+      // Only owners can write (publish action uses Cloud Function)
+      allow create, update, delete: if isAdmin() ||
+        (isSignedIn() &&
+          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+
+      match /lessons/{lessonId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin() ||
+          (isSignedIn() &&
+            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+
+        match /questions/{questionId} {
+          allow read: if true;
+          allow create, update, delete: if isAdmin() ||
+            (isSignedIn() &&
+              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
+              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+        }
+      }
+    }
+
     /* ========= Default Deny ========= */
     // Removed catch-all rule to prevent interference with specific permissions
     // Firestore denies by default if no rule matches

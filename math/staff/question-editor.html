@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Question Editor — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="staff.css">
+<link rel="stylesheet" href="blueprint.css">
+<style>
+/* ── Full-screen editor layout ── */
+html, body { height: 100%; overflow: hidden; }
+.qe-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+.qe-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: rgba(21,25,50,0.95);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+    z-index: 100;
+}
+.qe-header .logo { font-size:0.9rem; font-weight:700; color:var(--accent); text-decoration:none; flex-shrink:0; }
+.qe-header .breadcrumb { display:flex; align-items:center; gap:0.35rem; font-size:0.75rem; color:var(--text-muted); flex:1; min-width:0; overflow:hidden; white-space:nowrap; }
+.qe-header .breadcrumb a { color:var(--text-secondary); text-decoration:none; }
+.qe-header .breadcrumb a:hover { color:var(--accent); }
+.qe-title-input {
+    background: transparent; border: none; border-bottom: 1px solid transparent;
+    color: var(--text-primary); font-family: 'JetBrains Mono',monospace;
+    font-size: 0.85rem; font-weight: 700; padding: 0.15rem 0.3rem;
+    outline: none; max-width: 220px;
+    transition: border-color 0.15s;
+}
+.qe-title-input:focus { border-bottom-color: rgba(100,255,218,0.4); background: rgba(100,255,218,0.03); }
+
+.qe-panels {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ── Left panel: Variables ── */
+.qe-vars {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: #0d1124;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+}
+.qe-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    flex-shrink: 0;
+}
+.qe-panel-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+.qe-vars-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
+.var-card {
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+.var-card:hover { border-color: var(--border-light); }
+.var-card.selected { border-color: rgba(100,255,218,0.4); background: rgba(100,255,218,0.04); }
+.var-name { font-size: 0.82rem; font-weight: 700; color: var(--accent); }
+.var-type { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.1rem; }
+.var-actions { display:flex; gap:0.3rem; margin-top:0.4rem; }
+
+/* ── Center panel: Blueprint + Palette ── */
+.qe-blueprint { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.bp-palette-and-canvas { display: flex; flex: 1; overflow: hidden; }
+.bp-canvas-wrapper { flex: 1; overflow: hidden; }
+
+/* ── Right panel: Template & Preview ── */
+.qe-template {
+    width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: #0d1124;
+    border-left: 1px solid var(--border);
+    overflow: hidden;
+}
+.qe-template-scroll { flex: 1; overflow-y: auto; padding: 0.85rem; }
+
+/* ── Variable add/edit form ── */
+.var-form { padding: 0.75rem; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+.var-form .form-group { margin-bottom: 0.6rem; }
+.var-form .form-label { font-size: 0.72rem; }
+.var-form .form-input,
+.var-form .form-select,
+.var-form .form-textarea { font-size: 0.78rem; padding: 0.4rem 0.65rem; }
+.pool-textarea { min-height: 60px; font-size: 0.75rem !important; }
+
+/* ── Preview samples ── */
+.preview-sample {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.78rem;
+}
+.preview-question { color: var(--text-primary); font-weight: 600; margin-bottom: 0.4rem; line-height: 1.5; }
+.preview-answer { color: var(--success); margin-bottom: 0.2rem; }
+.preview-distractors { color: var(--text-muted); font-size: 0.72rem; }
+.preview-vars { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.35rem; border-top: 1px solid var(--border); padding-top: 0.35rem; }
+.preview-error { color: var(--danger); }
+
+/* ── Distractor rules ── */
+.distractor-rule {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.5rem;
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.4rem;
+    font-size: 0.75rem;
+}
+.distractor-rule select, .distractor-rule input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text-primary);
+    font-family: 'JetBrains Mono',monospace; font-size: 0.72rem;
+    padding: 0.2rem 0.35rem; outline:none;
+}
+.distractor-rule select:focus, .distractor-rule input:focus { border-color: rgba(100,255,218,0.35); }
+
+/* ── Output node label ── */
+.output-node-row {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.5rem;
+    background: var(--surface-light); border: 1px solid var(--border);
+    border-radius: 4px; margin-bottom: 0.4rem;
+    font-size: 0.75rem; cursor: pointer;
+    transition: border-color 0.15s;
+}
+.output-node-row:hover { border-color: rgba(80,250,123,0.3); }
+.output-node-row.selected { border-color: var(--success); background: rgba(80,250,123,0.06); }
+.output-dot { width:8px;height:8px;border-radius:50%;background:var(--success);flex-shrink:0; }
+
+/* ── Validation errors ── */
+.validation-errors {
+    background: rgba(255,85,85,0.08); border: 1px solid rgba(255,85,85,0.25);
+    border-radius: 6px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem;
+}
+.validation-errors li { color: var(--danger); font-size: 0.75rem; margin-bottom: 0.2rem; padding-left: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="bg-container"></div>
+<div class="grid-overlay"></div>
+
+<div class="qe-layout">
+  <!-- Header -->
+  <div class="qe-header">
+    <a href="/math/staff/" class="logo">// staff</a>
+    <div class="breadcrumb">
+      <a href="/math/staff/courses.html">Courses</a><span>/</span>
+      <a id="bcCourse" href="#">...</a><span>/</span>
+      <a id="bcLesson" href="#">...</a><span>/</span>
+      <input type="text" class="qe-title-input" id="questionTitle" placeholder="Question title">
+    </div>
+    <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0">
+      <span class="save-indicator" id="saveIndicator">
+        <span class="save-dot"></span><span class="save-text">–</span>
+      </span>
+      <button class="btn btn-ghost btn-sm" id="btnSave" data-require-edit>Save</button>
+      <button class="btn btn-primary btn-sm" id="btnPreview">▶ Preview (5×)</button>
+      <span id="roleDisplay" style="color:var(--text-muted);font-size:0.72rem"></span>
+    </div>
+  </div>
+
+  <div class="qe-panels">
+    <!-- ── LEFT: Variables ── -->
+    <div class="qe-vars">
+      <div class="qe-panel-header">
+        <span class="qe-panel-title">Variables</span>
+        <button class="btn btn-primary btn-sm btn-icon" id="btnAddVar" title="Add variable" data-require-edit style="font-size:1rem;line-height:1">+</button>
+      </div>
+      <div class="qe-vars-list" id="varsList">
+        <div style="color:var(--text-muted);font-size:0.75rem;text-align:center;padding:1.5rem 0.5rem">
+          No variables yet.<br>Add one to get started.
+        </div>
+      </div>
+      <!-- Add/Edit variable form -->
+      <div class="var-form" id="varForm" style="display:none">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--accent);margin-bottom:0.5rem" id="varFormTitle">Add Variable</div>
+        <div class="form-group">
+          <label class="form-label">Name <span class="required">*</span></label>
+          <input type="text" class="form-input" id="varName" placeholder="e.g. a, b, result">
+          <div class="form-hint">Letters, numbers, underscore. Must start with letter.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="varType" onchange="updateVarTypeFields()">
+            <option value="int">Random Integer</option>
+            <option value="float">Random Float</option>
+            <option value="constant">Constant</option>
+            <option value="stringpool">String Pool</option>
+          </select>
+        </div>
+        <!-- int fields -->
+        <div id="varFieldsInt">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Min</label><input type="number" class="form-input" id="varIntMin" value="1"></div>
+            <div class="form-group"><label class="form-label">Max</label><input type="number" class="form-input" id="varIntMax" value="10"></div>
+          </div>
+        </div>
+        <!-- float fields -->
+        <div id="varFieldsFloat" style="display:none">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Min</label><input type="number" class="form-input" id="varFloatMin" value="0" step="any"></div>
+            <div class="form-group"><label class="form-label">Max</label><input type="number" class="form-input" id="varFloatMax" value="1" step="any"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Decimal places</label><input type="number" class="form-input" id="varFloatDecimals" value="2" min="0" max="8"></div>
+        </div>
+        <!-- constant fields -->
+        <div id="varFieldsConst" style="display:none">
+          <div class="form-group"><label class="form-label">Value</label><input type="text" class="form-input" id="varConstValue" placeholder="e.g. 3.14"></div>
+        </div>
+        <!-- stringpool fields -->
+        <div id="varFieldsPool" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Strings (one per line)</label>
+            <textarea class="form-textarea pool-textarea" id="varPoolStrings" rows="4" placeholder="What is {a} + {b}?&#10;Solve: {a} + {b} = ?&#10;Add {a} and {b}."></textarea>
+            <div class="form-hint">One string per line. Use {variableName} for substitution.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.4rem;margin-top:0.25rem">
+          <button class="btn btn-primary" style="flex:1;font-size:0.75rem" id="btnSaveVar">Save</button>
+          <button class="btn btn-ghost" style="font-size:0.75rem" id="btnCancelVar">×</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CENTER: Blueprint ── -->
+    <div class="qe-blueprint">
+      <div class="qe-panel-header">
+        <span class="qe-panel-title">Blueprint</span>
+        <div style="display:flex;gap:0.4rem">
+          <button class="btn btn-ghost btn-sm" onclick="bp && bp.resetView()" title="Reset view">⊞</button>
+          <span style="font-size:0.68rem;color:var(--text-muted);align-self:center">Scroll to zoom · Drag header to move nodes · Drag output pin to input pin to connect · Double-click wire to remove</span>
+        </div>
+      </div>
+      <div class="bp-palette-and-canvas">
+        <!-- Node Palette -->
+        <div class="bp-palette" id="nodePalette">
+          <div class="bp-palette-section">Operations</div>
+          <div class="bp-palette-item" data-type="add"      draggable="true"><div class="bp-palette-dot" style="background:#64ffda"></div>Add</div>
+          <div class="bp-palette-item" data-type="subtract" draggable="true"><div class="bp-palette-dot" style="background:#64ffda"></div>Subtract</div>
+          <div class="bp-palette-item" data-type="multiply" draggable="true"><div class="bp-palette-dot" style="background:#64ffda"></div>Multiply</div>
+          <div class="bp-palette-item" data-type="divide"   draggable="true"><div class="bp-palette-dot" style="background:#64ffda"></div>Divide</div>
+          <div class="bp-palette-section">Math</div>
+          <div class="bp-palette-item" data-type="round"    draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Round</div>
+          <div class="bp-palette-item" data-type="floor"    draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Floor</div>
+          <div class="bp-palette-item" data-type="ceil"     draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Ceil</div>
+          <div class="bp-palette-item" data-type="abs"      draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Abs</div>
+          <div class="bp-palette-item" data-type="power"    draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Power</div>
+          <div class="bp-palette-item" data-type="sqrt"     draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Sqrt √</div>
+          <div class="bp-palette-item" data-type="modulo"   draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Modulo</div>
+          <div class="bp-palette-item" data-type="min"      draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Min</div>
+          <div class="bp-palette-item" data-type="max"      draggable="true"><div class="bp-palette-dot" style="background:#f1fa8c"></div>Max</div>
+          <div class="bp-palette-section">Special</div>
+          <div class="bp-palette-item" data-type="formula"  draggable="true"><div class="bp-palette-dot" style="background:#e08cfa"></div>Formula</div>
+          <div class="bp-palette-item" data-type="output"   draggable="true"><div class="bp-palette-dot" style="background:#50fa7b"></div>Output</div>
+        </div>
+        <!-- Canvas -->
+        <div class="bp-canvas-wrapper" id="bpCanvasWrapper"></div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Template & Preview ── -->
+    <div class="qe-template">
+      <div class="qe-panel-header">
+        <span class="qe-panel-title">Template & Preview</span>
+      </div>
+      <div class="qe-template-scroll">
+
+        <!-- Question type -->
+        <div class="form-group" style="margin-bottom:0.8rem">
+          <label class="form-label">Question Type</label>
+          <select class="form-select" id="questionType">
+            <option value="multiple-choice">Multiple Choice</option>
+            <option value="free-input">Free Input</option>
+          </select>
+        </div>
+
+        <!-- Template text -->
+        <div class="form-group">
+          <label class="form-label">Question Text Template</label>
+          <textarea class="form-textarea" id="templateText" rows="4"
+            placeholder="e.g. What is {a} + {b}?&#10;&#10;Use {varName} to insert variable values. Use a String Pool variable for random question wording."></textarea>
+          <div class="form-hint">Use {variableName} to insert values. For wording variants, set a String Pool variable and use {thatVariable} as the whole template.</div>
+        </div>
+
+        <!-- Output node (answer) -->
+        <div class="form-group">
+          <label class="form-label">Answer (Output Node)</label>
+          <div id="outputNodeList" style="margin-bottom:0.25rem">
+            <div style="color:var(--text-muted);font-size:0.75rem">Add an Output node to the blueprint to select an answer.</div>
+          </div>
+          <div class="form-hint">Select which Output node is the correct answer.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Distractor rules (MC only) -->
+        <div id="distractorSection">
+          <label class="form-label" style="margin-bottom:0.4rem">Distractor Rules <span style="color:var(--text-muted);font-weight:400">(wrong answers)</span></label>
+          <div id="distractorRules"></div>
+          <button class="btn btn-ghost btn-sm" id="btnAddDistractor" style="width:100%;margin-top:0.25rem">+ Add Rule</button>
+          <div class="form-hint" style="margin-top:0.3rem">Rules generate plausible wrong answers. Double-click rule to remove.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Validation -->
+        <div id="validationErrors" style="display:none"></div>
+
+        <!-- Preview button -->
+        <button class="btn btn-primary" id="btnPreview2" style="width:100%;margin-bottom:0.85rem">▶ Run Preview (5×)</button>
+        <div id="previewResults"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="staff-toast" id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="../shared/firebase-auth.js"></script>
+<script src="staff-auth.js"></script>
+<script src="course-api.js"></script>
+<script src="blueprint.js"></script>
+<script src="question-builder.js"></script>
+<script>
+/* ─────────────── Helpers ─────────────── */
+function showToast(msg,type='info',dur=3500){const c=document.getElementById('toastContainer'),t=document.createElement('div');t.className=`toast toast-${type}`;t.textContent=msg;c.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},dur);}
+function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ─────────────── State ─────────────── */
+const params = new URLSearchParams(location.search);
+const courseId   = params.get('courseId');
+const lessonId   = params.get('lessonId');
+const questionId = params.get('questionId');
+
+let bp, qb;
+let isDirty = false;
+let editingVarName = null; // null = adding new, string = editing existing
+let selectedAnswerNodeId = null;
+let distractorRules = [];
+
+function setSaveState(state, msg) {
+    const ind = document.getElementById('saveIndicator');
+    ind.className = `save-indicator ${state}`;
+    ind.querySelector('.save-dot').className = `save-dot ${state==='saving'?'pulse':''}`;
+    ind.querySelector('.save-text').textContent = msg;
+}
+function markDirty() { isDirty=true; setSaveState('unsaved','Unsaved changes'); }
+
+/* ─────────────── Init ─────────────── */
+async function initPage() {
+    if (!courseId || !lessonId || !questionId) { window.location.href='courses.html'; return; }
+    const ok = await staffAuth.checkAccess();
+    if (!ok) return;
+    document.getElementById('roleDisplay').innerHTML = staffAuth.getRoleBadgeHTML();
+
+    // Initialize blueprint + question builder
+    bp = new BlueprintEngine(document.getElementById('bpCanvasWrapper'));
+    qb = new QuestionBuilder(bp);
+    qb.onChange(() => { markDirty(); refreshOutputNodeList(); });
+
+    // Bind drag-drop from palette to canvas
+    initPaletteDrop();
+
+    try {
+        const [course, lesson, question] = await Promise.all([
+            courseApi.getCourse(courseId),
+            courseApi.getLesson(courseId, lessonId),
+            courseApi.getQuestion(courseId, lessonId, questionId)
+        ]);
+
+        document.getElementById('bcCourse').textContent = course?.title || 'Course';
+        document.getElementById('bcCourse').href = `course-editor.html?courseId=${courseId}`;
+        document.getElementById('bcLesson').textContent = lesson?.title || 'Lesson';
+        document.getElementById('bcLesson').href = `lesson-editor.html?courseId=${courseId}&lessonId=${lessonId}`;
+        document.getElementById('questionTitle').value = question?.title || 'Untitled Question';
+
+        // Restore saved data
+        if (question?.variables?.length || question?.workflow?.nodes?.length) {
+            qb.fromJSON({ variables: question.variables, workflow: question.workflow });
+        }
+        if (question?.template) {
+            document.getElementById('templateText').value = question.template.textTemplate || '';
+            document.getElementById('questionType').value = question.template.questionType || 'multiple-choice';
+            selectedAnswerNodeId = question.template.answerNodeId || null;
+            distractorRules = question.template.distractors || [];
+        }
+
+        renderVarsList();
+        refreshOutputNodeList();
+        renderDistractorRules();
+        setSaveState('saved', 'All changes saved');
+    } catch (err) {
+        showToast('Failed to load: ' + err.message, 'error');
+    }
+
+    // Bind header change
+    document.getElementById('questionTitle').addEventListener('input', markDirty);
+    document.getElementById('templateText').addEventListener('input', () => { markDirty(); });
+    document.getElementById('questionType').addEventListener('change', () => {
+        markDirty();
+        document.getElementById('distractorSection').style.display =
+            document.getElementById('questionType').value === 'multiple-choice' ? '' : 'none';
+    });
+
+    // Auto-save
+    setInterval(() => { if (isDirty) saveQuestion(); }, 30000);
+    window.addEventListener('beforeunload', e => { if (isDirty) e.returnValue='Unsaved changes.'; });
+}
+
+/* ─────────────── Save ─────────────── */
+async function saveQuestion() {
+    setSaveState('saving','Saving...');
+    const errors = qb.validate(
+        document.getElementById('templateText').value,
+        selectedAnswerNodeId
+    );
+    // Soft save even with errors (staff can save drafts)
+    const data = qb.toJSON();
+    try {
+        await courseApi.saveQuestion(courseId, lessonId, questionId, {
+            title: document.getElementById('questionTitle').value.trim() || 'Untitled Question',
+            variables: data.variables,
+            workflow: data.workflow,
+            template: {
+                questionType: document.getElementById('questionType').value,
+                textTemplate: document.getElementById('templateText').value,
+                answerNodeId: selectedAnswerNodeId,
+                distractors: distractorRules
+            }
+        });
+        isDirty = false;
+        setSaveState('saved','Saved');
+    } catch(err) {
+        setSaveState('unsaved','Save failed');
+        showToast('Save failed: '+err.message,'error');
+    }
+}
+
+document.getElementById('btnSave')?.addEventListener('click', saveQuestion);
+
+/* ─────────────── Variables ─────────────── */
+function renderVarsList() {
+    const list = document.getElementById('varsList');
+    if (!qb.variables.length) {
+        list.innerHTML = `<div style="color:var(--text-muted);font-size:0.75rem;text-align:center;padding:1.5rem 0.5rem">No variables yet.<br>Add one to get started.</div>`;
+        return;
+    }
+    list.innerHTML = qb.variables.map(v => {
+        const typeName = { int:'Random Int', float:'Random Float', constant:'Constant', stringpool:'String Pool' }[v.type] || v.type;
+        let config = '';
+        if (v.type==='int')        config = `[${v.min}, ${v.max}]`;
+        if (v.type==='float')      config = `[${v.min}, ${v.max}] .${v.decimals}dp`;
+        if (v.type==='constant')   config = `= ${v.value}`;
+        if (v.type==='stringpool') config = `${(Array.isArray(v.pool)?v.pool:(v.pool||'').split('\n').filter(Boolean)).length} strings`;
+        return `<div class="var-card" onclick="editVar('${escHtml(v.name)}')">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+                <span class="var-name">${escHtml(v.name)}</span>
+                <button class="btn btn-danger btn-sm btn-icon" style="font-size:0.7rem;padding:0.1rem 0.3rem"
+                    onclick="event.stopPropagation();removeVar('${escHtml(v.name)}')">×</button>
+            </div>
+            <div class="var-type">${typeName} ${config ? '· '+config : ''}</div>
+        </div>`;
+    }).join('');
+}
+
+function showVarForm(editing = false) {
+    document.getElementById('varForm').style.display = '';
+    document.getElementById('varFormTitle').textContent = editing ? 'Edit Variable' : 'Add Variable';
+    document.getElementById('btnSaveVar').textContent = editing ? 'Update' : 'Add Variable';
+    if (!editing) {
+        document.getElementById('varName').value = '';
+        document.getElementById('varType').value = 'int';
+        document.getElementById('varIntMin').value = '1';
+        document.getElementById('varIntMax').value = '10';
+    }
+    updateVarTypeFields();
+    document.getElementById('varName').focus();
+    if (!editing) document.getElementById('varName').disabled = false;
+}
+
+function hideVarForm() {
+    document.getElementById('varForm').style.display = 'none';
+    editingVarName = null;
+    document.getElementById('varName').disabled = false;
+}
+
+function editVar(name) {
+    const v = qb.getVariable(name);
+    if (!v) return;
+    editingVarName = name;
+    showVarForm(true);
+    document.getElementById('varName').value = v.name;
+    document.getElementById('varName').disabled = true; // can't rename via this form (would break wires)
+    document.getElementById('varType').value = v.type;
+    if (v.type==='int')   { document.getElementById('varIntMin').value=v.min??1; document.getElementById('varIntMax').value=v.max??10; }
+    if (v.type==='float') { document.getElementById('varFloatMin').value=v.min??0; document.getElementById('varFloatMax').value=v.max??1; document.getElementById('varFloatDecimals').value=v.decimals??2; }
+    if (v.type==='constant') document.getElementById('varConstValue').value=v.value??'';
+    if (v.type==='stringpool') {
+        const pool = Array.isArray(v.pool) ? v.pool : (v.pool||'').split('\n').filter(Boolean);
+        document.getElementById('varPoolStrings').value = pool.join('\n');
+    }
+    updateVarTypeFields();
+}
+
+function removeVar(name) {
+    if (!confirm(`Remove variable "${name}"? Its blueprint node will also be removed.`)) return;
+    qb.removeVariable(name);
+    renderVarsList();
+    markDirty();
+}
+
+function updateVarTypeFields() {
+    const t = document.getElementById('varType').value;
+    document.getElementById('varFieldsInt').style.display   = t==='int'        ? '' : 'none';
+    document.getElementById('varFieldsFloat').style.display = t==='float'      ? '' : 'none';
+    document.getElementById('varFieldsConst').style.display = t==='constant'   ? '' : 'none';
+    document.getElementById('varFieldsPool').style.display  = t==='stringpool' ? '' : 'none';
+}
+
+document.getElementById('btnAddVar')?.addEventListener('click', () => {
+    editingVarName = null;
+    showVarForm(false);
+});
+document.getElementById('btnCancelVar')?.addEventListener('click', hideVarForm);
+document.getElementById('btnSaveVar')?.addEventListener('click', () => {
+    const name = document.getElementById('varName').value.trim();
+    if (!name) { showToast('Variable name is required.','error'); return; }
+    const type = document.getElementById('varType').value;
+    let def = { name, type };
+    if (type==='int')        { def.min=parseInt(document.getElementById('varIntMin').value,10); def.max=parseInt(document.getElementById('varIntMax').value,10); }
+    if (type==='float')      { def.min=parseFloat(document.getElementById('varFloatMin').value); def.max=parseFloat(document.getElementById('varFloatMax').value); def.decimals=parseInt(document.getElementById('varFloatDecimals').value,10); }
+    if (type==='constant')   { def.value=document.getElementById('varConstValue').value; }
+    if (type==='stringpool') { def.pool=document.getElementById('varPoolStrings').value.split('\n').map(s=>s.trim()).filter(Boolean); }
+    try {
+        if (editingVarName) { qb.updateVariable(editingVarName, def); }
+        else                { qb.addVariable(def); }
+        renderVarsList();
+        hideVarForm();
+        markDirty();
+    } catch(err) { showToast(err.message,'error'); }
+});
+document.getElementById('varName')?.addEventListener('keydown', e => {
+    if (e.key==='Enter') document.getElementById('btnSaveVar').click();
+});
+
+/* ─────────────── Palette drag-drop ─────────────── */
+function initPaletteDrop() {
+    let dragType = null;
+    document.querySelectorAll('.bp-palette-item').forEach(item => {
+        item.addEventListener('dragstart', e => {
+            dragType = item.dataset.type;
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+        item.addEventListener('dragend', () => { dragType = null; });
+    });
+
+    const wrapper = document.getElementById('bpCanvasWrapper');
+    wrapper.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect='copy'; });
+    wrapper.addEventListener('drop', e => {
+        e.preventDefault();
+        if (!dragType) return;
+        const rect = wrapper.querySelector('.bp-canvas-inner').getBoundingClientRect();
+        const x = (e.clientX - rect.left) / (bp.zoom||1);
+        const y = (e.clientY - rect.top)  / (bp.zoom||1);
+        const config = dragType === 'output' ? { label: 'answer' } : {};
+        bp.addNode(dragType, x - 80, y - 40, config);
+        if (dragType === 'output') refreshOutputNodeList();
+        markDirty();
+    });
+}
+
+/* ─────────────── Output node list ─────────────── */
+function refreshOutputNodeList() {
+    const container = document.getElementById('outputNodeList');
+    const outputNodes = [];
+    bp.nodes.forEach((n, id) => { if (n.type==='output') outputNodes.push({id, ...n}); });
+    if (!outputNodes.length) {
+        container.innerHTML = `<div style="color:var(--text-muted);font-size:0.75rem">Drag an Output node onto the canvas to define the answer.</div>`;
+        return;
+    }
+    container.innerHTML = outputNodes.map(n =>
+        `<div class="output-node-row ${selectedAnswerNodeId===n.id?'selected':''}" onclick="selectAnswer('${n.id}')">
+            <div class="output-dot"></div>
+            <span style="font-size:0.78rem;color:var(--text-primary)">${escHtml(n.config?.label||'answer')}</span>
+            <span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted)" id="ans-preview-${n.id}">–</span>
+            <input style="width:70px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:0.15rem 0.3rem;outline:none"
+                value="${escHtml(n.config?.label||'answer')}"
+                onclick="event.stopPropagation()"
+                onchange="renameOutputNode('${n.id}',this.value)">
+        </div>`
+    ).join('');
+    // If no answer selected and there's only one, auto-select
+    if (!selectedAnswerNodeId && outputNodes.length===1) {
+        selectAnswer(outputNodes[0].id);
+    }
+}
+
+function selectAnswer(id) {
+    selectedAnswerNodeId = id;
+    markDirty();
+    refreshOutputNodeList();
+}
+
+function renameOutputNode(id, newLabel) {
+    bp.updateNodeConfig(id, { label: newLabel });
+    markDirty();
+    refreshOutputNodeList();
+}
+
+/* ─────────────── Distractor rules ─────────────── */
+function renderDistractorRules() {
+    const container = document.getElementById('distractorRules');
+    if (!distractorRules.length) {
+        container.innerHTML = `<div style="color:var(--text-muted);font-size:0.72rem;padding:0.3rem 0">No distractor rules. Students will only see the correct answer.</div>`;
+        return;
+    }
+    container.innerHTML = distractorRules.map((rule, i) => {
+        let label = '';
+        if (rule.type==='offset_const') label = `± ${rule.offset}`;
+        if (rule.type==='offset_rand')  label = `± rand(${rule.min},${rule.max})`;
+        if (rule.type==='floor')        label = 'floor(answer)';
+        if (rule.type==='ceil')         label = 'ceil(answer)';
+        if (rule.type==='neg')          label = '-answer';
+        if (rule.type==='formula')      label = rule.formula;
+        return `<div class="distractor-rule" ondblclick="removeDistractor(${i})" title="Double-click to remove">
+            <span class="bp-palette-dot" style="background:#ff5555;width:7px;height:7px;border-radius:50%;flex-shrink:0"></span>
+            <span style="flex:1;font-size:0.72rem">${escHtml(label||rule.type)}</span>
+            <button onclick="removeDistractor(${i})" style="background:none;border:none;color:rgba(255,85,85,0.6);cursor:pointer;font-size:0.8rem;padding:0;line-height:1">×</button>
+        </div>`;
+    }).join('');
+}
+
+function removeDistractor(idx) {
+    distractorRules.splice(idx, 1);
+    renderDistractorRules();
+    markDirty();
+}
+
+document.getElementById('btnAddDistractor')?.addEventListener('click', () => {
+    // Quick add: open a mini selector
+    const opts = [
+        { value: 'offset_const:1',   label: '± 1 (constant offset)' },
+        { value: 'offset_const:2',   label: '± 2 (constant offset)' },
+        { value: 'offset_rand:1:3',  label: '± rand(1,3)' },
+        { value: 'floor',            label: 'floor(answer)' },
+        { value: 'ceil',             label: 'ceil(answer)' },
+        { value: 'neg',              label: 'Negative of answer (-answer)' }
+    ];
+    const choice = prompt('Choose distractor type:\n' + opts.map((o,i)=>`${i+1}. ${o.label}`).join('\n') + '\n\nEnter number (1-' + opts.length + '):');
+    const idx = parseInt(choice, 10) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= opts.length) return;
+    const v = opts[idx].value.split(':');
+    let rule;
+    if (v[0]==='offset_const') rule = { type:'offset_const', offset: parseFloat(v[1]) };
+    else if (v[0]==='offset_rand') rule = { type:'offset_rand', min: parseInt(v[1],10), max: parseInt(v[2],10) };
+    else rule = { type: v[0] };
+    distractorRules.push(rule);
+    renderDistractorRules();
+    markDirty();
+});
+
+/* ─────────────── Preview ─────────────── */
+function runPreview() {
+    const template = document.getElementById('templateText').value;
+    const errors = qb.validate(template, selectedAnswerNodeId);
+
+    const errEl = document.getElementById('validationErrors');
+    if (errors.length) {
+        errEl.style.display = '';
+        errEl.innerHTML = `<div class="validation-errors"><ul>${errors.map(e=>`<li>${escHtml(e)}</li>`).join('')}</ul></div>`;
+    } else {
+        errEl.style.display = 'none';
+    }
+
+    if (errors.some(e => e.includes('Blueprint error') || e.includes('Circular'))) {
+        document.getElementById('previewResults').innerHTML = `<div style="color:var(--danger);font-size:0.78rem">Fix blueprint errors before previewing.</div>`;
+        return;
+    }
+
+    try {
+        const samples = qb.generatePreview(5, template, selectedAnswerNodeId, distractorRules);
+        const html = samples.map((s, i) => {
+            if (s.error) return `<div class="preview-sample"><div class="preview-error">Sample ${i+1}: ${escHtml(s.error)}</div></div>`;
+            const varStr = Object.entries(s.variables).map(([k,v])=>`${k}=${typeof v==='string'?`"${v}"`:v}`).join(', ');
+            const distractorStr = s.distractors.length ? `Wrong: ${s.distractors.join(', ')}` : '';
+            return `<div class="preview-sample">
+                <div class="preview-question">${escHtml(s.questionText)}</div>
+                <div class="preview-answer">✓ ${s.answer !== null ? escHtml(String(s.answer)) : 'No answer node'}</div>
+                ${distractorStr ? `<div class="preview-distractors">${escHtml(distractorStr)}</div>` : ''}
+                <div class="preview-vars">${escHtml(varStr)}</div>
+            </div>`;
+        }).join('');
+        document.getElementById('previewResults').innerHTML = html;
+    } catch(err) {
+        document.getElementById('previewResults').innerHTML = `<div style="color:var(--danger);font-size:0.78rem">Preview error: ${escHtml(err.message)}</div>`;
+    }
+}
+
+document.getElementById('btnPreview')?.addEventListener('click', runPreview);
+document.getElementById('btnPreview2')?.addEventListener('click', runPreview);
+
+initPage();
+</script>
+</body>
+</html>

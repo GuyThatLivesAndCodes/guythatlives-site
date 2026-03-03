@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Editor — Staff Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="staff.css">
+<style>
+.lesson-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(35,53,84,0.5);
+    transition: background var(--transition);
+}
+.lesson-row:last-child { border-bottom: none; }
+.lesson-row:hover { background: rgba(255,255,255,0.02); }
+.lesson-row.drag-over { border-top: 2px solid var(--accent); }
+.lesson-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; color: var(--text-muted);
+    flex-shrink: 0;
+}
+.lesson-info { flex: 1; min-width: 0; }
+.lesson-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.lesson-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.lesson-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+<div class="bg-container"></div>
+<div class="grid-overlay"></div>
+
+<div class="staff-app">
+  <header class="staff-header">
+    <a href="/math/staff/" class="logo">// staff</a>
+    <nav class="breadcrumb">
+      <a href="/math/staff/">Dashboard</a>
+      <span>/</span>
+      <a href="/math/staff/courses.html">Courses</a>
+      <span>/</span>
+      <span id="breadcrumbTitle">...</span>
+    </nav>
+    <div class="header-actions">
+      <span class="save-indicator" id="saveIndicator">
+        <span class="save-dot"></span>
+        <span class="save-text">–</span>
+      </span>
+      <button class="btn btn-ghost btn-sm" id="btnSaveMeta" data-require-edit>Save</button>
+      <span id="roleDisplay" style="color:var(--text-muted);font-size:0.75rem;margin-left:0.5rem"></span>
+    </div>
+  </header>
+
+  <div class="staff-body">
+    <nav class="staff-sidebar">
+      <div class="nav-section">Content</div>
+      <a href="/math/staff/"><span class="nav-icon">⌂</span> Dashboard</a>
+      <a href="/math/staff/courses.html"><span class="nav-icon">📚</span> Courses</a>
+      <div class="nav-section" style="margin-top:1rem">Admin</div>
+      <a href="/math/staff/roles.html" data-require-owner><span class="nav-icon">👥</span> Roles</a>
+    </nav>
+
+    <main class="staff-content">
+      <div id="loadingState" style="text-align:center;padding:3rem;color:var(--text-muted)">
+        <div class="spinner" style="margin:0 auto 0.75rem"></div>Loading course...
+      </div>
+      <div id="pageContent" style="display:none">
+        <!-- Course metadata -->
+        <div class="card" style="margin-bottom:1.5rem">
+          <div class="card-header">
+            <span class="card-title">Course Details</span>
+            <div style="display:flex;gap:0.5rem;align-items:center">
+              <span class="badge" id="statusBadge">draft</span>
+              <button class="btn btn-success btn-sm" id="btnPublish" data-require-edit style="display:none">Publish ↑</button>
+              <button class="btn btn-warning btn-sm" id="btnUnpublish" data-require-owner style="display:none">Unpublish</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-row" style="margin-bottom:1rem">
+              <div class="form-group">
+                <label class="form-label">Title <span class="required">*</span></label>
+                <input type="text" class="form-input" id="metaTitle">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Grade Level</label>
+                <input type="text" class="form-input" id="metaGrade" placeholder="e.g. Grade 6–8">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Subject</label>
+                <select class="form-select" id="metaSubject">
+                  <option value="math">Math</option>
+                  <option value="science">Science</option>
+                  <option value="english">English</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-input" id="metaDesc" placeholder="Short description">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lessons -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Lessons</span>
+            <button class="btn btn-primary btn-sm" id="btnAddLesson" data-require-edit>+ Add Lesson</button>
+          </div>
+          <div id="lessonsBody">
+            <div style="padding:2rem;text-align:center;color:var(--text-muted)">
+              <div class="spinner" style="margin:0 auto 0.75rem"></div>Loading...
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add Lesson Modal -->
+<div class="modal-overlay" id="addLessonModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Add Lesson</span>
+      <button class="modal-close" onclick="closeLessonModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Lesson Title <span class="required">*</span></label>
+        <input type="text" class="form-input" id="newLessonTitle" placeholder="e.g. Adding Integers">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <textarea class="form-textarea" id="newLessonDesc" rows="2" placeholder="What this lesson covers..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeLessonModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnCreateLesson">Add Lesson</button>
+    </div>
+  </div>
+</div>
+
+<div class="staff-toast" id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script src="../shared/firebase-auth.js"></script>
+<script src="staff-auth.js"></script>
+<script src="course-api.js"></script>
+<script>
+function showToast(msg, type='info', dur=3500) {
+    const c=document.getElementById('toastContainer'), t=document.createElement('div');
+    t.className=`toast toast-${type}`; t.textContent=msg; c.appendChild(t);
+    setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.3s';setTimeout(()=>t.remove(),300);},dur);
+}
+function escHtml(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+const params = new URLSearchParams(location.search);
+const courseId = params.get('courseId');
+let course = null;
+let lessons = [];
+let isDirty = false;
+let lastSaved = null;
+
+// ── Save indicator ──
+function setSaveState(state, msg) {
+    const ind = document.getElementById('saveIndicator');
+    const dot = ind.querySelector('.save-dot');
+    const txt = ind.querySelector('.save-text');
+    ind.className = `save-indicator ${state}`;
+    dot.className = `save-dot ${state === 'saving' ? 'pulse' : ''}`;
+    txt.textContent = msg;
+}
+
+function markDirty() {
+    isDirty = true;
+    setSaveState('unsaved', 'Unsaved changes');
+}
+
+// ── Init ──
+async function initPage() {
+    if (!courseId) { window.location.href = 'courses.html'; return; }
+    const ok = await staffAuth.checkAccess();
+    if (!ok) return;
+    document.getElementById('roleDisplay').innerHTML = staffAuth.getRoleBadgeHTML();
+
+    try {
+        course = await courseApi.getCourse(courseId);
+        if (!course) { showToast('Course not found.','error'); return; }
+        populateMeta();
+        await loadLessons();
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('pageContent').style.display = '';
+        setSaveState('saved', 'All changes saved');
+    } catch (err) {
+        showToast('Failed to load course: ' + err.message, 'error');
+    }
+}
+
+function populateMeta() {
+    document.getElementById('metaTitle').value = course.title || '';
+    document.getElementById('metaGrade').value = course.gradeLevel || '';
+    document.getElementById('metaDesc').value = course.description || '';
+    document.getElementById('metaSubject').value = course.subject || 'math';
+    document.getElementById('breadcrumbTitle').textContent = course.title || 'Untitled';
+    updateStatusUI();
+    ['metaTitle','metaGrade','metaDesc','metaSubject'].forEach(id => {
+        document.getElementById(id).addEventListener('input', markDirty);
+    });
+}
+
+function updateStatusUI() {
+    const s = course.status || 'draft';
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = s;
+    badge.className = `badge badge-${s}`;
+    document.getElementById('btnPublish').style.display  = (s !== 'published') ? '' : 'none';
+    document.getElementById('btnUnpublish').style.display = (s === 'published') ? '' : 'none';
+}
+
+// ── Save meta ──
+async function saveMeta() {
+    if (!isDirty) return;
+    setSaveState('saving', 'Saving...');
+    try {
+        await courseApi.updateCourse(courseId, {
+            title: document.getElementById('metaTitle').value.trim(),
+            gradeLevel: document.getElementById('metaGrade').value.trim(),
+            description: document.getElementById('metaDesc').value.trim(),
+            subject: document.getElementById('metaSubject').value
+        });
+        course.title = document.getElementById('metaTitle').value.trim();
+        document.getElementById('breadcrumbTitle').textContent = course.title;
+        isDirty = false;
+        lastSaved = Date.now();
+        setSaveState('saved', 'Saved');
+    } catch (err) {
+        setSaveState('unsaved', 'Save failed');
+        showToast('Save failed: ' + err.message, 'error');
+    }
+}
+
+document.getElementById('btnSaveMeta')?.addEventListener('click', saveMeta);
+
+// Auto-save every 30s
+setInterval(() => { if (isDirty) saveMeta(); }, 30000);
+window.addEventListener('beforeunload', e => { if (isDirty) e.returnValue = 'You have unsaved changes.'; });
+
+// ── Lessons ──
+async function loadLessons() {
+    lessons = await courseApi.listLessons(courseId);
+    renderLessons();
+}
+
+function renderLessons() {
+    const body = document.getElementById('lessonsBody');
+    if (lessons.length === 0) {
+        body.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">📝</div>
+            <div class="empty-state-text">No lessons yet. Add your first lesson!</div>
+        </div>`;
+        return;
+    }
+    body.innerHTML = lessons.map((l, i) => `
+        <div class="lesson-row" data-id="${l.id}" draggable="true">
+            <div class="drag-handle" title="Drag to reorder">⠿</div>
+            <div class="lesson-num">${i + 1}</div>
+            <div class="lesson-info">
+                <div class="lesson-title">${escHtml(l.title)}</div>
+                ${l.description ? `<div class="lesson-desc">${escHtml(l.description)}</div>` : ''}
+            </div>
+            <div class="lesson-meta">${l.questionCount || 0} questions</div>
+            <div class="row-actions">
+                <a href="lesson-editor.html?courseId=${courseId}&lessonId=${l.id}" class="btn btn-ghost btn-sm">Edit →</a>
+                ${staffAuth.isOwner() ? `<button class="btn btn-danger btn-sm" onclick="deleteLesson('${l.id}')">×</button>` : ''}
+            </div>
+        </div>`).join('');
+    initDragReorder();
+}
+
+// Drag-to-reorder lessons
+function initDragReorder() {
+    const rows = document.querySelectorAll('.lesson-row');
+    let dragging = null;
+    rows.forEach(row => {
+        row.addEventListener('dragstart', e => {
+            dragging = row;
+            setTimeout(() => row.style.opacity = '0.4', 0);
+        });
+        row.addEventListener('dragend', () => {
+            row.style.opacity = '';
+            document.querySelectorAll('.lesson-row').forEach(r => r.classList.remove('drag-over'));
+            saveNewOrder();
+        });
+        row.addEventListener('dragover', e => {
+            e.preventDefault();
+            document.querySelectorAll('.lesson-row').forEach(r => r.classList.remove('drag-over'));
+            if (row !== dragging) row.classList.add('drag-over');
+        });
+        row.addEventListener('drop', e => {
+            e.preventDefault();
+            if (dragging && row !== dragging) {
+                const body = document.getElementById('lessonsBody');
+                const allRows = [...body.querySelectorAll('.lesson-row')];
+                const fromIdx = allRows.indexOf(dragging);
+                const toIdx = allRows.indexOf(row);
+                if (fromIdx < toIdx) row.after(dragging);
+                else row.before(dragging);
+            }
+        });
+    });
+}
+
+async function saveNewOrder() {
+    const orderedIds = [...document.querySelectorAll('.lesson-row')].map(r => r.dataset.id);
+    await courseApi.reorderLessons(courseId, orderedIds);
+    lessons = await courseApi.listLessons(courseId);
+    renderLessons();
+}
+
+async function deleteLesson(lessonId) {
+    if (!confirm('Delete this lesson and all its questions?')) return;
+    try {
+        await courseApi.deleteLesson(courseId, lessonId);
+        showToast('Lesson deleted.', 'success');
+        await loadLessons();
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+// Add lesson
+function openLessonModal() {
+    document.getElementById('addLessonModal').classList.add('active');
+    document.getElementById('newLessonTitle').focus();
+}
+function closeLessonModal() {
+    document.getElementById('addLessonModal').classList.remove('active');
+    document.getElementById('newLessonTitle').value = '';
+    document.getElementById('newLessonDesc').value = '';
+}
+document.getElementById('btnAddLesson')?.addEventListener('click', openLessonModal);
+document.getElementById('addLessonModal')?.addEventListener('click', function(e) { if(e.target===this) closeLessonModal(); });
+document.getElementById('btnCreateLesson')?.addEventListener('click', async () => {
+    const title = document.getElementById('newLessonTitle').value.trim();
+    if (!title) { showToast('Please enter a title.','error'); return; }
+    const btn = document.getElementById('btnCreateLesson');
+    btn.disabled = true; btn.textContent = 'Adding...';
+    try {
+        await courseApi.createLesson(courseId, {
+            title,
+            description: document.getElementById('newLessonDesc').value.trim(),
+            order: lessons.length
+        });
+        closeLessonModal();
+        await loadLessons();
+        showToast('Lesson added!', 'success');
+    } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+    }
+    btn.disabled = false; btn.textContent = 'Add Lesson';
+});
+
+// Publish / Unpublish
+document.getElementById('btnPublish')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btnPublish');
+    btn.disabled = true; btn.textContent = 'Publishing...';
+    try {
+        const fn = firebase.functions().httpsCallable('publishCourse');
+        await fn({ courseId });
+        course.status = 'published';
+        updateStatusUI();
+        showToast('Course published!', 'success');
+    } catch (err) { showToast('Publish failed: ' + err.message, 'error'); }
+    btn.disabled = false; btn.textContent = 'Publish ↑';
+});
+document.getElementById('btnUnpublish')?.addEventListener('click', async () => {
+    if (!confirm('Unpublish this course? Students will no longer see it.')) return;
+    const btn = document.getElementById('btnUnpublish');
+    btn.disabled = true; btn.textContent = 'Unpublishing...';
+    try {
+        const fn = firebase.functions().httpsCallable('unpublishCourse');
+        await fn({ courseId });
+        course.status = 'draft';
+        updateStatusUI();
+        showToast('Course unpublished.', 'info');
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
+    btn.disabled = false; btn.textContent = 'Unpublish';
+});
+
+initPage();
+</script>
+</body>
+</html>

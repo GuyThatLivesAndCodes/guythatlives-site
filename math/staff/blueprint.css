@@ -1,0 +1,295 @@
+/* ====================================================
+   blueprint.css — Node graph editor styles
+   ==================================================== */
+
+.bp-canvas-outer {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #080c1f;
+    background-image:
+        radial-gradient(circle at 50% 50%, rgba(100,255,218,0.04) 0%, transparent 70%),
+        linear-gradient(rgba(100,255,218,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100,255,218,0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
+    cursor: grab;
+    position: relative;
+    user-select: none;
+    border-radius: 8px;
+    border: 1px solid #233554;
+}
+.bp-canvas-outer:active { cursor: grabbing; }
+
+.bp-canvas-inner {
+    position: absolute;
+    width: 0; height: 0;
+    transform-origin: 0 0;
+}
+
+.bp-svg {
+    position: absolute;
+    top: -4000px; left: -4000px;
+    width: 8000px; height: 8000px;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.bp-nodes-group {
+    position: absolute;
+    top: 0; left: 0;
+}
+
+/* ── Wires ── */
+.bp-wire {
+    fill: none;
+    stroke: rgba(100,255,218,0.55);
+    stroke-width: 2;
+    pointer-events: stroke;
+    cursor: pointer;
+    transition: stroke 0.15s;
+}
+.bp-wire:hover { stroke: #64ffda; stroke-width: 3; }
+.bp-wire-temp {
+    fill: none;
+    stroke: rgba(100,255,218,0.3);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+    pointer-events: none;
+}
+
+/* ── Node base ── */
+.bp-node {
+    position: absolute;
+    min-width: 160px;
+    max-width: 260px;
+    background: #12162e;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: 2px solid var(--node-color, #64ffda);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(100,255,218,0.04);
+    z-index: 1;
+    cursor: default;
+    transition: box-shadow 0.15s;
+}
+.bp-node:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(100,255,218,0.12);
+    z-index: 2;
+}
+
+/* ── Node header ── */
+.bp-node-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    cursor: move;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bp-node-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--node-color, #64ffda);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+.bp-node-delete {
+    background: none;
+    border: none;
+    color: rgba(255,85,85,0.5);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0 0.1rem;
+    transition: color 0.15s;
+    flex-shrink: 0;
+}
+.bp-node-delete:hover { color: #ff5555; }
+
+/* ── Config area ── */
+.bp-node-config {
+    padding: 0.3rem 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.bp-node-config-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(180,183,201,0.7);
+    display: block;
+}
+.bp-formula-input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(100,255,218,0.2);
+    border-radius: 4px;
+    color: #e8eaf6;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
+    outline: none;
+}
+.bp-formula-input:focus { border-color: rgba(100,255,218,0.5); }
+
+/* ── Pins row ── */
+.bp-pins-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 36px;
+    padding: 0.3rem 0;
+}
+.bp-pins-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 0.25rem;
+    padding: 0.2rem 0;
+    min-width: 50px;
+}
+.bp-inputs { align-items: flex-start; padding-left: 0; }
+.bp-outputs { align-items: flex-end; padding-right: 0; }
+
+/* ── Preview value ── */
+.bp-node-preview {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #e8eaf6;
+    padding: 0 0.25rem;
+    text-align: center;
+    min-width: 40px;
+    word-break: break-all;
+}
+
+/* ── Pin items ── */
+.bp-pin {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0;
+    cursor: default;
+}
+.bp-pin-input { flex-direction: row; }
+.bp-pin-output { flex-direction: row-reverse; }
+
+.bp-pin-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(180,183,201,0.65);
+    padding: 0 0.4rem;
+    white-space: nowrap;
+}
+
+.bp-pin-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+    transition: transform 0.1s, box-shadow 0.1s;
+    cursor: crosshair;
+    position: relative;
+    z-index: 3;
+}
+.bp-pin-dot-output {
+    border-color: rgba(100,255,218,0.6);
+    background: rgba(100,255,218,0.15);
+    margin-right: -5px; /* poke out of node edge */
+}
+.bp-pin-dot-output:hover {
+    border-color: #64ffda;
+    background: rgba(100,255,218,0.4);
+    transform: scale(1.3);
+    box-shadow: 0 0 6px rgba(100,255,218,0.5);
+}
+.bp-pin-dot-input {
+    border-color: rgba(180,183,201,0.4);
+    background: rgba(180,183,201,0.1);
+    margin-left: -5px; /* poke out of node edge */
+}
+.bp-pin-dot-input:hover {
+    border-color: #e8eaf6;
+    background: rgba(180,183,201,0.3);
+    transform: scale(1.3);
+}
+
+/* ── Node type variant: output node ── */
+.bp-node-output {
+    border-top-color: #50fa7b;
+}
+.bp-node-output .bp-node-label { color: #50fa7b; }
+.bp-node-output .bp-node-preview { color: #50fa7b; font-size: 1rem; }
+
+/* ── Node type variant: variable node ── */
+.bp-node-variable {
+    border-top-color: #8be9fd;
+}
+.bp-node-variable .bp-node-label { color: #8be9fd; }
+
+/* ── Node type variant: formula node ── */
+.bp-node-formula {
+    border-top-color: #e08cfa;
+}
+.bp-node-formula .bp-node-label { color: #e08cfa; }
+
+/* ── Minimap (optional, future) ── */
+/* ── Toolbar below canvas ── */
+.bp-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(18,22,46,0.9);
+    border-top: 1px solid rgba(35,53,84,0.5);
+    border-radius: 0 0 8px 8px;
+}
+.bp-toolbar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(107,114,128,0.8);
+    margin-right: 0.25rem;
+}
+
+/* ── Node palette sidebar ── */
+.bp-palette {
+    width: 160px;
+    flex-shrink: 0;
+    background: #0e1228;
+    border-right: 1px solid #233554;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+.bp-palette-section {
+    padding: 0.3rem 0.75rem 0.15rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(107,114,128,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.bp-palette-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(180,183,201,0.7);
+    cursor: grab;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    user-select: none;
+}
+.bp-palette-item:hover {
+    background: rgba(100,255,218,0.05);
+    color: #e8eaf6;
+    border-left-color: rgba(100,255,218,0.3);
+}
+.bp-palette-item:active { cursor: grabbing; opacity: 0.6; }
+.bp-palette-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
