@@ -4,25 +4,25 @@
 
 :root {
     /* Colors */
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --bg-card: #1e293b;
+    --bg-primary: #0f0f0f;
+    --bg-secondary: #1f1f1f;
+    --bg-tertiary: #252525;
+    --bg-card: #080808;
 
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #94a3b8;
+    --text-primary: #b0ffbe;
+    --text-secondary: #cde1cb;
+    --text-muted: #95b894;
 
-    --primary-color: #6366f1;
-    --primary-light: #818cf8;
-    --primary-dark: #4f46e5;
-    --secondary-color: #a855f7;
+    --primary-color: #3ff148;
+    --primary-light: #71d487;
+    --primary-dark: #3bbe56;
+    --secondary-color: #276925;
 
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
 
-    --border-color: #334155;
+    --border-color: #505050;
 
     /* Spacing */
     --spacing-xs: 0.25rem;
@@ -72,7 +72,7 @@ body {
     top: 0;
     z-index: 100;
     backdrop-filter: blur(10px);
-    background: rgba(30, 41, 59, 0.9);
+    background: rgba(69, 182, 69, 0.9);
 }
 
 .header-content {
@@ -121,7 +121,7 @@ body {
 
 .nav-link.active {
     color: var(--primary-color);
-    background: rgba(99, 102, 241, 0.1);
+    background: rgba(83, 223, 78, 0.1);
 }
 
 /* School Controls */
@@ -233,7 +233,7 @@ body {
 ======================================== */
 
 .hero {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    background: linear-gradient(135deg, #3c7e3e 0%, #0a1809 100%);
     padding: 4rem 0;
     text-align: center;
 }
@@ -275,7 +275,7 @@ body {
 .search-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(111, 241, 99, 0.1);
 }
 
 .category-select {
@@ -293,7 +293,7 @@ body {
 .category-select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 241, 99, 0.1);
 }
 
 /* ========================================
@@ -834,7 +834,7 @@ body {
 .form-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 241, 106, 0.1);
 }
 
 .form-divider {
@@ -1055,11 +1055,11 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
 @keyframes glowBorder {
     0%, 100% {
         border-color: var(--primary-color);
-        box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 10px rgba(111, 241, 99, 0.3);
     }
     50% {
-        border-color: #818cf8;
-        box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        border-color: #81f895;
+        box-shadow: 0 0 20px rgba(99, 241, 130, 0.6);
     }
 }
 
@@ -1091,13 +1091,13 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
 }
 
 .announcement-countdown.upcoming {
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    background: linear-gradient(135deg, #3bf64b, #6ff163);
     color: white;
     animation: pulse 1.5s ease-in-out infinite;
 }
 
 .announcement-countdown.live {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #10b943, #059611);
     color: white;
 }
 
@@ -1392,12 +1392,12 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
 
 .stat-primary {
     border-color: rgba(99, 102, 241, 0.3);
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), var(--bg-card));
+    background: linear-gradient(135deg, rgba(99, 241, 130, 0.1), var(--bg-card));
 }
 
 .stat-secondary {
     border-color: rgba(139, 92, 246, 0.3);
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), var(--bg-card));
+    background: linear-gradient(135deg, rgba(92, 246, 113, 0.1), var(--bg-card));
 }
 
 .stat-accent {
@@ -1677,7 +1677,7 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent);
+    background: linear-gradient(135deg, rgba(104, 241, 99, 0.1), transparent);
     border-bottom: 1px solid var(--border-color);
     border-radius: 0.75rem 0.75rem 0 0;
 }
