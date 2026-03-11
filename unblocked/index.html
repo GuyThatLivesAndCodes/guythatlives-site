@@ -13,243 +13,567 @@
     <meta name="google-adsense-account" content="ca-pub-6552523352090461">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unblocked Games - GuyThatLives</title>
-    <link rel="stylesheet" href="shared/games-styles.css">
     <style>
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 4rem 0 3rem;
-            position: relative;
-            overflow: hidden;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .hero::before {
-            content: '';
-            position: absolute;
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #b0ffbe;
+            --text-secondary: #cde1cb;
+            --text-muted: #95b894;
+            --primary-color: #3ff148;
+            --primary-light: #71d487;
+            --border-color: #505050;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Top controls - search and login */
+        .top-controls {
+            position: fixed;
             top: 0;
-            left: 0;
             right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1), transparent 70%);
-            z-index: -1;
-        }
-
-        .hero-title {
-            padding: 10px;
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3f9e33, #f7f7f7, #48ec50);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 2rem;
-        }
-
-        .hero-stats {
+            z-index: 100;
             display: flex;
-            justify-content: center;
-            gap: 3rem;
-            margin-top: 2rem;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-light);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        /* Quick Stats */
-        .quick-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin: 2rem 0;
+            padding: 1rem;
+            align-items: center;
         }
 
-        .stat-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
+        .search-toggle {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .stat-card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-card-label {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 2rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1rem;
-            }
-
-            .hero-stats {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-        }
-
-        /* Ome-Chat Featured Banner */
-        .ome-chat-feature {
-            margin-bottom: 2rem;
-        }
-
-        .ome-chat-banner {
-            display: block;
-            position: relative;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 1rem;
-            padding: 1.5rem 2rem;
-            text-decoration: none;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .ome-chat-banner:hover {
-            transform: translateY(-2px);
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
-        }
-
-        .ome-chat-banner-content {
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            position: relative;
-            z-index: 1;
+            gap: 0.5rem;
         }
 
-        .ome-chat-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #63f163, #5cf65c);
-            border-radius: 1rem;
+        .search-toggle:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary-color);
+        }
+
+        .login-btn {
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(63, 241, 72, 0.3);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .ome-chat-icon svg {
-            width: 32px;
-            height: 32px;
+            font-weight: 600;
+            cursor: pointer;
             color: white;
         }
 
-        .ome-chat-text {
-            flex: 1;
+        /* Main layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+            gap: 0;
         }
 
-        .ome-chat-title {
+        /* Left sidebar - alphabetical list */
+        .games-list-sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .game-list {
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+
+        .game-list-item {
+            display: block;
+            padding: 0.625rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .game-list-item:hover {
+            background: rgba(63, 241, 72, 0.1);
+            color: var(--text-primary);
+            border-left-color: var(--primary-color);
+        }
+
+        /* Main content area */
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+        }
+
+        .section-title {
             font-size: 1.5rem;
             font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Most played grid - 3:2 aspect ratio cards */
+        .most-played-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .featured-game-card {
+            aspect-ratio: 3 / 2;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .featured-game-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .featured-game-thumbnail {
+            flex: 1;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-tertiary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .featured-game-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .featured-game-thumbnail-placeholder {
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+
+        .featured-game-info {
+            padding: 1rem;
+            background: var(--bg-tertiary);
+        }
+
+        .featured-game-title {
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
 
-        .ome-chat-description {
+        .featured-game-plays {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Fullscreen search overlay */
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .search-overlay.active {
+            display: flex;
+        }
+
+        .search-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .close-search {
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
             color: var(--text-secondary);
-            font-size: 0.95rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
         }
 
-        .ome-chat-cta {
+        .close-search:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .search-results {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .search-result-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+        }
+
+        .search-result-item:hover {
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .search-result-thumbnail {
+            width: 120px;
+            height: 80px;
+            background: var(--bg-tertiary);
+            border-radius: 0.375rem;
             flex-shrink: 0;
+            overflow: hidden;
         }
 
-        .ome-chat-beta-tag {
-            display: inline-block;
-            font-size: 0.6rem;
+        .search-result-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-description {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Auth Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 450px;
+            width: 100%;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--warning-color);
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 999px;
-            padding: 0.15rem 0.55rem;
-            vertical-align: middle;
-            margin-left: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
         }
 
-        .ome-chat-beta-note {
-            font-size: 0.78rem;
-            color: var(--warning-color);
-            opacity: 0.85;
-            margin-top: 0.35rem;
-            margin-bottom: 0;
+        .form-group {
+            margin-bottom: 1.25rem;
         }
 
-        .ome-chat-glow {
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(63, 241, 72, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+
+        .form-divider {
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            position: relative;
+        }
+
+        .form-divider::before,
+        .form-divider::after {
+            content: '';
             position: absolute;
             top: 50%;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
-            transform: translateY(-50%);
-            pointer-events: none;
+            width: 40%;
+            height: 1px;
+            background: var(--border-color);
         }
 
+        .form-divider::before { left: 0; }
+        .form-divider::after { right: 0; }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .form-footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mobile responsive */
         @media (max-width: 768px) {
-            .ome-chat-banner-content {
-                flex-direction: column;
-                text-align: center;
-                gap: 1rem;
+            .main-layout {
+                grid-template-columns: 1fr;
             }
 
-            .ome-chat-icon {
-                width: 50px;
-                height: 50px;
-            }
-
-            .ome-chat-icon svg {
-                width: 26px;
-                height: 26px;
-            }
-
-            .ome-chat-title {
-                font-size: 1.25rem;
-            }
-
-            .ome-chat-description {
-                font-size: 0.85rem;
-            }
-
-            .ome-chat-glow {
+            .games-list-sidebar {
                 display: none;
             }
+
+            .main-content {
+                padding: 1rem;
+                padding-top: 5rem;
+            }
+
+            .most-played-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-controls {
+                padding: 0.75rem;
+            }
+
+            .search-toggle,
+            .login-btn {
+                padding: 0.625rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Scroll styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
     </style>
 
@@ -258,234 +582,59 @@
          crossorigin="anonymous"></script>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <a href="/" class="logo">GuyThatLives</a>
-            <nav class="nav">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/math/" class="nav-link">Math</a>
-                <a href="/unblocked/" class="nav-link">Games</a>
-                <a href="/unblocked/thechat/" class="nav-link">Chat</a>
-                <a href="/unblocked/hack-client/" class="nav-link">Hack-Client</a>
-                <a href="/unblocked/editor" class="nav-link admin-only">Editor</a>
+    <!-- Top controls -->
+    <div class="top-controls">
+        <button class="search-toggle" id="open-search">
+            🔍 Search Games
+        </button>
+        <button class="login-btn auth-button" data-action="sign-in" id="login-btn">Sign In</button>
+        <div class="user-avatar" id="user-avatar" style="display: none;">
+            <span id="user-avatar-text"></span>
+        </div>
+        <button class="btn btn-secondary auth-button" data-action="sign-out" id="signout-btn" style="display: none;">Sign Out</button>
+    </div>
+
+    <!-- Main layout -->
+    <div class="main-layout">
+        <!-- Left sidebar - alphabetical game list -->
+        <aside class="games-list-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">All Games</div>
+            </div>
+            <nav class="game-list" id="alphabetical-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
             </nav>
-            <div class="school-controls">
-                <button class="disguise-toggle-btn">🕶️ Disguise Page</button>
-                <button class="panic-btn">🚨 Panic</button>
-            </div>
-            <div class="user-section">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <span id="user-avatar-text"></span>
-                    </div>
-                    <div>
-                        <div class="user-name"></div>
-                    </div>
-                </div>
-                <button class="btn btn-primary auth-button" data-action="sign-in">Sign In</button>
-                <button class="btn btn-ghost auth-button" data-action="sign-out" style="display: none;">Sign Out</button>
-            </div>
-        </div>
-    </header>
+        </aside>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <h1 class="hero-title">Unblocked Games</h1>
-            <p class="hero-subtitle">
-                Play the best collection of unblocked games. Free forever.
-            </p>
-            <div class="search-bar">
-                <select class="category-select" id="search-category-select">
-                    <option value="">All Categories</option>
-                </select>
-                <input type="text" class="search-input" id="search-input" placeholder="Search for games...">
-                <button class="btn btn-primary" id="search-btn">Search</button>
-                <button class="btn btn-secondary" id="random-game-btn" title="Play a random game">🎲 Random Game</button>
-            </div>
-        </div>
-    </section>
-
-    <div class="container">
-        <!-- Ad Placement 1: After Hero Section -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <!-- Ezoic - top_of_page - top_of_page -->
-            <div id="ezoic-pub-ad-placeholder-107"></div>
-            <!-- End Ezoic - top_of_page - top_of_page -->
-        </div>
-
-        <!-- Search Results Section -->
-        <section id="search-results-section" class="section" style="display: none;">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Search Results</h2>
-                    <p class="section-subtitle" id="search-results-subtitle"></p>
-                </div>
-            </div>
-            <div id="search-results" class="search-results-list"></div>
-        </section>
-
-        <!-- Announcement Container -->
-        <div id="announcement-container" style="display: none;"></div>
-
-        <!-- Hack-Client Featured Banner -->
-        <section class="section ome-chat-feature" hidden>
-            <a href="/unblocked/share/" class="ome-chat-banner" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15)); border-color: rgba(102, 126, 234, 0.3);">
-                <div class="ome-chat-banner-content">
-                    <div class="ome-chat-icon" style="background: linear-gradient(135deg, #66ea6d, #4ba24f);">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 32px; height: 32px;">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                        </svg>
-                    </div>
-                    <div class="ome-chat-text">
-                        <h3 class="ome-chat-title">200+ GAMES <span class="ome-chat-beta-tag" style="background: rgba(255, 107, 107, 0.2); border-color: rgba(255, 107, 107, 0.3); color: #ff6b6b;">BETA</span></h3>
-                        <p class="ome-chat-description">Share this website with your friends and play all day!</p>
-                    </div>
-                    <div class="ome-chat-cta">
-                        <span class="btn btn-primary" style="background: linear-gradient(135deg, #66ea6d, #4ba24f);">Share Now!</span>
-                    </div>
-                </div>
-                <div class="ome-chat-glow" style="background: radial-gradient(circle, rgba(102, 126, 234, 0.2), transparent);"></div>
-            </a>
-        </section>
-
-        <!-- Featured Games -->
-        <section class="section", hidden>
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Featured Games</h2>
-                    <p class="section-subtitle">Our top picks for you</p>
-                </div>
-            </div>
-            <div id="featured-games" class="games-grid">
+        <!-- Main content -->
+        <main class="main-content">
+            <h1 class="section-title">🔥 Most Played</h1>
+            <div class="most-played-grid" id="most-played-grid">
                 <div class="loading">
                     <div class="loading-spinner"></div>
                     <p>Loading games...</p>
                 </div>
             </div>
-        </section>
+        </main>
+    </div>
 
-        <!-- Ad Placement 2: After Featured Games -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <!-- Ezoic - incontent_1 - incontent_1 -->
-            <div id="ezoic-pub-ad-placeholder-110"></div>
-            <!-- End Ezoic - incontent_1 - incontent_1 -->
+    <!-- Search overlay -->
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-header">
+            <input type="text" class="search-input" id="search-input" placeholder="Search for games..." autofocus>
+            <button class="close-search" id="close-search">✕ Close</button>
         </div>
-
-        <!-- Recently Played (for logged-in users) -->
-        <section id="recent-section" class="section" style="display: none;">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Continue Playing</h2>
-                    <p class="section-subtitle">Pick up where you left off</p>
-                </div>
-            </div>
-            <div id="recent-games" class="games-grid"></div>
-        </section>
-
-        <!-- Most Played Games with Live Stats Sidebar -->
-        <section class="section">
-            <div class="most-played-with-stats">
-                <div class="most-played-main">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title">Most Played</h2>
-                            <p class="section-subtitle">Join the fun with these popular games</p>
-                        </div>
-                    </div>
-                    <div id="most-played-games" class="games-grid">
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <p>Loading games...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Live Stats Sidebar -->
-                <aside class="stats-sidebar">
-                    <div id="stats-dashboard"></div>
-                </aside>
-            </div>
-        </section>
-
-        <!-- Ad Placement 3: After Most Played Games -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <!-- Ezoic - mid_content - mid_content -->
-            <div id="ezoic-pub-ad-placeholder-111"></div>
-            <!-- End Ezoic - mid_content - mid_content -->
+        <div class="search-results" id="search-results">
+            <p style="color: var(--text-muted); text-align: center;">Start typing to search...</p>
         </div>
-
-        <!-- All Games -->
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">All Games</h2>
-                    <p class="section-subtitle">Every game in our collection</p>
-                </div>
-            </div>
-            <div id="all-games" class="games-grid">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading games...</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Ad Placement 4: After All Games -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <!-- Ezoic - incontent_5 - incontent_5 -->
-            <div id="ezoic-pub-ad-placeholder-115"></div>
-            <!-- End Ezoic - incontent_5 - incontent_5 -->
-        </div>
-
-        <!-- Newly Added Games -->
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title">Newly Added</h2>
-                    <p class="section-subtitle">Check out the latest additions</p>
-                </div>
-            </div>
-            <div id="new-games" class="games-grid">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Loading games...</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Ad Placement 5: After Newly Added Games -->
-        <div style="text-align: center; margin: 2rem 0;">
-            <!-- Ezoic - bottom_of_page - bottom_of_page -->
-            <div id="ezoic-pub-ad-placeholder-114"></div>
-            <!-- End Ezoic - bottom_of_page - bottom_of_page -->
-        </div>
-
-        <!-- Quick Stats -->
-        <section class="section">
-            <div class="quick-stats">
-                <div class="stat-card">
-                    <div class="stat-card-value" id="total-games-count">0</div>
-                    <div class="stat-card-label">Total Games</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value" id="total-plays-count">0</div>
-                    <div class="stat-card-label">Times Played</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-value" id="categories-count">0</div>
-                    <div class="stat-card-label">Categories</div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="modal">
         <div class="modal-content">
-            <button class="modal-close">&times;</button>
+            <button class="modal-close" id="modal-close">&times;</button>
             <h2 class="modal-title">Sign In</h2>
 
             <!-- Sign In Form -->
@@ -547,21 +696,50 @@
     <!-- Shared Modules -->
     <script src="shared/games-auth.js"></script>
     <script src="shared/game-manager.js"></script>
-    <script src="shared/announcement-manager.js"></script>
-    <script src="shared/announcement-display.js"></script>
-    <script src="shared/disguise.js"></script>
-    <script src="shared/bug-reporter.js"></script>
-    <script src="shared/feedback-manager.js"></script>
-    <script src="shared/presence-tracker.js"></script>
-    <script src="shared/stats-dashboard.js"></script>
 
     <!-- Page Script -->
     <script>
-        // Page initialization
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Initializing Unblocked Games page...');
+        let allGames = [];
 
-            // Setup modal toggle
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Setup auth modal
+            setupAuthModal();
+
+            // Setup search overlay
+            setupSearchOverlay();
+
+            // Load games
+            await loadGames();
+
+            // Listen for auth state changes
+            window.gamesAuth.onAuthStateChanged((user) => {
+                updateAuthUI(user);
+            });
+        });
+
+        // Setup auth modal
+        function setupAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const modalClose = document.getElementById('modal-close');
+            const loginBtn = document.getElementById('login-btn');
+            const signOutBtn = document.getElementById('signout-btn');
+
+            loginBtn?.addEventListener('click', () => {
+                modal.classList.add('active');
+            });
+
+            modalClose?.addEventListener('click', () => {
+                modal.classList.remove('active');
+            });
+
+            modal?.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+
+            // Form toggles
             document.getElementById('show-sign-up')?.addEventListener('click', (e) => {
                 e.preventDefault();
                 document.getElementById('sign-in-form').style.display = 'none';
@@ -576,458 +754,192 @@
                 document.querySelector('.modal-title').textContent = 'Sign In';
             });
 
-            // Setup Google sign up button
-            document.getElementById('google-sign-up')?.addEventListener('click', async (e) => {
-                e.preventDefault();
+            // Google sign in/up
+            document.getElementById('google-sign-in')?.addEventListener('click', async () => {
                 try {
                     await window.gamesAuth.signInWithGoogle();
-                    window.gamesAuth.hideAuthModal();
+                    modal.classList.remove('active');
                 } catch (error) {
-                    alert('Error signing up with Google: ' + error.message);
+                    console.error('Google sign in error:', error);
                 }
             });
 
-            // Load all games data
-            await loadAllGames();
-
-            // Initialize announcement display
-            await window.announcementDisplay.init();
-
-            // Setup search
-            setupSearch();
-
-            // Setup random game button
-            setupRandomGameButton();
-
-            // Listen for auth state changes
-            window.gamesAuth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    // Update user avatar
-                    const avatarText = document.getElementById('user-avatar-text');
-                    if (avatarText) {
-                        avatarText.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-                    }
-
-                    // Load recent games
-                    await loadRecentGames(user.uid);
-                } else {
-                    // Hide recent section
-                    document.getElementById('recent-section').style.display = 'none';
+            document.getElementById('google-sign-up')?.addEventListener('click', async () => {
+                try {
+                    await window.gamesAuth.signInWithGoogle();
+                    modal.classList.remove('active');
+                } catch (error) {
+                    console.error('Google sign up error:', error);
                 }
             });
 
-            // Initialize feedback system
-            await window.feedbackManager.initOnPageLoad();
-
-            // Initialize hover panel
-            initializeHoverPanel();
-
-            // Initialize stats dashboard
-            await window.statsDashboard.initialize('stats-dashboard');
-        });
-
-        // Initialize hover panel functionality
-        function initializeHoverPanel() {
-            // Create hover panel element
-            const hoverPanel = document.createElement('div');
-            hoverPanel.className = 'game-hover-panel';
-            hoverPanel.innerHTML = `
-                <div class="game-hover-panel-title"></div>
-                <div class="game-hover-panel-description"></div>
-                <div class="game-hover-panel-info">
-                    <div class="game-hover-panel-info-item">
-                        <strong>Plays:</strong> <span class="hover-plays"></span>
-                    </div>
-                    <div class="game-hover-panel-info-item">
-                        <strong>Added:</strong> <span class="hover-date"></span>
-                    </div>
-                </div>
-                <div class="game-hover-panel-tags"></div>
-            `;
-            document.body.appendChild(hoverPanel);
-
-            let hoverTimeout;
-
-            // Add hover listeners to game cards
-            document.addEventListener('mouseover', (e) => {
-                const gameCard = e.target.closest('.game-card');
-                if (!gameCard) {
-                    clearTimeout(hoverTimeout);
-                    hoverPanel.classList.remove('visible');
-                    return;
-                }
-
-                // Delay showing panel slightly
-                clearTimeout(hoverTimeout);
-                hoverTimeout = setTimeout(() => {
-                    showHoverPanel(gameCard, hoverPanel);
-                }, 200);
-            });
-
-            document.addEventListener('mouseout', (e) => {
-                const gameCard = e.target.closest('.game-card');
-                if (!gameCard) {
-                    clearTimeout(hoverTimeout);
-                    hoverPanel.classList.remove('visible');
-                }
+            // Sign out
+            signOutBtn?.addEventListener('click', async () => {
+                await window.gamesAuth.signOut();
             });
         }
 
-        function showHoverPanel(gameCard, panel) {
-            // Get game data from data attributes
-            const title = gameCard.dataset.gameTitle;
-            const description = gameCard.dataset.gameDescription;
-            const plays = gameCard.dataset.gamePlays;
-            const date = gameCard.dataset.gameDate;
-            const tags = gameCard.dataset.gameTags;
+        // Update auth UI
+        function updateAuthUI(user) {
+            const loginBtn = document.getElementById('login-btn');
+            const signOutBtn = document.getElementById('signout-btn');
+            const userAvatar = document.getElementById('user-avatar');
+            const avatarText = document.getElementById('user-avatar-text');
 
-            // Update panel content
-            panel.querySelector('.game-hover-panel-title').textContent = title;
-            panel.querySelector('.game-hover-panel-description').textContent = description;
-            panel.querySelector('.hover-plays').textContent = parseInt(plays).toLocaleString();
-            panel.querySelector('.hover-date').textContent = date;
-
-            // Update tags
-            const tagsContainer = panel.querySelector('.game-hover-panel-tags');
-            if (tags && tags.length > 0) {
-                const tagArray = tags.split(',');
-                tagsContainer.innerHTML = tagArray
-                    .slice(0, 5)
-                    .map(tag => `<span class="game-hover-panel-tag">${tag}</span>`)
-                    .join('');
+            if (user) {
+                loginBtn.style.display = 'none';
+                signOutBtn.style.display = 'block';
+                userAvatar.style.display = 'flex';
+                avatarText.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
             } else {
-                tagsContainer.innerHTML = '<span class="game-hover-panel-tag">Untagged</span>';
+                loginBtn.style.display = 'block';
+                signOutBtn.style.display = 'none';
+                userAvatar.style.display = 'none';
             }
-
-            // Position panel to the right of the card
-            const cardRect = gameCard.getBoundingClientRect();
-            const panelWidth = 300;
-            const padding = 15;
-
-            // Calculate position
-            let left = cardRect.right + padding;
-            let top = cardRect.top;
-
-            // Check if panel would go off screen to the right
-            if (left + panelWidth > window.innerWidth) {
-                // Position to the left instead
-                left = cardRect.left - panelWidth - padding;
-            }
-
-            // Check if panel would go off screen to the left
-            if (left < 0) {
-                // Position below instead
-                left = cardRect.left;
-                top = cardRect.bottom + padding;
-            }
-
-            // Check if panel would go off bottom of screen
-            if (top + panel.offsetHeight > window.innerHeight) {
-                top = window.innerHeight - panel.offsetHeight - padding;
-            }
-
-            // Ensure top is not negative
-            if (top < 0) {
-                top = padding;
-            }
-
-            panel.style.left = `${left}px`;
-            panel.style.top = `${top}px`;
-            panel.classList.add('visible');
         }
 
-        // Fisher-Yates shuffle algorithm
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
+        // Setup search overlay
+        function setupSearchOverlay() {
+            const overlay = document.getElementById('search-overlay');
+            const openBtn = document.getElementById('open-search');
+            const closeBtn = document.getElementById('close-search');
+            const searchInput = document.getElementById('search-input');
+
+            openBtn.addEventListener('click', () => {
+                overlay.classList.add('active');
+                searchInput.focus();
+            });
+
+            closeBtn.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                searchInput.value = '';
+            });
+
+            // Search functionality
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    performSearch(searchInput.value.trim());
+                }, 300);
+            });
+
+            // Close on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                    overlay.classList.remove('active');
+                    searchInput.value = '';
+                }
+            });
         }
 
-        // Load all games sections
-        async function loadAllGames() {
+        // Load games
+        async function loadGames() {
             try {
-                const [featured, mostPlayed, newGames, allGames, categories] = await Promise.all([
-                    window.gameManager.getFeaturedGames(6),
+                const [mostPlayed, allPublished] = await Promise.all([
                     window.gameManager.getMostPlayedGames(12),
-                    window.gameManager.getNewGames(12),
-                    window.gameManager.getAllPublishedGames(),
-                    window.gameManager.getCategories()
+                    window.gameManager.getAllPublishedGames()
                 ]);
 
-                const shuffledGames = shuffleArray(allGames);
+                allGames = allPublished;
 
-                renderGames('featured-games', featured);
-                renderGames('most-played-games', mostPlayed);
-                renderGames('new-games', newGames);
-                renderGames('all-games', shuffledGames);
+                // Render most played
+                renderMostPlayed(mostPlayed);
 
-                // Populate search category dropdown
-                const searchCategorySelect = document.getElementById('search-category-select');
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    searchCategorySelect.appendChild(option);
-                });
-
-                // Update stats
-                document.getElementById('total-games-count').textContent = allGames.length;
-                document.getElementById('categories-count').textContent = categories.length;
-
-                const totalPlays = allGames.reduce((sum, game) => sum + (game.playCount || 0), 0);
-                document.getElementById('total-plays-count').textContent = totalPlays.toLocaleString();
-
+                // Render alphabetical list
+                renderAlphabeticalList(allPublished);
             } catch (error) {
                 console.error('Error loading games:', error);
-                showError('Failed to load games. Please refresh the page.');
             }
         }
 
-        // Load recent games for logged-in user
-        async function loadRecentGames(userId) {
-            try {
-                const recentGames = await window.gameManager.getUserRecentGames(userId, 6);
-                if (recentGames.length > 0) {
-                    document.getElementById('recent-section').style.display = 'block';
-                    renderGames('recent-games', recentGames);
-                }
-            } catch (error) {
-                console.error('Error loading recent games:', error);
-            }
-        }
-
-        // Render games to a container
-        function renderGames(containerId, games) {
-            const container = document.getElementById(containerId);
+        // Render most played grid
+        function renderMostPlayed(games) {
+            const grid = document.getElementById('most-played-grid');
 
             if (!games || games.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🎮</div>
-                        <div class="empty-state-title">No games found</div>
-                    </div>
-                `;
+                grid.innerHTML = '<p style="color: var(--text-muted);">No games available</p>';
                 return;
             }
 
-            container.innerHTML = games.map(game => createGameCard(game)).join('');
+            grid.innerHTML = games.map(game => {
+                const thumbnail = game.thumbnail || '';
+                return `
+                    <a href="/unblocked/game/?game=${game.id}" class="featured-game-card">
+                        <div class="featured-game-thumbnail">
+                            ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` :
+                                '<div class="featured-game-thumbnail-placeholder">🎮</div>'}
+                        </div>
+                        <div class="featured-game-info">
+                            <div class="featured-game-title">${escapeHtml(game.title)}</div>
+                            <div class="featured-game-plays">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
         }
 
-        // Create game card HTML
-        function createGameCard(game) {
-            const thumbnail = game.thumbnail || '';
-            const isNew = game.addedDate && isNewGame(game.addedDate);
-            const badges = [];
+        // Render alphabetical list
+        function renderAlphabeticalList(games) {
+            const list = document.getElementById('alphabetical-list');
 
-            if (game.featured) badges.push('<span class="game-badge featured">Featured</span>');
-            if (isNew) badges.push('<span class="game-badge new">New</span>');
+            if (!games || games.length === 0) {
+                list.innerHTML = '<p style="padding: 1rem; color: var(--text-muted);">No games</p>';
+                return;
+            }
 
-            const addedDate = game.addedDate ? (game.addedDate.toDate ? game.addedDate.toDate() : new Date(game.addedDate)) : null;
-            const formattedDate = addedDate ? addedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown';
+            // Sort alphabetically
+            const sorted = [...games].sort((a, b) => a.title.localeCompare(b.title));
 
-            return `
-                <a href="/unblocked/game/?game=${game.id}" class="game-card"
-                   data-game-id="${game.id}"
-                   data-game-title="${escapeHtml(game.title)}"
-                   data-game-description="${escapeHtml(game.description || 'No description available')}"
-                   data-game-plays="${game.playCount || 0}"
-                   data-game-date="${formattedDate}"
-                   data-game-tags="${game.tags ? escapeHtml(game.tags.join(',')) : ''}">
-                    <div class="game-thumbnail">
-                        ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '<div class="game-thumbnail-placeholder">🎮</div>'}
-                        ${badges.join('')}
-                    </div>
-                    <div class="game-info">
-                        <h3 class="game-title">${game.title}</h3>
-                        <div class="game-play-count">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
-                    </div>
+            list.innerHTML = sorted.map(game => `
+                <a href="/unblocked/game/?game=${game.id}" class="game-list-item">
+                    ${escapeHtml(game.title)}
                 </a>
-            `;
+            `).join('');
         }
 
-        // Escape HTML to prevent XSS
+        // Perform search
+        function performSearch(query) {
+            const resultsContainer = document.getElementById('search-results');
+
+            if (!query) {
+                resultsContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">Start typing to search...</p>';
+                return;
+            }
+
+            const results = allGames.filter(game =>
+                game.title.toLowerCase().includes(query.toLowerCase()) ||
+                (game.description && game.description.toLowerCase().includes(query.toLowerCase())) ||
+                (game.tags && game.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase())))
+            );
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No games found</p>';
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(game => {
+                const thumbnail = game.thumbnail || '';
+                return `
+                    <a href="/unblocked/game/?game=${game.id}" class="search-result-item">
+                        <div class="search-result-thumbnail">
+                            ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '🎮'}
+                        </div>
+                        <div class="search-result-info">
+                            <div class="search-result-title">${escapeHtml(game.title)}</div>
+                            <div class="search-result-description">${escapeHtml(game.description || 'No description')}</div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Escape HTML
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // Check if game is new (added in last 7 days)
-        function isNewGame(addedDate) {
-            if (!addedDate) return false;
-            const date = addedDate.toDate ? addedDate.toDate() : new Date(addedDate);
-            const daysDiff = (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24);
-            return daysDiff <= 7;
-        }
-
-        // Setup search functionality
-        function setupSearch() {
-            const searchInput = document.getElementById('search-input');
-            const searchBtn = document.getElementById('search-btn');
-            const categorySelect = document.getElementById('search-category-select');
-
-            const performSearch = async () => {
-                const query = searchInput.value.trim();
-                const category = categorySelect.value;
-
-                if (!query && !category) {
-                    showAllSections();
-                    return;
-                }
-
-                try {
-                    const results = await window.gameManager.searchGames(query, category);
-                    showSearchResults(results, query, category);
-                } catch (error) {
-                    console.error('Search error:', error);
-                }
-            };
-
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
-            categorySelect.addEventListener('change', performSearch);
-
-            let searchTimeout;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(performSearch, 300);
-            });
-        }
-
-        // Show all sections (hide search results)
-        function showAllSections() {
-            document.getElementById('search-results-section').style.display = 'none';
-            document.querySelectorAll('.section:not(#search-results-section)').forEach(section => {
-                section.style.display = 'block';
-            });
-        }
-
-        // Show search results in horizontal list view
-        function showSearchResults(results, query, category) {
-            const resultsSection = document.getElementById('search-results-section');
-            const resultsContainer = document.getElementById('search-results');
-            const subtitle = document.getElementById('search-results-subtitle');
-
-            let subtitleText = `Found ${results.length} game${results.length !== 1 ? 's' : ''}`;
-            if (query && category) {
-                subtitleText += ` for "${query}" in ${category}`;
-            } else if (query) {
-                subtitleText += ` for "${query}"`;
-            } else if (category) {
-                subtitleText += ` in ${category}`;
-            }
-            subtitle.textContent = subtitleText;
-
-            document.querySelectorAll('.section:not(#search-results-section)').forEach(section => {
-                section.style.display = 'none';
-            });
-
-            resultsSection.style.display = 'block';
-
-            if (results.length === 0) {
-                resultsContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">🔍</div>
-                        <div class="empty-state-title">No games found</div>
-                    </div>
-                `;
-                return;
-            }
-
-            resultsContainer.innerHTML = results.map(game => createHorizontalGameCard(game)).join('');
-        }
-
-        // Create horizontal game card for search results
-        function createHorizontalGameCard(game) {
-            const thumbnail = game.thumbnail || '';
-            const isNew = game.addedDate && isNewGame(game.addedDate);
-            const badges = [];
-
-            if (game.featured) badges.push('<span class="game-badge featured">Featured</span>');
-            if (isNew) badges.push('<span class="game-badge new">New</span>');
-
-            return `
-                <a href="/unblocked/game/?game=${game.id}" class="game-card-horizontal">
-                    <div class="game-thumbnail-horizontal">
-                        ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` : '<div class="game-thumbnail-placeholder">🎮</div>'}
-                        ${badges.join('')}
-                    </div>
-                    <div class="game-info-horizontal">
-                        <h3 class="game-title">${game.title}</h3>
-                        <p class="game-description">${game.description || 'No description available'}</p>
-                        <div class="game-meta">
-                            <span class="game-meta-item">▶ ${game.playCount || 0} plays</span>
-                            ${game.categories && game.categories.length > 0 ?
-                                `<span class="game-meta-item">📁 ${game.categories.join(', ')}</span>` : ''}
-                        </div>
-                        ${game.tags && game.tags.length > 0 ? `
-                            <div class="game-tags">
-                                ${game.tags.slice(0, 5).map(tag => `<span class="game-tag">${tag}</span>`).join('')}
-                            </div>
-                        ` : ''}
-                    </div>
-                </a>
-            `;
-        }
-
-        // Setup random game button
-        function setupRandomGameButton() {
-            const randomGameBtn = document.getElementById('random-game-btn');
-
-            randomGameBtn.addEventListener('click', async () => {
-                try {
-                    const games = await window.gameManager.getAllGames();
-                    if (games && games.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * games.length);
-                        const randomGame = games[randomIndex];
-                        window.location.href = `/unblocked/game/?game=${randomGame.id}`;
-                    }
-                } catch (error) {
-                    console.error('Error loading random game:', error);
-                    alert('Could not load a random game. Please try again.');
-                }
-            });
-        }
-
-        // Show error message
-        function showError(message) {
-            const container = document.querySelector('.container');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.style.display = 'block';
-            errorDiv.textContent = message;
-            container.insertBefore(errorDiv, container.firstChild);
-        }
-
-        // Initialize AdSense ads after window load
-        window.addEventListener('load', () => {
-            // Delay to ensure containers are fully rendered
-            setTimeout(() => {
-                try {
-                    // Check if containers exist and have width
-                    const adContainers = document.querySelectorAll('.ad-container');
-                    console.log(`Found ${adContainers.length} ad containers`);
-
-                    adContainers.forEach((container, i) => {
-                        console.log(`Container ${i} width:`, container.offsetWidth);
-                    });
-
-                    // Push ads to AdSense for initialization
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    console.log('AdSense ads initialized');
-                } catch (e) {
-                    console.error('AdSense initialization error:', e);
-                }
-            }, 500); // Wait 500ms for layout to stabilize
-        });
     </script>
 </body>
 </html>
