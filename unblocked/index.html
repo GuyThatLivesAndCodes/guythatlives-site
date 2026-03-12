@@ -183,7 +183,7 @@
 
         .featured-game-card {
             aspect-ratio: 3 / 2;
-            background: var(--bg-secondary);
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
             border: 1px solid var(--border-color);
             border-radius: 0.75rem;
             overflow: hidden;
@@ -193,49 +193,33 @@
             color: inherit;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
         }
 
         .featured-game-card:hover {
             transform: translateY(-4px);
             border-color: var(--primary-color);
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .featured-game-thumbnail {
-            flex: 1;
-            background: linear-gradient(135deg, var(--bg-primary), var(--bg-tertiary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .featured-game-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .featured-game-thumbnail-placeholder {
-            font-size: 3rem;
-            opacity: 0.3;
-        }
-
-        .featured-game-info {
-            padding: 1rem;
-            background: var(--bg-tertiary);
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
         }
 
         .featured-game-title {
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.75rem;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .featured-game-plays {
-            font-size: 0.8rem;
+            font-size: 1rem;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
         /* Fullscreen search overlay */
@@ -863,17 +847,10 @@
             }
 
             grid.innerHTML = games.map(game => {
-                const thumbnail = game.thumbnail || '';
                 return `
                     <a href="/unblocked/game/?game=${game.id}" class="featured-game-card">
-                        <div class="featured-game-thumbnail">
-                            ${thumbnail ? `<img src="${thumbnail}" alt="${game.title}">` :
-                                '<div class="featured-game-thumbnail-placeholder">🎮</div>'}
-                        </div>
-                        <div class="featured-game-info">
-                            <div class="featured-game-title">${escapeHtml(game.title)}</div>
-                            <div class="featured-game-plays">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
-                        </div>
+                        <div class="featured-game-title">${escapeHtml(game.title)}</div>
+                        <div class="featured-game-plays">▶ ${(game.playCount || 0).toLocaleString()} plays</div>
                     </a>
                 `;
             }).join('');
