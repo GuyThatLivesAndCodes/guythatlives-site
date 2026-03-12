@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RammerHead Proxy - Unblocked</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #b0ffbe;
+            --text-secondary: #cde1cb;
+            --text-muted: #95b894;
+            --primary-color: #3ff148;
+            --primary-light: #71d487;
+            --border-color: #505050;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border-radius: 0.5rem;
+        }
+
+        .back-button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(63, 241, 72, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .tabs-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 65px);
+        }
+
+        .tabs-bar {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            min-width: 150px;
+            max-width: 200px;
+        }
+
+        .tab:hover {
+            background: var(--bg-secondary);
+        }
+
+        .tab.active {
+            background: var(--bg-primary);
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .tab-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .tab.active .tab-title {
+            color: var(--text-primary);
+        }
+
+        .tab-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .tab-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+
+        .tab-content {
+            flex: 1;
+            position: relative;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .proxy-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
+            gap: 1rem;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .btn span:not(.icon) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="back-button" onclick="window.location.href='/unblocked/'">
+                ← Back
+            </button>
+            <h1 class="title">RammerHead Proxy</h1>
+        </div>
+        <div class="header-controls">
+            <button class="btn btn-primary" id="new-tab-btn">
+                <span class="icon">+</span>
+                <span>New Tab</span>
+            </button>
+            <button class="btn btn-danger" id="close-all-btn">
+                <span class="icon">✕</span>
+                <span>Close All</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tabs-bar" id="tabs-bar"></div>
+        <div id="tab-contents"></div>
+    </div>
+
+    <script>
+        let tabs = [];
+        let activeTabId = null;
+        let nextTabId = 1;
+
+        // Using official RammerHead public instance
+        const PROXY_URL = 'https://rammerhead.org/';
+
+        // Create a new tab
+        function createTab() {
+            const tabId = nextTabId++;
+            const tab = {
+                id: tabId,
+                title: `Proxy Tab ${tabId}`
+            };
+
+            tabs.push(tab);
+
+            // Create tab element
+            const tabElement = document.createElement('div');
+            tabElement.className = 'tab';
+            tabElement.dataset.tabId = tabId;
+            tabElement.innerHTML = `
+                <span class="tab-title">${tab.title}</span>
+                <button class="tab-close">✕</button>
+            `;
+
+            tabElement.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('tab-close')) {
+                    setActiveTab(tabId);
+                }
+            });
+
+            tabElement.querySelector('.tab-close').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeTab(tabId);
+            });
+
+            document.getElementById('tabs-bar').appendChild(tabElement);
+
+            // Create tab content
+            const contentElement = document.createElement('div');
+            contentElement.className = 'tab-content';
+            contentElement.dataset.tabId = tabId;
+            contentElement.innerHTML = `
+                <iframe class="proxy-frame" src="${PROXY_URL}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-top-navigation"></iframe>
+            `;
+
+            document.getElementById('tab-contents').appendChild(contentElement);
+
+            // Set as active tab
+            setActiveTab(tabId);
+        }
+
+        // Set active tab
+        function setActiveTab(tabId) {
+            activeTabId = tabId;
+
+            // Update tab bar
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (parseInt(tab.dataset.tabId) === tabId) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (parseInt(content.dataset.tabId) === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+
+        // Close a tab
+        function closeTab(tabId) {
+            // Remove from tabs array
+            tabs = tabs.filter(tab => tab.id !== tabId);
+
+            // Remove DOM elements
+            const tabElement = document.querySelector(`.tab[data-tab-id="${tabId}"]`);
+            const contentElement = document.querySelector(`.tab-content[data-tab-id="${tabId}"]`);
+
+            if (tabElement) tabElement.remove();
+            if (contentElement) contentElement.remove();
+
+            // If this was the active tab, activate another one
+            if (activeTabId === tabId) {
+                if (tabs.length > 0) {
+                    setActiveTab(tabs[tabs.length - 1].id);
+                } else {
+                    activeTabId = null;
+                }
+            }
+        }
+
+        // Close all tabs
+        function closeAllTabs() {
+            if (tabs.length === 0) return;
+
+            if (confirm('Are you sure you want to close all proxy tabs?')) {
+                tabs.forEach(tab => {
+                    const tabElement = document.querySelector(`.tab[data-tab-id="${tab.id}"]`);
+                    const contentElement = document.querySelector(`.tab-content[data-tab-id="${tab.id}"]`);
+                    if (tabElement) tabElement.remove();
+                    if (contentElement) contentElement.remove();
+                });
+
+                tabs = [];
+                activeTabId = null;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('new-tab-btn').addEventListener('click', createTab);
+        document.getElementById('close-all-btn').addEventListener('click', closeAllTabs);
+
+        // Create initial tab
+        createTab();
+    </script>
+</body>
+</html>
