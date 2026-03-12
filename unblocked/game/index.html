@@ -547,7 +547,7 @@
 
         <!-- Game Frame -->
         <div class="game-frame-wrapper" id="game-wrapper">
-            <iframe id="game-frame" class="game-frame" allowfullscreen></iframe>
+            <iframe id="game-frame" class="game-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock" allowfullscreen></iframe>
 
             <!-- Loading State -->
             <div class="game-loading" id="game-loading">
@@ -667,151 +667,19 @@
                     return;
                 }
 
-                const DIRECT_LOAD_GAMES = [
-                    'fnaf1', 'fnaf2', 'fnaf3', 'fnaf4',
-                    'minecraft', 'eaglercraft',
-                    'slope', 'run3', 'geometrydash',
-                    'ovo', 'vex', 'getaway-shootout', 'basket-random',
-                    'driftboss', 'tunnelrush', 'retrohaunt',
-                    'unity', 'webgl',
-                    'btd', 'bloons', 'papas', 'jacksmith',
-                    'construct2', 'construct3', 'c2runtime', 'c3runtime'
-                ];
+                // Simple direct loading with sandbox attributes
+                console.log('Loading game from:', currentGame.gameUrl);
+                gameFrame.src = currentGame.gameUrl;
 
-                let needsDirectLoad = DIRECT_LOAD_GAMES.some(game =>
-                    gameId.toLowerCase().includes(game) ||
-                    currentGame.title.toLowerCase().includes(game)
-                );
+                gameFrame.onerror = (error) => {
+                    console.error('Game frame error:', error);
+                    showError('Failed to load game content');
+                };
 
-                let gameHtml = null;
-                let isConstruct = false;
-
-                if (!needsDirectLoad) {
-                    try {
-                        const response = await fetch(currentGame.gameUrl);
-                        gameHtml = await response.text();
-
-                        const construct2Indicators = [
-                            'c2runtime.js', 'c3runtime.js', 'c2canvas',
-                            'Construct 2', 'Construct 3', 'Construct2',
-                            'cr_getC2Runtime', 'C2_RuntimeObject'
-                        ];
-
-                        isConstruct = construct2Indicators.some(indicator => gameHtml.includes(indicator));
-
-                        if (isConstruct) {
-                            console.log('Detected Construct 2/3 game - using direct load');
-                            needsDirectLoad = true;
-                        }
-                    } catch (error) {
-                        console.warn('Could not check game type, using default method:', error);
-                    }
-                }
-
-                if (needsDirectLoad) {
-                    console.log(`Loading ${gameId} directly (no storage isolation)`);
-                    const needsCanvasFix = ['fnaf1', 'fnaf2', 'fnaf3', 'fnaf4'].some(game =>
-                        gameId.toLowerCase().includes(game) ||
-                        currentGame.title.toLowerCase().includes(game)
-                    );
-
-                    if (isConstruct) {
-                        console.log('Loading Construct 2/3 game directly (src) to avoid canvas tainting');
-                        gameFrame.src = currentGame.gameUrl;
-                        gameFrame.onload = () => {
-                            console.log('Construct game loaded successfully via direct src');
-                            document.getElementById('game-loading').classList.add('hidden');
-                        };
-                    } else if (needsCanvasFix) {
-                        // Canvas fix for FNAF games
-                        gameFrame.src = currentGame.gameUrl;
-                        gameFrame.onload = () => {
-                            document.getElementById('game-loading').classList.add('hidden');
-                        };
-                    } else {
-                        gameFrame.src = currentGame.gameUrl;
-                        gameFrame.onload = () => {
-                            document.getElementById('game-loading').classList.add('hidden');
-                        };
-                    }
-                } else {
-                    try {
-                        console.log('Fetching game from:', currentGame.gameUrl);
-                        const response = await fetch(currentGame.gameUrl);
-
-                        if (!response.ok) {
-                            throw new Error(`Failed to fetch game: ${response.status} ${response.statusText}`);
-                        }
-
-                        let html = await response.text();
-                        console.log('Game HTML fetched, length:', html.length);
-
-                        const scriptCode = [
-                            '(function() {',
-                            '    var gameId = "' + gameId + '";',
-                            '    var prefix = "game_" + gameId + "_";',
-                            '    var origLS = window.localStorage;',
-                            '    var origSS = window.sessionStorage;',
-                            '    window.localStorage = {',
-                            '        getItem: function(k) { return origLS.getItem(prefix + k); },',
-                            '        setItem: function(k, v) { return origLS.setItem(prefix + k, v); },',
-                            '        removeItem: function(k) { return origLS.removeItem(prefix + k); },',
-                            '        clear: function() {',
-                            '            Object.keys(origLS).forEach(function(k) {',
-                            '                if (k.startsWith(prefix)) origLS.removeItem(k);',
-                            '            });',
-                            '        },',
-                            '        key: function(i) {',
-                            '            var keys = Object.keys(origLS).filter(function(k) { return k.startsWith(prefix); });',
-                            '            return keys[i] ? keys[i].substring(prefix.length) : null;',
-                            '        },',
-                            '        get length() { return Object.keys(origLS).filter(function(k) { return k.startsWith(prefix); }).length; }',
-                            '    };',
-                            '    console.log("Storage isolation: " + gameId);',
-                            '})();'
-                        ].join('\n');
-
-                        const scriptTag = '<scr' + 'ipt>' + scriptCode + '</scr' + 'ipt>';
-
-                        html = html.replace(/<script[^>]*cloudflareinsights[^>]*>.*?<\/script>/gis, '');
-
-                        if (html.indexOf('<head>') !== -1) {
-                            html = html.replace('<head>', '<head>' + scriptTag);
-                        } else if (html.indexOf('<html>') !== -1) {
-                            html = html.replace('<html>', '<html>' + scriptTag);
-                        } else {
-                            html = scriptTag + html;
-                        }
-
-                        let baseUrl = currentGame.gameUrl;
-                        if (baseUrl.endsWith('/index.html')) {
-                            baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
-                        } else if (!baseUrl.endsWith('/')) {
-                            baseUrl += '/';
-                        }
-                        console.log('Injecting base tag with URL:', baseUrl);
-                        html = injectBaseTag(html, baseUrl);
-
-                        gameFrame.srcdoc = html;
-
-                        gameFrame.onerror = (error) => {
-                            console.error('Game frame error:', error);
-                            showError('Failed to load game content');
-                        };
-
-                        gameFrame.onload = () => {
-                            console.log('Game loaded successfully via srcdoc');
-                            document.getElementById('game-loading').classList.add('hidden');
-                        };
-                    } catch (error) {
-                        console.error('Storage isolation failed, using direct load:', error);
-                        gameFrame.src = currentGame.gameUrl;
-                        gameFrame.onload = () => {
-                            console.log('Game loaded successfully via direct src');
-                            document.getElementById('game-loading').classList.add('hidden');
-                        };
-                    }
-                }
+                gameFrame.onload = () => {
+                    console.log('Game loaded successfully');
+                    document.getElementById('game-loading').classList.add('hidden');
+                };
 
                 await window.gameManager.incrementPlayCount(gameId);
 
