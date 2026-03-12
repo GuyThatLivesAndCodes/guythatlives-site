@@ -136,9 +136,25 @@
             letter-spacing: 0.05em;
         }
 
+        .control-panel-section {
+            margin-bottom: 0.5rem;
+        }
+
+        .section-category-title {
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            margin-top: 0.5rem;
+        }
+
         .game-list {
             list-style: none;
-            padding: 0.5rem 0;
+            padding: 0;
         }
 
         .game-list-item {
@@ -152,6 +168,22 @@
         }
 
         .game-list-item:hover {
+            background: rgba(63, 241, 72, 0.1);
+            color: var(--text-primary);
+            border-left-color: var(--primary-color);
+        }
+
+        .proxy-list-item {
+            display: block;
+            padding: 0.625rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .proxy-list-item:hover {
             background: rgba(63, 241, 72, 0.1);
             color: var(--text-primary);
             border-left-color: var(--primary-color);
@@ -580,16 +612,30 @@
 
     <!-- Main layout -->
     <div class="main-layout">
-        <!-- Left sidebar - alphabetical game list -->
+        <!-- Left sidebar - control panel -->
         <aside class="games-list-sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-title">All Games</div>
+                <div class="sidebar-title">Control Panel</div>
             </div>
-            <nav class="game-list" id="alphabetical-list">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                </div>
-            </nav>
+
+            <!-- Proxy Section -->
+            <div class="control-panel-section">
+                <div class="section-category-title">Proxy</div>
+                <nav class="game-list">
+                    <a href="#" class="proxy-list-item" data-proxy="rammerhead">RammerHead</a>
+                    <a href="#" class="proxy-list-item" data-proxy="guythatlives">GuyThatLives Proxy</a>
+                </nav>
+            </div>
+
+            <!-- Games Section -->
+            <div class="control-panel-section">
+                <div class="section-category-title">Games</div>
+                <nav class="game-list" id="alphabetical-list">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </nav>
+            </div>
         </aside>
 
         <!-- Main content -->
@@ -692,6 +738,9 @@
 
             // Setup search overlay
             setupSearchOverlay();
+
+            // Setup proxy links
+            setupProxyLinks();
 
             // Load games
             await loadGames();
@@ -909,6 +958,26 @@
                     </a>
                 `;
             }).join('');
+        }
+
+        // Setup proxy links
+        function setupProxyLinks() {
+            const proxyLinks = document.querySelectorAll('.proxy-list-item');
+
+            proxyLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const proxyType = link.dataset.proxy;
+
+                    if (proxyType === 'rammerhead') {
+                        // Placeholder for RammerHead proxy - will be configured later
+                        alert('RammerHead proxy will be configured soon!');
+                    } else if (proxyType === 'guythatlives') {
+                        // Placeholder for GuyThatLives proxy - will be configured later
+                        alert('GuyThatLives Proxy will be configured soon!');
+                    }
+                });
+            });
         }
 
         // Escape HTML
