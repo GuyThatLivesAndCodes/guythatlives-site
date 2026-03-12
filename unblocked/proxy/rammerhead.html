@@ -127,6 +127,7 @@
             display: flex;
             flex-direction: column;
             height: calc(100vh - 65px);
+            overflow: hidden;
         }
 
         .tabs-bar {
@@ -135,6 +136,7 @@
             border-bottom: 1px solid var(--border-color);
             overflow-x: auto;
             scrollbar-width: thin;
+            flex-shrink: 0;
         }
 
         .tab {
@@ -193,9 +195,18 @@
             color: var(--danger-color);
         }
 
-        .tab-content {
+        #tab-contents {
             flex: 1;
             position: relative;
+            overflow: hidden;
+        }
+
+        .tab-content {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
             display: none;
         }
 
