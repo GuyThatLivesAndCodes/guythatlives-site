@@ -314,6 +314,18 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    /* ========= Game/Feature Requests ========= */
+    // Anyone can submit a game, feature, or other request
+    // Only admins can read, update, or delete requests
+
+    match /gameRequests/{requestId} {
+      // Anyone can create a request (no auth required)
+      allow create: if true;
+
+      // Only admins can read, update (review, approve, reject), or delete requests
+      allow read, update, delete: if isAdmin();
+    }
+
     /* ========= Staff Course Builder ========= */
     // Staff roles and permissions for course creation
 
