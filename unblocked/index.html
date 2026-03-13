@@ -634,6 +634,16 @@
             animation: spin 0.8s linear infinite;
         }
 
+        /* Inline loading spinner for buttons */
+        .btn .loading-spinner {
+            width: 16px;
+            height: 16px;
+            margin: 0 0.5rem 0 0;
+            border-width: 2px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -710,6 +720,16 @@
         <aside class="games-list-sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-title">Control Panel</div>
+            </div>
+
+            <!-- Basics Section -->
+            <div class="control-panel-section">
+                <div class="section-category-title">Basics</div>
+                <nav class="game-list">
+                    <a href="/unblocked/apply/" class="game-list-item">Volunteer</a>
+                    <a href="#" class="game-list-item" id="request-game-btn">Request Game</a>
+                    <a href="#" class="game-list-item" id="report-site-bug-btn">Report Bug</a>
+                </nav>
             </div>
 
             <!-- Proxy Section -->
@@ -833,6 +853,45 @@
                 <div class="form-footer">
                     Already have an account? <a href="#" id="show-sign-in">Sign in</a>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Game Request Overlay -->
+    <div class="search-overlay" id="game-request-overlay">
+        <div class="search-header" style="display: block;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin: 0;">🎮 Request a Game</h2>
+                <button class="close-search" id="close-game-request">✕ Close</button>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                Tell us what game you'd like to see added to the site
+            </p>
+        </div>
+        <div style="flex: 1; overflow-y: auto; padding: 0 2rem;">
+            <form id="game-request-form" style="max-width: 600px; margin: 0 auto;">
+                <div class="error-message" id="game-request-error"></div>
+                <div class="error-message" id="game-request-success" style="background: rgba(34, 197, 94, 0.1); border-color: #22c55e; color: #22c55e;"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Game Name <span style="color: var(--danger-color);">*</span></label>
+                    <input type="text" name="gameName" id="game-name-input" class="form-input" placeholder="e.g., Minecraft, Run 3, Cookie Clicker" required>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.375rem;">
+                        Enter the exact name of the game you want to request
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea name="description" class="form-input" style="min-height: 120px; resize: vertical; font-family: inherit;" placeholder="Add details like genre, gameplay style, or why you'd like this game..."></textarea>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.375rem;">
+                        Optional: Help us find the right game by adding more details
+                    </p>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="game-request-submit" style="width: 100%;">
+                    Submit Request
+                </button>
             </form>
         </div>
     </div>
@@ -1106,6 +1165,147 @@
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // ========== Game Request Functionality ==========
+        function setupGameRequest() {
+            const overlay = document.getElementById('game-request-overlay');
+            const openBtn = document.getElementById('request-game-btn');
+            const closeBtn = document.getElementById('close-game-request');
+            const form = document.getElementById('game-request-form');
+            const gameNameInput = document.getElementById('game-name-input');
+            const submitBtn = document.getElementById('game-request-submit');
+            const errorMsg = document.getElementById('game-request-error');
+            const successMsg = document.getElementById('game-request-success');
+
+            openBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                overlay.classList.add('active');
+                setTimeout(() => gameNameInput.focus(), 150);
+            });
+
+            closeBtn.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                form.reset();
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+            });
+
+            // Close on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                    overlay.classList.remove('active');
+                    form.reset();
+                    errorMsg.style.display = 'none';
+                    successMsg.style.display = 'none';
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const gameName = form.gameName.value.trim();
+                const description = form.description.value.trim();
+
+                if (!gameName) {
+                    errorMsg.textContent = 'Please enter a game name';
+                    errorMsg.style.display = 'block';
+                    successMsg.style.display = 'none';
+                    return;
+                }
+
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>Submitting...';
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+
+                try {
+                    // Submit to Firestore
+                    await firebase.firestore().collection('gameRequests').add({
+                        gameName: gameName,
+                        description: description || null,
+                        status: 'pending',
+                        submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        upvotes: 0,
+                        page: window.location.pathname,
+                        userAgent: navigator.userAgent
+                    });
+
+                    // Show success message
+                    successMsg.textContent = '✓ Game request submitted successfully! We\'ll review your request.';
+                    successMsg.style.display = 'block';
+
+                    // Reset form
+                    form.reset();
+
+                    // Close overlay after 2 seconds
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        successMsg.style.display = 'none';
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error submitting game request:', error);
+                    errorMsg.textContent = 'Failed to submit request. Please try again.';
+                    errorMsg.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                }
+            });
+        }
+
+        // Initialize game request on page load
+        setupGameRequest();
+
+        // ========== Site Bug Report Functionality ==========
+        function setupSiteBugReport() {
+            const reportBtn = document.getElementById('report-site-bug-btn');
+
+            reportBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                // Check if bug reporter modal exists
+                const bugReportModal = document.getElementById('bug-report-modal');
+                if (!bugReportModal) {
+                    console.error('Bug report modal not found');
+                    alert('Bug reporter not available. Please refresh the page.');
+                    return;
+                }
+
+                // Trigger the existing bug reporter
+                // The bug-reporter.js script creates a global function to open the modal
+                const openModalEvent = new CustomEvent('openBugReportModal');
+                document.dispatchEvent(openModalEvent);
+
+                // If the above doesn't work, directly manipulate the modal
+                setTimeout(() => {
+                    const modal = document.getElementById('bug-report-modal');
+                    const pageLabel = document.getElementById('bug-report-page-name');
+                    const gameInfo = document.getElementById('bug-report-game-info');
+                    const textarea = document.getElementById('bug-report-textarea');
+                    const status = document.getElementById('bug-report-status');
+                    const screenshotCheckbox = document.getElementById('bug-report-screenshot-checkbox');
+
+                    if (modal && !modal.classList.contains('visible')) {
+                        pageLabel.textContent = window.location.pathname;
+                        gameInfo.style.display = 'none'; // Hide game info for site bugs
+                        textarea.value = '';
+                        textarea.placeholder = 'Describe the site bug (e.g., games not loading, UI broken, errors, etc.)';
+                        screenshotCheckbox.checked = false;
+                        status.style.display = 'none';
+                        status.className = 'bug-report-status';
+                        document.getElementById('bug-report-submit-btn').disabled = false;
+                        modal.classList.add('visible');
+                        setTimeout(() => textarea.focus(), 150);
+                    }
+                }, 100);
+            });
+        }
+
+        // Initialize site bug report on page load
+        setupSiteBugReport();
     </script>
 </body>
 </html>
