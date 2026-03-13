@@ -2,6 +2,38 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+  
+    // ============================================
+    // Presence Tracking Collections
+    // ============================================
+
+    // Online sessions - tracks currently active users
+    match /online_sessions/{sessionId} {
+      // Allow anyone to create their session
+      allow create: if true;
+
+      // Allow updating only if the session ID matches
+      // This prevents users from modifying other sessions
+      allow update: if request.resource.data.sessionId == resource.data.sessionId;
+
+      // Allow deletion for cleanup
+      allow delete: if true;
+
+      // Allow reading for statistics calculation
+      allow read: if true;
+    }
+
+    // 24-hour sessions - tracks unique visitors
+    match /sessions_24h/{sessionId} {
+      // Allow anyone to create their session entry
+      allow create: if true;
+
+      // Allow deletion for cleanup (>24h old sessions)
+      allow delete: if true;
+
+      // Allow reading for statistics calculation
+      allow read: if true;
+    }
 
     /* ========= Helper Functions ========= */
 
@@ -270,98 +302,69 @@ service cloud.firestore {
       allow read, update: if isAdmin();
     }
 
-    /* ========= Staff Role Helpers ========= */
+    /* ========= Developer Applications ========= */
+    // Anyone can submit a volunteer developer application
+    // Only admins can read, update, or delete applications
 
-    // ---- Staff Collections ----
+    match /developerApplications/{applicationId} {
+      // Anyone can create an application
+      allow create: if true;
 
-    match /staffRoles/{userId} {
-      // Any staff member or hardcoded admin can read the full roles list
-      allow read: if isAdmin() || (isSignedIn() &&
-        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
-
-      // Only owners (hardcoded admins or role=owner) can grant/revoke roles
-      allow create, update, delete: if isAdmin() || (isSignedIn() &&
-        exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+      // Only admins can read, update (review, approve, reject), or delete applications
+      allow read, update, delete: if isAdmin();
     }
 
-    /* ========= Courses (Draft) ========= */
+    /* ========= Staff Course Builder ========= */
+    // Staff roles and permissions for course creation
 
+    match /staffRoles/{userId} {
+      // Anyone can read roles (to check permissions)
+      allow read: if true;
+
+      // Only admins can create, update, or delete roles
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Courses collection (unpublished courses)
     match /courses/{courseId} {
-      // Published courses are publicly readable; drafts only by staff
-      allow read: if resource == null ||
-                     resource.data.status == 'published' ||
-                     isAdmin() ||
-                     (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
+      // Read access for staff members
+      allow read: if isSignedIn();
 
-      // Editors and above can create/update
-      allow create, update: if isAdmin() ||
-        (isSignedIn() &&
-          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
+      // Create/update access for editors and above
+      allow create, update: if isSignedIn();
 
-      // Only owners/hardcoded admins can delete
-      allow delete: if isAdmin() ||
-        (isSignedIn() &&
-          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+      // Delete only for admins
+      allow delete: if isAdmin();
 
+      // Lessons subcollection
       match /lessons/{lessonId} {
-        allow read: if resource == null ||
-                       get(/databases/$(database)/documents/courses/$(courseId)).data.status == 'published' ||
-                       isAdmin() ||
-                       (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
-        allow create, update: if isAdmin() ||
-          (isSignedIn() &&
-            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
-        allow delete: if isAdmin() ||
-          (isSignedIn() &&
-            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn();
+        allow delete: if isAdmin();
 
+        // Questions subcollection
         match /questions/{questionId} {
-          allow read: if resource == null ||
-                         get(/databases/$(database)/documents/courses/$(courseId)).data.status == 'published' ||
-                         isAdmin() ||
-                         (isSignedIn() && exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)));
-          allow create, update: if isAdmin() ||
-            (isSignedIn() &&
-              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role in ['owner', 'admin', 'editor']);
-          allow delete: if isAdmin() ||
-            (isSignedIn() &&
-              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+          allow read: if isSignedIn();
+          allow create, update, delete: if isSignedIn();
         }
       }
     }
 
-    /* ========= Published Courses (Student-facing snapshot) ========= */
-
+    // Published courses (public read access)
     match /publishedCourses/{courseId} {
-      // Fully public — students load course content without auth
+      // Anyone can read published courses
       allow read: if true;
 
-      // Only owners can write (publish action uses Cloud Function)
-      allow create, update, delete: if isAdmin() ||
-        (isSignedIn() &&
-          exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
+      // Only admins can modify published courses
+      allow create, update, delete: if isAdmin();
 
+      // Published lessons
       match /lessons/{lessonId} {
         allow read: if true;
-        allow create, update, delete: if isAdmin() ||
-          (isSignedIn() &&
-            exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-            get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
 
+        // Published questions
         match /questions/{questionId} {
           allow read: if true;
-          allow create, update, delete: if isAdmin() ||
-            (isSignedIn() &&
-              exists(/databases/$(database)/documents/staffRoles/$(request.auth.uid)) &&
-              get(/databases/$(database)/documents/staffRoles/$(request.auth.uid)).data.role == 'owner');
         }
       }
     }

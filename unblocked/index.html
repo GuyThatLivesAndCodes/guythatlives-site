@@ -205,6 +205,100 @@
             gap: 0.75rem;
         }
 
+        /* Announcement banner */
+        .announcement {
+            background: linear-gradient(135deg, rgba(63, 241, 72, 0.15), rgba(59, 190, 86, 0.1));
+            border: 2px solid var(--primary-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .announcement::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #3bbe56, var(--primary-color));
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .announcement-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .announcement-icon {
+            font-size: 1.5rem;
+        }
+
+        .announcement-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .announcement-date {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .announcement-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .announcement-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .announcement-content strong {
+            color: var(--primary-light);
+            font-weight: 600;
+        }
+
+        .announcement-highlight {
+            background: rgba(63, 241, 72, 0.2);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .volunteer-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .volunteer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(63, 241, 72, 0.4);
+        }
+
         /* Most played grid - 3:2 aspect ratio cards */
         .most-played-grid {
             display: grid;
@@ -640,6 +734,32 @@
 
         <!-- Main content -->
         <main class="main-content">
+            <!-- Announcement -->
+            <article class="announcement">
+                <div class="announcement-header">
+                    <span class="announcement-icon">🔧</span>
+                    <h2 class="announcement-title">Recent Outages & Fixes Explained</h2>
+                    <span class="announcement-date">March 12, 2026</span>
+                </div>
+                <div class="announcement-content">
+                    <p>
+                        <strong>What happened?</strong> Many of you experienced outages, errors, and the dreaded "too many redirects" error over the past few days. We want to be transparent about what caused these issues and how we've resolved them.
+                    </p>
+                    <p>
+                        The root cause was a <span class="announcement-highlight">SSL/TLS encryption misconfiguration</span>. In an attempt to fix recent issues, our encryption was set to <strong>dynamic</strong> mode when it should have been set to <strong>full encryption</strong>. This mismatch caused a cascade of problems including redirect loops, connection errors, and games failing to load.
+                    </p>
+                    <p>
+                        <strong>Good news!</strong> We've corrected the SSL/TLS settings, and approximately <span class="announcement-highlight">250 games</span> now work perfectly on the site without requiring you to visit the source directly. The gaming experience should be significantly smoother.
+                    </p>
+                    <p>
+                        If you encounter any errors or issues with specific games, please use our <strong>report system</strong> to let us know. Your feedback helps us keep improving the platform for everyone.
+                    </p>
+                    <a href="/unblocked/apply/" class="volunteer-btn">
+                        💻 Volunteer as Developer
+                    </a>
+                </div>
+            </article>
+
             <h1 class="section-title">🔥 Most Played</h1>
             <div class="most-played-grid" id="most-played-grid">
                 <div class="loading">

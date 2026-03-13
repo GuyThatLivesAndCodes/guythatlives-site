@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Developer Application - GuyThatLives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #b0ffbe;
+            --text-secondary: #cde1cb;
+            --text-muted: #95b894;
+            --primary-color: #3ff148;
+            --primary-light: #71d487;
+            --border-color: #505050;
+            --danger-color: #ef4444;
+            --success-color: #22c55e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .form-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label .required {
+            color: var(--danger-color);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-secondary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.5;
+        }
+
+        .form-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.375rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-item label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(63, 241, 72, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: rgba(63, 241, 72, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-box p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            .header-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/unblocked/" class="back-link">← Back to Games</a>
+            <h1 class="header-title">💻 Volunteer Developer Application</h1>
+            <p class="header-subtitle">Help us build and improve GuyThatLives by joining our development team</p>
+        </div>
+
+        <div class="info-box">
+            <p><strong>What we're looking for:</strong></p>
+            <p>We're seeking passionate developers who want to contribute to making GuyThatLives better. Whether you're experienced or just starting out, we value enthusiasm and willingness to learn!</p>
+            <p>Roles include: frontend development, backend development, game integration, bug fixing, and more.</p>
+        </div>
+
+        <div class="alert alert-error" id="error-alert"></div>
+        <div class="alert alert-success" id="success-alert"></div>
+
+        <form id="application-form">
+            <div class="form-card">
+                <h2 class="section-title">Personal Information</h2>
+
+                <div class="form-group">
+                    <label class="form-label">Full Name <span class="required">*</span></label>
+                    <input type="text" name="fullName" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email <span class="required">*</span></label>
+                    <input type="email" name="email" class="form-input" required>
+                    <p class="form-hint">We'll use this to contact you</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Discord Username</label>
+                    <input type="text" name="discord" class="form-input" placeholder="username#0000">
+                    <p class="form-hint">Optional - for team communication</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">GitHub Profile</label>
+                    <input type="url" name="github" class="form-input" placeholder="https://github.com/username">
+                    <p class="form-hint">Optional - helps us see your work</p>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h2 class="section-title">Experience & Skills</h2>
+
+                <div class="form-group">
+                    <label class="form-label">Experience Level <span class="required">*</span></label>
+                    <select name="experienceLevel" class="form-select" required>
+                        <option value="">Select your experience level</option>
+                        <option value="beginner">Beginner - Just starting out</option>
+                        <option value="intermediate">Intermediate - 1-2 years experience</option>
+                        <option value="advanced">Advanced - 3+ years experience</option>
+                        <option value="expert">Expert - 5+ years experience</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Technical Skills <span class="required">*</span></label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-html-css" name="skills" value="HTML/CSS">
+                            <label for="skill-html-css">HTML/CSS</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-javascript" name="skills" value="JavaScript">
+                            <label for="skill-javascript">JavaScript</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-react" name="skills" value="React/Vue/Angular">
+                            <label for="skill-react">React/Vue/Angular</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-nodejs" name="skills" value="Node.js/Backend">
+                            <label for="skill-nodejs">Node.js/Backend Development</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-firebase" name="skills" value="Firebase">
+                            <label for="skill-firebase">Firebase/Cloud Services</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-design" name="skills" value="UI/UX Design">
+                            <label for="skill-design">UI/UX Design</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="skill-other" name="skills" value="Other">
+                            <label for="skill-other">Other (specify below)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Hours Per Week</label>
+                    <select name="hoursPerWeek" class="form-select">
+                        <option value="">Select availability</option>
+                        <option value="1-5">1-5 hours</option>
+                        <option value="5-10">5-10 hours</option>
+                        <option value="10-20">10-20 hours</option>
+                        <option value="20+">20+ hours</option>
+                    </select>
+                    <p class="form-hint">How much time can you dedicate per week?</p>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h2 class="section-title">Tell Us About Yourself</h2>
+
+                <div class="form-group">
+                    <label class="form-label">Why do you want to volunteer? <span class="required">*</span></label>
+                    <textarea name="motivation" class="form-textarea" required placeholder="Share what motivates you to join our team..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">What would you like to work on?</label>
+                    <textarea name="interests" class="form-textarea" placeholder="Game integrations, bug fixes, new features, performance optimization, etc."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Previous Projects or Portfolio</label>
+                    <textarea name="portfolio" class="form-textarea" placeholder="Share links to projects you've worked on, or describe your experience..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Additional Comments</label>
+                    <textarea name="comments" class="form-textarea" placeholder="Anything else you'd like us to know?"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                Submit Application
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxMPW06kZdJYDhujkUz1J0eVUQNwBbmlQ",
+            authDomain: "guythatlives-math.firebaseapp.com",
+            projectId: "guythatlives-math",
+            storageBucket: "guythatlives-math.firebasestorage.app",
+            messagingSenderId: "999475516798",
+            appId: "1:999475516798:web:c8b1c55cbeebf22d5b7a73",
+            measurementId: "G-PTTRKLDMKF"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Form submission
+        const form = document.getElementById('application-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const successAlert = document.getElementById('success-alert');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span>Submitting...';
+
+            // Hide alerts
+            errorAlert.classList.remove('show');
+            successAlert.classList.remove('show');
+
+            try {
+                // Get form data
+                const formData = new FormData(form);
+
+                // Get selected skills
+                const skills = Array.from(form.querySelectorAll('input[name="skills"]:checked'))
+                    .map(checkbox => checkbox.value);
+
+                if (skills.length === 0) {
+                    throw new Error('Please select at least one skill');
+                }
+
+                // Build application object
+                const application = {
+                    fullName: formData.get('fullName'),
+                    email: formData.get('email'),
+                    discord: formData.get('discord') || null,
+                    github: formData.get('github') || null,
+                    experienceLevel: formData.get('experienceLevel'),
+                    skills: skills,
+                    hoursPerWeek: formData.get('hoursPerWeek') || null,
+                    motivation: formData.get('motivation'),
+                    interests: formData.get('interests') || null,
+                    portfolio: formData.get('portfolio') || null,
+                    comments: formData.get('comments') || null,
+                    status: 'pending',
+                    submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    reviewedAt: null,
+                    reviewedBy: null,
+                    reviewNotes: null
+                };
+
+                // Submit to Firestore
+                await db.collection('developerApplications').add(application);
+
+                // Show success message
+                successAlert.textContent = '✓ Application submitted successfully! We\'ll review your application and get back to you soon.';
+                successAlert.classList.add('show');
+
+                // Reset form
+                form.reset();
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error submitting application:', error);
+                errorAlert.textContent = error.message || 'Failed to submit application. Please try again.';
+                errorAlert.classList.add('show');
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Application';
+            }
+        });
+    </script>
+</body>
+</html>
