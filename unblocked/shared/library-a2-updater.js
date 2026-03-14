@@ -31,6 +31,8 @@ class LibraryA2Updater {
 
             if (this.canceled) throw new Error('Update canceled');
 
+            console.log(`Found ${folders.length} games in library-a2. Starting update process...`);
+
             progressCallback({
                 stage: 'ready',
                 message: `Found ${folders.length} games in library-a2`,
@@ -75,6 +77,7 @@ class LibraryA2Updater {
                             };
 
                             await this.gameManager.updateGame(existingGame.id, updates, userId);
+                            console.log(`[${i + 1}/${folders.length}] Updated: ${folder.name}`);
                             results.updated.push({
                                 name: folder.name,
                                 action: 'Set to published and added Singleplayer category'
@@ -102,14 +105,22 @@ class LibraryA2Updater {
                         };
 
                         await this.gameManager.addGame(gameData, userId);
+                        console.log(`[${i + 1}/${folders.length}] Added: ${folder.name}`);
                         results.added.push(folder.name);
                     }
 
                     // Small delay to avoid overwhelming Firestore
-                    await this.sleep(100);
+                    // Add delay to avoid rate limiting
+                    // For large batches, use a longer delay every 50 games
+                    if (i > 0 && i % 50 === 0) {
+                        console.log(`Progress checkpoint: ${i} games processed. Taking a short break...`);
+                        await this.sleep(2000); // 2 second pause every 50 games
+                    } else {
+                        await this.sleep(150); // 150ms between each game
+                    }
 
                 } catch (error) {
-                    console.error(`Error processing ${folder.name}:`, error);
+                    console.error(`[${i + 1}/${folders.length}] Error processing ${folder.name}:`, error);
                     results.failed.push({
                         name: folder.name,
                         reason: error.message
@@ -156,9 +167,28 @@ class LibraryA2Updater {
      * This will attempt to dynamically find game folders
      */
     async discoverGames() {
-        const discoveredGames = [];
+        let discoveredGames = [];
 
-        // Method 1: Try to fetch a directory listing page
+        // Method 1: Try to fetch the pre-generated games list JSON file
+        try {
+            const gamesListUrl = window.location.origin + '/unblocked/library-a2-games.json';
+            console.log('Fetching games list from:', gamesListUrl);
+
+            const response = await fetch(gamesListUrl);
+
+            if (response.ok) {
+                const gamesList = await response.json();
+
+                if (Array.isArray(gamesList) && gamesList.length > 0) {
+                    console.log(`Loaded ${gamesList.length} games from library-a2-games.json`);
+                    return gamesList;
+                }
+            }
+        } catch (error) {
+            console.log('Could not load library-a2-games.json:', error.message);
+        }
+
+        // Method 2: Try to fetch a directory listing page
         // Many servers return a directory index for folders
         try {
             const response = await fetch(this.baseUrl + '/');
@@ -195,121 +225,43 @@ class LibraryA2Updater {
             console.log('Directory listing method failed:', error.message);
         }
 
-        // Method 2: If directory listing doesn't work, we need to provide a comprehensive list
-        // This list should be updated as new games are added to library-a2
-        const knownGames = [
-            '1-on-1-football',
-            '1-on-1-hockey',
-            '1-on-1-soccer',
-            '1-on-1-tennis',
-            '10-minutes-till-dawn',
-            '100ng-tam-ca',
-            '1v1-lol',
-            '2048',
-            '3d-car-simulator',
-            'a-small-world-cup',
-            'achievement-unlocked',
-            'age-of-war',
-            'among-us',
-            'angry-birds',
-            'basket-random',
-            'basketball-stars',
-            'bloons-tower-defense',
-            'boxing-random',
-            'breakout',
-            'champion-island',
-            'chrome-dino',
-            'cookie-clicker',
-            'crossy-road',
-            'drift-hunters',
-            'duck-life',
-            'duck-life-4',
-            'eggy-car',
-            'fireboy-and-watergirl',
-            'flappy-bird',
-            'geometry-dash',
-            'google-snake',
-            'gun-mayhem-2',
-            'happy-wheels',
-            'head-soccer-2022',
-            'hill-climb-racing',
-            'idle-breakout',
-            'jenni-sim',
-            'just-fall',
-            'level-devil',
-            'madalin-stunt-cars-2',
-            'minecraft',
-            'monkey-mart',
-            'moto-x3m',
-            'ovo',
-            'pac-man',
-            'paper-io-2',
-            'penalty-shooters-2',
-            'pokémon-emerald',
-            'retro-bowl',
-            'rooftop-snipers',
-            'run-3',
-            'slope',
-            'snake',
-            'soccer-random',
-            'stack',
-            'stickman-hook',
-            'subway-surfers',
-            'super-mario-64',
-            'tetris',
-            'the-impossible-quiz',
-            'tunnel-rush',
-            'volley-random',
-            'we-become-what-we-behold',
-            'world-cup-penalty',
-            'zombs-royale'
-        ];
-
-        // Verify which games actually exist by checking for index.html
-        console.log('Verifying games from known list...');
-        for (const gameName of knownGames) {
-            try {
-                const testUrl = `${this.baseUrl}/${gameName}/embed.html`;
-                const response = await fetch(testUrl, { method: 'HEAD' });
-                if (response.ok) {
-                    discoveredGames.push(gameName);
-                }
-            } catch (error) {
-                // Game doesn't exist, skip
-            }
-        }
-
-        if (discoveredGames.length === 0) {
-            throw new Error('No games found in library-a2 folder. Make sure the games are accessible at ' + this.baseUrl);
-        }
-
-        console.log(`Found ${discoveredGames.length} games in library-a2:`, discoveredGames);
-        return discoveredGames;
+        // Method 3: Fallback error message
+        throw new Error(
+            'Could not discover games in library-a2 folder. ' +
+            'Make sure library-a2-games.json exists at /unblocked/library-a2-games.json or that directory listing is enabled. ' +
+            'You can regenerate the games list by running: ls -1 library-a2 > library-a2-games.json (then convert to JSON format)'
+        );
     }
 
     /**
      * Find thumbnail image for a game
      */
     async findThumbnail(gameName) {
-        const imageExtensions = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
-        const commonNames = ['icon', 'thumbnail', 'logo', 'cover', 'splash'];
+        // Most common patterns first for speed
+        const commonPatterns = [
+            'icon.png',
+            'thumbnail.png',
+            'logo.png',
+            'cover.png',
+            'icon.jpg',
+            'thumbnail.jpg'
+        ];
 
-        // Try common image names first
-        for (const name of commonNames) {
-            for (const ext of imageExtensions) {
-                try {
-                    const url = `${this.baseUrl}/${gameName}/${name}.${ext}`;
-                    const response = await fetch(url, { method: 'HEAD' });
-                    if (response.ok) {
-                        return url;
-                    }
-                } catch (error) {
-                    // Continue trying
+        // Quick check for most common patterns
+        for (const filename of commonPatterns) {
+            try {
+                const url = `${this.baseUrl}/${gameName}/${filename}`;
+                const response = await fetch(url, { method: 'HEAD' });
+                if (response.ok) {
+                    return url;
                 }
+            } catch (error) {
+                // Continue trying
             }
         }
 
-        // If no common name found, return empty string
+        // If no thumbnail found, return a placeholder or empty string
+        // For 2000+ games, we don't want to spend too much time on each one
         return '';
     }
 
