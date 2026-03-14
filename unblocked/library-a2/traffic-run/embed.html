@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Gill Sans",sans-serif;background:transparent}
+        .game-embed-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#274e13;border-radius:10px;overflow:hidden;position:relative;box-sizing:border-box;color:#fff;text-align:center}
+        .button-wrapper{display:flex;flex-direction:column;align-items:center;gap:25px;padding:20px;width:100%;max-width:550px;box-sizing:border-box}
+        .logo-text{font-family:"Gill Sans",sans-serif;font-size:2.5rem;font-weight:bold;color:#fff;text-shadow:2px 2px 5px rgba(0,0,0,.6);padding-bottom:10px}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;width:100%}
+        @media (max-width:480px){.button-grid{grid-template-columns:1fr}.logo-text{font-size:2rem}}
+        .c-button{min-height:50px;appearance:none;border:2px solid rgba(0,0,0,.2);border-radius:8px;color:#fff;padding:10px 15px;font-size:18px;cursor:pointer;transition:all .2s ease-in-out;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:bold}
+        .btn-primary{background:#6aa84f}
+        .btn-primary:hover{background:#8fbc8f;border-color:#a2d1a2;transform:translateY(-2px)}
+        .btn-alt{background:#073763}
+        .btn-alt:hover{background:#3d85c6;border-color:#6f9ac4;transform:translateY(-2px)}
+        .c-button:focus{outline:none;box-shadow:0 0 0 4px #cbd6ee}
+        .c-button:disabled{background:#555;cursor:not-allowed}
+        .game-embed-container iframe{width:100%;height:100%;border:none}
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-embed-container">
+        <div id="buttonWrapper" class="button-wrapper">
+            <div class="logo-text">GUYTHATLIVES UNBLOCKED</div>
+            <div class="button-grid">
+                <button id="playPrimaryInline" class="c-button btn-primary">PLAY HERE</button>
+                <button id="playPrimaryFullscreen" class="c-button btn-primary">FULLSCREEN</button>
+                <button id="playAltInline" class="c-button btn-alt">PLAY HERE (Alt)</button>
+                <button id="playAltFullscreen" class="c-button btn-alt">FULLSCREEN (Alt)</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const buttonWrapper = document.getElementById('buttonWrapper');
+        const googleScriptUrl = "https://script.google.com/macros/s/AKfycbzb08Q_lsJKbGQz1iBNHZo1bZ_JYTa3yEuzjuf41pZ4dxKsdL_nq-SieZgAXkPvYnQeKg/exec";
+        const gameXmlUrl = "data:@file/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8TW9kdWxlPg0KPE1vZHVsZVByZWZzIHRpdGxlPSJUcmFmZmljIFJ1biIgLz4NCjxDb250ZW50IHR5cGU9Imh0bWwiPjwhW0NEQVRBWw0KDQo8IURPQ1RZUEUgaHRtbD4NCjxodG1sIGxhbmc9ImVuLXVzIj4NCiAgPGhlYWQ+DQogICAgPG1ldGEgY2hhcnNldD0idXRmLTgiPg0KICAgIDxtZXRhIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0Zi04Ij4NCiAgICA8dGl0bGU+VHJhZmZpYyBSdW48L3RpdGxlPg0KPHN0eWxlPg0KICAgICAgICAqIHsNCiAgICAgICAgICAgIG1hcmdpbjogMDsNCiAgICAgICAgICAgIHBhZGRpbmc6IDA7DQogICAgICAgIH0NCiAgICAgICAgYm9keSB7DQogICAgICAgICAgICBiYWNrZ3JvdW5kOiAjMDcwYzIzOw0KICAgICAgICB9DQogICNjb250YWluZXJ7DQogICB0b3A6NTAlOw0KICAgbGVmdDo1MCU7DQogICBwb3NpdGlvbjphYnNvbHV0ZTsNCiAgIHRyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsIC01MCUpOw0KICAgLyogYmFja2dyb3VuZDojMjIyYzM2OyAqLw0KICAgYmFja2dyb3VuZDojMDAwNDE2Ow0KICAgb3ZlcmZsb3c6aGlkZGVuOw0KICB9DQogICNsb2dvew0KICAgcG9zaXRpb246IGFic29sdXRlOw0KICAgZGlzcGxheTpibG9jazsNCiAgIHRvcDogNTAlOw0KICAgbGVmdDogNTAlOw0KICAgbWluLXdpZHRoOjQwMHB4Ow0KICAgLXdlYmtpdC10cmFuc2Zvcm06IHRyYW5zbGF0ZSgtNTAlLC01MCUpOw0KICAgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwtNTAlKTsNCiAgIHRleHQtYWxpZ246IGNlbnRlcjsNCiAgIG92ZXJmbG93OmhpZGRlbjsNCiAgfQ0KICAjZm9vdGVyew0KICAgd2lkdGg6MTAwJTsNCiAgIGhlaWdodDo0MHB4Ow0KICAgYm90dG9tOjA7DQogICBsZWZ0OjUwJTsNCiAgIHBvc2l0aW9uOmFic29sdXRlOw0KICAgdHJhbnNmb3JtOiB0cmFuc2xhdGUoLTUwJSwgMCUpOw0KICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KHRvIGJvdHRvbSwgI2NjYyAwJSwgI2ZmZiAxMDAlKTsNCiAgfQ0KICBkaXYuYnV0dG9uew0KICAgYmFja2dyb3VuZDogIzIyMmMzNjsNCiAgIHBhZGRpbmc6IDAgOHB4Ow0KICAgdGV4dC1hbGlnbjogY2VudGVyOw0KICAgYm9yZGVyLXJhZGl1czogM3B4Ow0KICAgY29sb3I6IHdoaXRlOw0KICAgZm9udC13ZWlnaHQ6IGJvbGQ7DQogICB0ZXh0LWRlY29yYXRpb246IG5vbmU7DQogICBjdXJzb3I6cG9pbnRlcjsNCiAgfQ0KICBkaXYubW9yZWdhbWVzIHsNCiAgIGhlaWdodDogMzhweDsNCiAgIGxpbmUtaGVpZ2h0OiAzOHB4Ow0KICAgcGFkZGluZzogMCA1cHg7DQogICBtYXJnaW46IDFweCAxcHggMCAwOw0KICAgZmxvYXQ6IGxlZnQ7DQogICBjb2xvcjogIzMzMzsNCiAgIHRleHQtYWxpZ246IGxlZnQ7DQogICBmb250LXNpemU6IDE1cHg7DQogICBwb3NpdGlvbjogcmVsYXRpdmU7DQogICB6LWluZGV4OiAxMDsNCiAgfQ0KICBkaXYuZnVsbHNjcmVlbnsNCiAgIG1hcmdpbjogMXB4IDFweCAwIDA7DQogICBwb3NpdGlvbjphYnNvbHV0ZTsNCiAgIHJpZ2h0OjVweDsgDQogICBoZWlnaHQ6MzhweDsNCiAgIGxpbmUtaGVpZ2h0OjM4cHg7DQogICBkaXNwbGF5OmlubGluZS1mbGV4Ow0KICAgZm9udC13ZWlnaHQ6Ym9sZDsNCiAgfQ0KICBkaXYuZnVsbHNjcmVlbiBpbWd7DQogICBwYWRkaW5nLWxlZnQ6NXB4OyANCiAgfQ0KICAgIDwvc3R5bGU+DQogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9nZXJ0ZG9yby9Ub29uLVNoYWRlci1Vbml0eUAzOGU2MTkwMDU4YmMzYjlhODA0YjRmMmVjZDgyYTMxM2Y5YWIxYWU4L1Byb2plY3RTZXR0aW5ncy9UcmFmZmljUnVuLmpzIj48L3NjcmlwdD4NCiAgICA8c2NyaXB0IHR5cGU9InRleHQvamF2YXNjcmlwdCI+IA0KICAgICAgIGZ1bmN0aW9uIFVuaXR5UHJvZ3Jlc3MoZ2FtZUluc3RhbmNlLCBwcm9ncmVzcykgew0KICAgIGlmICghZ2FtZUluc3RhbmNlLk1vZHVsZSkgew0KICAgIHJldHVybjsNCiAgICB9IGVsc2UgaWYgKHByb2dyZXNzID09PSAiY29tcGxldGUiKSB7DQogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxvZ28iKS5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOw0KICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJGdWxsc2NyZWVuSW1nIikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsNCiAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInNpdGVsb2dvIikuc3R5bGUuZGlzcGxheSA9ICJibG9jayI7DQogICByZXR1cm47DQogICAgfSBlbHNlIGlmIChwcm9ncmVzcyA9PSAxKSB7DQogICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgibG9hZGluZ2luZm8iKS5pbm5lckhUTUwgPSAiUFJPQ0VTU0lORy4uLiI7DQogICAgfSBlbHNlIGlmIChwcm9ncmVzcyA+IDApIHsNCiAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJsb2FkaW5naW5mbyIpLmlubmVySFRNTCA9ICJMb2FkaW5nOiAiICsgTWF0aC5yb3VuZChwcm9ncmVzcyAqIDEwMCkgKyAiJSI7DQogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInNpdGVsb2dvIikuc3R5bGUuZGlzcGxheSA9ICJub25lIjsNCiAgICB9DQogICAgfQ0KICAgIHZhciBnYW1lSW5zdGFuY2UgPSBVbml0eUxvYWRlci5pbnN0YW50aWF0ZSgiZ2FtZUNvbnRhaW5lciIsICJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvZ2VydGRvcm8vVG9vbi1TaGFkZXItVW5pdHlAMzhlNjE5MDA1OGJjM2I5YTgwNGI0ZjJlY2Q4MmEzMTNmOWFiMWFlOC9Qcm9qZWN0U2V0dGluZ3MvVHJhZmZpY1J1bi5qc29uIiwgew0KICAgICAgb25Qcm9ncmVzczogVW5pdHlQcm9ncmVzcywNCiAgICAgIE1vZHVsZTogew0KICAgICAgICBvblJ1bnRpbWVJbml0aWFsaXplZDogZnVuY3Rpb24oKSB7IFVuaXR5UHJvZ3Jlc3MoZ2FtZUluc3RhbmNlLCAiY29tcGxldGUiKSB9DQogICAgICB9DQogICAgfSk7DQogICAgICANCiAgICAgIGZ1bmN0aW9uIEZpdFNjcmVlbigpew0KICAgICAgIHZhciB3PTQ0MDsNCiAgICAgICB2YXIgaD03NTA7DQogICAgICAgdmFyIGF2YWlsV2lkdGg9d2luZG93LmlubmVyV2lkdGg7DQogICAgICAgdmFyIGF2YWlsSGVpZ2h0PXdpbmRvdy5pbm5lckhlaWdodC00MDsNCiAgICANCiAgICAgICB2YXIgY2FudmFzID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoIiNjYW52YXMiKTsNCiAgICAgICBpZihhdmFpbFdpZHRoL2F2YWlsSGVpZ2h0PncvaCl7DQogICAgICAgICBoZWlnaHQgPSBhdmFpbEhlaWdodDsNCiAgICAgICAgIHdpZHRoID0gKGhlaWdodCp3L2gpOw0KICAgICAgfWVsc2V7DQogICAgICAgICB3aWR0aCA9IGF2YWlsV2lkdGg7DQogICAgICAgICBoZWlnaHQgPSB3aWR0aCpoL3c7DQogICAgICB9DQogICAgICBjYW52YXMud2lkdGggPSB3aWR0aDsNCiAgICAgIGNhbnZhcy5oZWlnaHQgPSBoZWlnaHQ7DQogICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImNvbnRhaW5lciIpLnN0eWxlLndpZHRoPXdpZHRoICsgInB4IjsNCiAgICAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiY29udGFpbmVyIikuc3R5bGUuaGVpZ2h0PShoZWlnaHQgKyA0MCkgKyAicHgiOw0KICAgICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJnYW1lQ29udGFpbmVyIikuc3R5bGUud2lkdGg9d2lkdGggKyAicHgiOw0KICAgICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJnYW1lQ29udGFpbmVyIikuc3R5bGUuaGVpZ2h0PWhlaWdodCArICJweCI7DQogICANCiAgICAgICBpZih3aWR0aC9oZWlnaHQ+NC8zKXsNCiAgICAgICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxvZ28iKS5zdHlsZS5oZWlnaHQ9TWF0aC5yb3VuZChoZWlnaHQqMC42KSArICJweCI7ICANCiAgICAgICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxvZ28iKS5zdHlsZS53aWR0aD1NYXRoLnJvdW5kKGhlaWdodCowLjYqNC8zKSArICJweCI7DQogICAgICAgfWVsc2V7DQogICAgICAgICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJsb2dvIikuc3R5bGUud2lkdGg9TWF0aC5yb3VuZCh3aWR0aCowLjgpICsgInB4IjsNCiAgICAgICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImxvZ28iKS5zdHlsZS5oZWlnaHQ9TWF0aC5yb3VuZCh3aWR0aCowLjgqMy80KSArICJweCI7DQogICAgICAgfQ0KDQogaWYod2lkdGg8NDAwKXsgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInNpdGVsb2dvIikuc3R5bGUuZGlzcGxheT0ibm9uZSI7DQogfWVsc2V7ICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgic2l0ZWxvZ28iKS5zdHlsZS5kaXNwbGF5PSJibG9jayI7DQogfSAgIA0KICAgIH0NCiAgICAgIDwvc2NyaXB0Pg0KDQo8L2hlYWQ+DQo8Ym9keSBvbkZvY3VzPSJGaXRTY3JlZW4oKTsiIG9uTG9hZD0iRml0U2NyZWVuKCk7IiBvblJlc2l6ZT0iRml0U2NyZWVuKCk7Ij4NCiAgICA8ZGl2IGlkPSJjb250YWluZXIiPg0KICA8ZGl2IGlkPSJnYW1lQ29udGFpbmVyIiBoZWlnaHQ9Ijc1MHB4IiB3aWR0aD0iNDQwcHgiPjwvZGl2Pg0KICAgICAgICA8ZGl2IGlkPSJmb290ZXIiPg0KDQogICAgICAgICAgICAgICAgIDxkaXYgaWQ9InNpdGVsb2dvIiBvbkNsaWNrPSdvcGVuR2FtZVVybCgpJyBzdHlsZT0icG9zaXRpb246YWJzb2x1dGU7Ym90dG9tOjVweDtsZWZ0OjUwJTt0cmFuc2Zvcm06IHRyYW5zbGF0ZSgtNTAlLDApO2Rpc3BsYXk6bm9uZTtjdXJzb3I6cG9pbnRlcjsiPg0KDQogICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzPSJmdWxsc2NyZWVuIj5UcmFmZmljIFJ1biA8aW1nIHNyYz0iIiB3aWR0aD0iMzgiIGhlaWdodD0iMzgiIG9uY2xpY2s9ImdhbWVJbnN0YW5jZS5TZXRGdWxsc2NyZWVuKDEpOyIgc3R5bGU9ImRpc3BsYXk6bm9uZTsiIGlkPSJGdWxsc2NyZWVuSW1nIj48L2Rpdj4NCiAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgDQogICAgICAgICAgICA8ZGl2IGlkPSJsb2dvIj4NCg0KDQogICAgICAgICAgICAgICAgPGRpdiBpZD0ibG9hZGluZ2luZm8iIHN0eWxlPSJwb3NpdGlvbjphYnNvbHV0ZTtib3R0b206MTBweDtsZWZ0OjUwJTt3aWR0aDo1MCU7bWF4LWhlaWdodDoxMHB4O3RyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsIDAlKTtjb2xvcjojYTU5ZDk2O2ZvbnQtc2l6ZToxNHB4OyI+DQogICAgICAgICAgICAgICAgICAgIExvYWRpbmcuLi4NCiAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICA8L2Rpdj4NCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvc3QzOS9zZGtAbWFpbi9hcGkuanMiPjwvc2NyaXB0PiAgICAgDQo8L2JvZHk+DQo8L2h0bWw+DQoNCl1dPjwvQ29udGVudD4NCjwvTW9kdWxlPg0K";
+        const faviconUrl = "https://ssl.gstatic.com/classroom/favicon.png";
+        const pageTitle = "classroom.google.com";
+        const playPrimaryInlineBtn = document.getElementById('playPrimaryInline');
+        const playPrimaryFullscreenBtn = document.getElementById('playPrimaryFullscreen');
+        playPrimaryInlineBtn.addEventListener('click', () => {
+            gameContainer.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.src = googleScriptUrl;
+            gameContainer.appendChild(iframe);
+        });
+        playPrimaryFullscreenBtn.addEventListener('click', () => {
+            const newWindow = window.open('', '_blank');
+            if (!newWindow) return alert("Please allow pop-ups.");
+            newWindow.document.write(`<!DOCTYPE html><html><head><title>${pageTitle}</title><link rel="icon" href="${faviconUrl}"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${googleScriptUrl}" allowfullscreen></iframe></body></html>`);
+            newWindow.document.close();
+        });
+        const playAltInlineBtn = document.getElementById('playAltInline');
+        const playAltFullscreenBtn = document.getElementById('playAltFullscreen');
+        let readyHtmlContent = null;
+        async function prepareGameContent() {
+            try {
+                const resp = await fetch(gameXmlUrl);
+                if (!resp.ok) throw new Error(`Failed to load XML: ${resp.status} ${resp.statusText}`);
+                const xmlText = await resp.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                const contentNode = xmlDoc.querySelector("Content");
+                if (!contentNode) throw new Error("<Content> not found in XML");
+                const htmlContent = contentNode.textContent;
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                if (!doc.head) {
+                    const headEl = doc.createElement('head');
+                    doc.documentElement.insertBefore(headEl, doc.documentElement.firstChild);
+                }
+                let titleTag = doc.querySelector('title');
+                if (!titleTag) {
+                    titleTag = doc.createElement('title');
+                    doc.head.appendChild(titleTag);
+                }
+                titleTag.textContent = pageTitle;
+                const faviconLink = doc.createElement('link');
+                faviconLink.rel = 'icon';
+                faviconLink.href = faviconUrl;
+                doc.head.appendChild(faviconLink);
+                const xmlBase = gameXmlUrl.substring(0, gameXmlUrl.lastIndexOf('/') + 1);
+                let discoveredBuildUrl = null;
+                try {
+                    const bMatch = htmlContent.match(/(?:const|var|let)\s+buildUrl\s*=\s*['"]([^'"]+)['"]/i);
+                    if (bMatch) discoveredBuildUrl = bMatch[1];
+                    if (!discoveredBuildUrl) {
+                        const loaderMatch = htmlContent.match(/(?:const|var|let)\s+loaderUrl\s*=\s*['"]([^'"]+)['"]/i);
+                        if (loaderMatch) {
+                            const lu = loaderMatch[1];
+                            discoveredBuildUrl = lu.substring(0, lu.lastIndexOf('/'));
+                        }
+                    }
+                } catch (e) {}
+                const effectiveBase = discoveredBuildUrl || xmlBase;
+                const injectedHost = JSON.stringify(window.location.hostname);
+                const injectedHref = JSON.stringify(window.location.href);
+                const shimCode = `
+(function(){
+  const SHIM_DEBUG = false;
+  const injectedDomain = ${injectedHost};
+  const injectedHref = ${injectedHref};
+  const BASE_FOR_REL = ${JSON.stringify(effectiveBase)};
+  function dbg(){ if(SHIM_DEBUG && console && console.log) console.log('[SHIM]', ...arguments); }
+  const AD_HOSTS = ['api.gamemonetize.com','gamemonetize.com','gamedistribution.com','ads.gamedistribution.com'];
+  function isAdHost(url){ try { return AD_HOSTS.some(h => url.indexOf(h) !== -1); } catch(e) { return false; } }
+  function absolutize(url){ try { new URL(url); return url; } catch(e){ try { return new URL(url, BASE_FOR_REL).href; } catch(e2){ return url; } } }
+  function patchDomainParamToUrl(u){ try { if (!(u instanceof URL)) u = new URL(u, location.href); const cur = u.searchParams.get('domain'); if(!cur || cur.trim()==='' || cur.toLowerCase().startsWith('blob')) { u.searchParams.set('domain', injectedDomain); dbg('patched domain ->', injectedDomain, 'for', u.toString()); } return u.toString(); } catch(e){ return u.toString ? u.toString() : u; } }
+  const _fetch = window.fetch;
+  window.fetch = function(input, init){ try { let urlStr = null; if (typeof input === 'string') urlStr = input; else if (input instanceof Request) urlStr = input.url; if (urlStr) { try { new URL(urlStr); } catch(e){ urlStr = absolutize(urlStr); } if (isAdHost(urlStr)) { const patched = patchDomainParamToUrl(new URL(urlStr, location.href)); input = (typeof input === 'string') ? patched : new Request(patched, input); } else { input = (typeof input === 'string') ? urlStr : new Request(urlStr, input); } } } catch(e){ dbg('fetch shim err', e); } return _fetch.call(this, input, init); };
+  try { const _open = XMLHttpRequest.prototype.open; XMLHttpRequest.prototype.open = function(method, url, async, user, pass){ try { let finalUrl = url; try { new URL(finalUrl); } catch(e){ finalUrl = absolutize(finalUrl); } if (isAdHost(finalUrl)) finalUrl = patchDomainParamToUrl(new URL(finalUrl, location.href)); return _open.call(this, method, finalUrl, async !== false, user, pass); } catch(e){ return _open.apply(this, arguments); } }; } catch(e){ dbg('xhr override failed', e); }
+  try { const imgDesc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src') || {}; if (imgDesc && typeof imgDesc.set === 'function') { Object.defineProperty(HTMLImageElement.prototype, 'src', { set: function(v){ try { if (v) { try { new URL(v); } catch(e){ v = absolutize(v); } if (isAdHost(v)) v = patchDomainParamToUrl(new URL(v, location.href)); } } catch(e){ dbg('img.src shim err', e); } return imgDesc.set.call(this, v); }, get: function(){ return imgDesc.get.call(this); }, configurable:true, enumerable:true }); } } catch(e){ dbg('img.src override failed', e); }
+  try { const scrDesc = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src') || {}; if (scrDesc && typeof scrDesc.set === 'function') { Object.defineProperty(HTMLScriptElement.prototype, 'src', { set: function(v){ try { if (v) { try { new URL(v); } catch(e){ v = absolutize(v); } if (isAdHost(v)) v = patchDomainParamToUrl(new URL(v, location.href)); } } catch(e){ dbg('script.src shim err', e); } return scrDesc.set.call(this, v); }, get: function(){ return scrDesc.get.call(this); }, configurable:true, enumerable:true }); } } catch(e){ dbg('script.src override failed', e); }
+  try { if (navigator && typeof navigator.sendBeacon === 'function') { const _sb = navigator.sendBeacon; navigator.sendBeacon = function(url, data){ try { if (typeof url === 'string') { try { new URL(url); } catch(e){ url = absolutize(url); } if (isAdHost(url)) url = patchDomainParamToUrl(new URL(url, location.href)); } } catch(e){ dbg('sendBeacon shim err', e); } return _sb.call(this, url, data); }; } } catch(e){ dbg('sendBeacon override failed', e); }
+  try { Object.defineProperty(document, 'referrer', { get: function(){ return injectedHref; }, configurable:true }); } catch(e){ try { document.referrer = injectedHref; } catch(e){ dbg('referrer assign failed'); } }
+  (async function(){ const blobCache = new Map(); async function fetchArrayBuffer(url) { const r = await fetch(url, { credentials: 'same-origin' }); if (!r.ok) throw new Error('fetch failed ' + r.status); return await r.arrayBuffer(); } async function toBlobUrl(url) { if (blobCache.has(url)) return blobCache.get(url); try { const ab = await fetchArrayBuffer(url); const mime = /\\.wasm$|\\.unityweb$/.test(url) ? 'application/wasm' : 'application/octet-stream'; const b = URL.createObjectURL(new Blob([ab], { type: mime })); blobCache.set(url, b); return b; } catch(e){ dbg('toBlobUrl failed', e); return url; } } function makeAbsoluteIfNeeded(u) { try { new URL(u); return u; } catch(e){ try { return new URL(u, BASE_FOR_REL).href; } catch(e2){ return u; } } } async function mapUnityConfig(configOrUrl){ let cfg = null; if (typeof configOrUrl === 'string') { const abs = makeAbsoluteIfNeeded(configOrUrl); const r = await fetch(abs, { credentials: 'same-origin' }); cfg = await r.json(); } else { cfg = Object.assign({}, configOrUrl); } try { if (cfg.streamingAssetsUrl) { if (cfg.streamingAssetsUrl === "StreamingAssets" || cfg.streamingAssetsUrl === "StreamingAssets/") { cfg.streamingAssetsUrl = new URL('StreamingAssets/', BASE_FOR_REL).toString(); } else { cfg.streamingAssetsUrl = makeAbsoluteIfNeeded(cfg.streamingAssetsUrl); } } } catch(e){ dbg('streamingAssets fix fail', e); } const keys = ['dataUrl','frameworkUrl','codeUrl','memoryUrl','symbolsUrl','wasmCodeUrl','wasmFrameworkUrl']; for (const k of keys) { if (cfg[k] && typeof cfg[k] === 'string') { const abs = makeAbsoluteIfNeeded(cfg[k]); if (/\\.wasm$|\\.unityweb$|\\.data$|\\.mem$|\\.symbols$/.test(abs)) { try { cfg[k] = await toBlobUrl(abs); } catch(e){ cfg[k] = abs; } } else { cfg[k] = abs; } } } return cfg; } let originalCreate = null; try { Object.defineProperty(window, 'createUnityInstance', { configurable: true, enumerable: true, get: function(){ return async function(container, config, onProgress){ const start = Date.now(); while (!originalCreate && Date.now() - start < 8000) { await new Promise(r => setTimeout(r,25)); } let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ dbg('mapUnityConfig error', e); mapped = config; } if (originalCreate) return originalCreate(container, mapped || config, onProgress); if (typeof window.__createUnityInstance_orig === 'function') return window.__createUnityInstance_orig(container, mapped || config, onProgress); throw new Error('createUnityInstance not found'); }; }, set: function(fn){ if (typeof fn === 'function') { originalCreate = fn; window.__createUnityInstance_orig = fn; dbg('captured createUnityInstance'); } } }); } catch(e){ dbg('defineProperty(createUnityInstance) failed', e); (function poll(){ const cur = window.createUnityInstance; setTimeout(() => { if (window.createUnityInstance !== cur && typeof window.createUnityInstance === 'function') { originalCreate = window.createUnityInstance; window.__createUnityInstance_orig = originalCreate; window.createUnityInstance = async function(container, config, onProgress){ let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ mapped = config; } return originalCreate(container, mapped || config, onProgress); }; dbg('captured createUnityInstance via poll'); } else poll(); }, 50); })(); try { window.createUnityInstance = async function(container, config, onProgress){ let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ mapped = config; } if (typeof window.__createUnityInstance_orig === 'function') return window.__createUnityInstance_orig(container, mapped || config, onProgress); throw new Error('createUnityInstance not ready'); }; } catch(e){} } dbg('Unity interceptor ready'); })();
+  dbg('shim injected');
+})();`;
+                const shimScriptTag = doc.createElement('script');
+                shimScriptTag.textContent = shimCode;
+                doc.head.prepend(shimScriptTag);
+                const baseTag = doc.createElement('base');
+                baseTag.href = effectiveBase;
+                doc.head.prepend(baseTag);
+                readyHtmlContent = doc.documentElement.outerHTML;
+            } catch (err) {
+                gameContainer.innerHTML = `<div style="color:red;padding:20px;">Error: ${err.message}</div>`;
+                playAltInlineBtn.disabled = true;
+                playAltFullscreenBtn.disabled = true;
+            }
+        }
+        prepareGameContent();
+        function launchAltGame(isInline) {
+            if (!readyHtmlContent) return alert('Game is not ready yet. Please wait.');
+            const blob = new Blob([readyHtmlContent], { type: 'text/html' });
+            const gameUrl = URL.createObjectURL(blob);
+            if (isInline) {
+                gameContainer.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.src = gameUrl;
+                gameContainer.appendChild(iframe);
+            } else {
+                const newWin = window.open(gameUrl, '_blank');
+                if (!newWin) alert('Please allow popups for this site.');
+            }
+        }
+        playAltInlineBtn.addEventListener('click', () => launchAltGame(true));
+        playAltFullscreenBtn.addEventListener('click', () => launchAltGame(false));
+    </script>
+</body>
+</html>

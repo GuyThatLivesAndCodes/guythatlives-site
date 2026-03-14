@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Gill Sans",sans-serif;background:transparent}
+        .game-embed-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#274e13;border-radius:10px;overflow:hidden;position:relative;box-sizing:border-box;color:#fff;text-align:center}
+        .button-wrapper{display:flex;flex-direction:column;align-items:center;gap:25px;padding:20px;width:100%;max-width:550px;box-sizing:border-box}
+        .logo-text{font-family:"Gill Sans",sans-serif;font-size:2.5rem;font-weight:bold;color:#fff;text-shadow:2px 2px 5px rgba(0,0,0,.6);padding-bottom:10px}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;width:100%}
+        @media (max-width:480px){.button-grid{grid-template-columns:1fr}.logo-text{font-size:2rem}}
+        .c-button{min-height:50px;appearance:none;border:2px solid rgba(0,0,0,.2);border-radius:8px;color:#fff;padding:10px 15px;font-size:18px;cursor:pointer;transition:all .2s ease-in-out;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:bold}
+        .btn-primary{background:#6aa84f}
+        .btn-primary:hover{background:#8fbc8f;border-color:#a2d1a2;transform:translateY(-2px)}
+        .btn-alt{background:#073763}
+        .btn-alt:hover{background:#3d85c6;border-color:#6f9ac4;transform:translateY(-2px)}
+        .c-button:focus{outline:none;box-shadow:0 0 0 4px #cbd6ee}
+        .c-button:disabled{background:#555;cursor:not-allowed}
+        .game-embed-container iframe{width:100%;height:100%;border:none}
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-embed-container">
+        <div id="buttonWrapper" class="button-wrapper">
+            <div class="logo-text">GUYTHATLIVES UNBLOCKED</div>
+            <div class="button-grid">
+                <button id="playPrimaryInline" class="c-button btn-primary">PLAY HERE</button>
+                <button id="playPrimaryFullscreen" class="c-button btn-primary">FULLSCREEN</button>
+                <button id="playAltInline" class="c-button btn-alt">PLAY HERE (Alt)</button>
+                <button id="playAltFullscreen" class="c-button btn-alt">FULLSCREEN (Alt)</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const buttonWrapper = document.getElementById('buttonWrapper');
+        const googleScriptUrl = "https://script.google.com/macros/s/AKfycbw2-Al0cIJ0o2RnN5ucL5JQINtf5ByMqVDAx5TIATePl_MA-WoyG0mQZP0p6QG-OTjB/exec";
+        const gameXmlUrl = "data:@file/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8TW9kdWxlPg0KPE1vZHVsZVByZWZzIHRpdGxlPSJEZWVwZXN0IFN3b3JkIiAvPg0KPENvbnRlbnQgdHlwZT0iaHRtbCI+PCFbQ0RBVEFbDQoNCjwhRE9DVFlQRSBodG1sPg0KPGh0bWwgbGFuZz0iZW4tdXMiPg0KICA8aGVhZD4NCiAgICA8bWV0YSBjaGFyc2V0PSJ1dGYtOCI+DQogICAgPG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9dXRmLTgiPg0KICAgIDxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wLCB1c2VyLXNjYWxhYmxlPW5vIj4NCiAgICA8c3R5bGU+DQpodG1se2JveC1zaXppbmc6Ym9yZGVyLWJveH0qLCo6YmVmb3JlLCo6YWZ0ZXJ7Ym94LXNpemluZzppbmhlcml0fWh0bWwsYm9keXtoZWlnaHQ6MTAwJX1jYW52YXN7ZGlzcGxheTpibG9ja31ib2R5e21hcmdpbjowfSN1bml0eS1jb250YWluZXJ7d2lkdGg6MTAwJTtoZWlnaHQ6MTAwJX0jdW5pdHktY2FudmFze3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCU7YmFja2dyb3VuZDojMWYxZjIwfSNsb2FkaW5nLWNvdmVye3Bvc2l0aW9uOmFic29sdXRlO3RvcDowO2xlZnQ6MDt3aWR0aDoxMDAlO2hlaWdodDoxMDAlO2Rpc3BsYXk6ZmxleDtqdXN0aWZ5LWNvbnRlbnQ6Y2VudGVyO2FsaWduLWl0ZW1zOmNlbnRlcn0jdW5pdHktbG9hZGluZy1iYXJ7ZmxleDoxIDEgYXV0bztkaXNwbGF5OmZsZXg7ZmxleC1kaXJlY3Rpb246Y29sdW1uO2p1c3RpZnktY29udGVudDpjZW50ZXI7YWxpZ24taXRlbXM6Y2VudGVyfSN1bml0eS1sb2dve3RleHQtYWxpZ246Y2VudGVyfSN1bml0eS1sb2dvIGltZ3ttYXgtd2lkdGg6ODAlfSN1bml0eS1wcm9ncmVzcy1iYXItZW1wdHl7d2lkdGg6ODAlO2hlaWdodDoyNHB4O21hcmdpbjoxMHB4IDIwcHggMjBweCAxMHB4O3RleHQtYWxpZ246bGVmdDtib3JkZXI6MXB4IHNvbGlkIHdoaXRlO3BhZGRpbmc6MnB4fSN1bml0eS1wcm9ncmVzcy1iYXItZnVsbHt3aWR0aDowO2hlaWdodDoxMDAlO2JhY2tncm91bmQ6d2hpdGV9LmxpZ2h0ICN1bml0eS1wcm9ncmVzcy1iYXItZW1wdHl7Ym9yZGVyLWNvbG9yOmJsYWNrfS5saWdodCAjdW5pdHktcHJvZ3Jlc3MtYmFyLWZ1bGx7YmFja2dyb3VuZDpibGFja30jdW5pdHktZnVsbHNjcmVlbi1idXR0b257cG9zaXRpb246YWJzb2x1dGU7cmlnaHQ6MTBweDtib3R0b206MTBweDt3aWR0aDozOHB4O2hlaWdodDozOHB4O2JhY2tncm91bmQ6dXJsKCdmdWxsc2NyZWVuLWJ1dHRvbi5wbmcnKSBuby1yZXBlYXQgY2VudGVyO2JhY2tncm91bmQtc2l6ZTpjb250YWlufS5zcGlubmVyLC5zcGlubmVyOmFmdGVye2JvcmRlci1yYWRpdXM6NTAlO3dpZHRoOjVlbTtoZWlnaHQ6NWVtfS5zcGlubmVye21hcmdpbjoxMHB4O2ZvbnQtc2l6ZToxMHB4O3Bvc2l0aW9uOnJlbGF0aXZlO3RleHQtaW5kZW50Oi05OTk5ZW07Ym9yZGVyLXRvcDoxLjFlbSBzb2xpZCByZ2JhKDI1NSwyNTUsMjU1LDAuMik7Ym9yZGVyLXJpZ2h0OjEuMWVtIHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4yKTtib3JkZXItYm90dG9tOjEuMWVtIHNvbGlkIHJnYmEoMjU1LDI1NSwyNTUsMC4yKTtib3JkZXItbGVmdDoxLjFlbSBzb2xpZCAjZmZmO3RyYW5zZm9ybTp0cmFuc2xhdGVaKDApO2FuaW1hdGlvbjpzcGlubmVyLXNwaW4gMS4xcyBpbmZpbml0ZSBsaW5lYXJ9QGtleWZyYW1lcyBzcGlubmVyLXNwaW57MCV7dHJhbnNmb3JtOnJvdGF0ZSgwKX0xMDAle3RyYW5zZm9ybTpyb3RhdGUoMzYwZGVnKX19DQoJPC9zdHlsZT4NCiAgPC9oZWFkPg0KICA8Ym9keSBjbGFzcz0iZGFyayI+DQogICAgPGRpdiBpZD0idW5pdHktY29udGFpbmVyIiBjbGFzcz0idW5pdHktZGVza3RvcCI+DQogICAgICA8Y2FudmFzIGlkPSJ1bml0eS1jYW52YXMiPjwvY2FudmFzPg0KICAgIDwvZGl2Pg0KICAgIDxkaXYgaWQ9ImxvYWRpbmctY292ZXIiIHN0eWxlPSJkaXNwbGF5Om5vbmU7Ij4NCiAgICAgIDxkaXYgaWQ9InVuaXR5LWxvYWRpbmctYmFyIj4NCiAgICAgICAgPGRpdiBpZD0idW5pdHktcHJvZ3Jlc3MtYmFyLWVtcHR5IiBzdHlsZT0iZGlzcGxheTogbm9uZTsiPg0KICAgICAgICAgIDxkaXYgaWQ9InVuaXR5LXByb2dyZXNzLWJhci1mdWxsIj48L2Rpdj4NCiAgICAgICAgPC9kaXY+DQogICAgICAgIDxkaXYgY2xhc3M9InNwaW5uZXIiPjwvZGl2Pg0KICAgICAgPC9kaXY+DQogICAgPC9kaXY+DQogICAgPGRpdiBpZD0idW5pdHktZnVsbHNjcmVlbi1idXR0b24iIHN0eWxlPSJkaXNwbGF5OiBub25lOyI+PC9kaXY+DQogICAgPHNjcmlwdD4NCiAgICAgIGNvbnN0IGhpZGVGdWxsU2NyZWVuQnV0dG9uID0gIjEiOw0KICAgICAgY29uc3QgYnVpbGRVcmwgPSAiaHR0cHM6Ly9jZG4uanNkZWxpdnIubmV0L2doLzE2NDIxMjgvZGVlcGVzdC1zd29yZEBjOTE0NjI4NDdjNGZlNmU0YzdkNjcwZDYzMTQ1ZWM4Mzk4NmIzOGMzL0J1aWxkIjsNCiAgICAgIGNvbnN0IGxvYWRlclVybCA9IGJ1aWxkVXJsICsgIi9XZWJCdWlsZHMubG9hZGVyLmpzIjsNCiAgICAgIGNvbnN0IGNvbmZpZyA9IHsNCiAgICAgICAgZGF0YVVybDogYnVpbGRVcmwgKyAiL1dlYkJ1aWxkcy5kYXRhIiwNCiAgICAgICAgZnJhbWV3b3JrVXJsOiBidWlsZFVybCArICIvV2ViQnVpbGRzLmZyYW1ld29yay5qcyIsDQogICAgICAgIGNvZGVVcmw6IGJ1aWxkVXJsICsgIi9XZWJCdWlsZHMud2FzbSIsDQogICAgICAgIHN0cmVhbWluZ0Fzc2V0c1VybDogImh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9TdHJlYW1pbmdBc3NldHMiLA0KICAgICAgfTsNCg0KICAgICAgY29uc3QgY29udGFpbmVyID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI3VuaXR5LWNvbnRhaW5lciIpOw0KICAgICAgY29uc3QgY2FudmFzID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI3VuaXR5LWNhbnZhcyIpOw0KICAgICAgY29uc3QgbG9hZGluZ0NvdmVyID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI2xvYWRpbmctY292ZXIiKTsNCiAgICAgIGNvbnN0IHByb2dyZXNzQmFyRW1wdHkgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCIjdW5pdHktcHJvZ3Jlc3MtYmFyLWVtcHR5Iik7DQogICAgICBjb25zdCBwcm9ncmVzc0JhckZ1bGwgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCIjdW5pdHktcHJvZ3Jlc3MtYmFyLWZ1bGwiKTsNCiAgICAgIGNvbnN0IGZ1bGxzY3JlZW5CdXR0b24gPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCIjdW5pdHktZnVsbHNjcmVlbi1idXR0b24iKTsNCiAgICAgIGNvbnN0IHNwaW5uZXIgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKCcuc3Bpbm5lcicpOw0KDQogICAgICBjb25zdCBjYW5GdWxsc2NyZWVuID0gKGZ1bmN0aW9uKCkgew0KICAgICAgICBmb3IgKGNvbnN0IGtleSBvZiBbDQogICAgICAgICAgICAnZXhpdEZ1bGxzY3JlZW4nLA0KICAgICAgICAgICAgJ3dlYmtpdEV4aXRGdWxsc2NyZWVuJywNCiAgICAgICAgICAgICd3ZWJraXRDYW5jZWxGdWxsU2NyZWVuJywNCiAgICAgICAgICAgICdtb3pDYW5jZWxGdWxsU2NyZWVuJywNCiAgICAgICAgICAgICdtc0V4aXRGdWxsc2NyZWVuJywNCiAgICAgICAgICBdKSB7DQogICAgICAgICAgaWYgKGtleSBpbiBkb2N1bWVudCkgew0KICAgICAgICAgICAgcmV0dXJuIHRydWU7DQogICAgICAgICAgfQ0KICAgICAgICB9DQogICAgICAgIHJldHVybiBmYWxzZTsNCiAgICAgIH0oKSk7DQoNCiAgICAgIGlmICgvaVBob25lfGlQYWR8aVBvZHxBbmRyb2lkL2kudGVzdChuYXZpZ2F0b3IudXNlckFnZW50KSkgew0KICAgICAgICBjb250YWluZXIuY2xhc3NOYW1lID0gInVuaXR5LW1vYmlsZSI7DQogICAgICAgIGNvbmZpZy5kZXZpY2VQaXhlbFJhdGlvID0gMTsNCiAgICAgIH0NCiAgICAgIGxvYWRpbmdDb3Zlci5zdHlsZS5kaXNwbGF5ID0gIiI7DQoNCiAgICAgIGNvbnN0IHNjcmlwdCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoInNjcmlwdCIpOw0KICAgICAgc2NyaXB0LnNyYyA9IGxvYWRlclVybDsNCiAgICAgIHNjcmlwdC5vbmxvYWQgPSAoKSA9PiB7DQogICAgICAgIGNyZWF0ZVVuaXR5SW5zdGFuY2UoY2FudmFzLCBjb25maWcsIChwcm9ncmVzcykgPT4gew0KICAgICAgICAgIHNwaW5uZXIuc3R5bGUuZGlzcGxheSA9ICJub25lIjsNCiAgICAgICAgICBwcm9ncmVzc0JhckVtcHR5LnN0eWxlLmRpc3BsYXkgPSAiIjsNCiAgICAgICAgICBwcm9ncmVzc0JhckZ1bGwuc3R5bGUud2lkdGggPSBgJHsxMDAgKiBwcm9ncmVzc30lYDsNCiAgICAgICAgfSkudGhlbigodW5pdHlJbnN0YW5jZSkgPT4gew0KICAgICAgICAgIGxvYWRpbmdDb3Zlci5zdHlsZS5kaXNwbGF5ID0gIm5vbmUiOw0KICAgICAgICAgIGlmIChjYW5GdWxsc2NyZWVuKSB7DQogICAgICAgICAgICBpZiAoIWhpZGVGdWxsU2NyZWVuQnV0dG9uKSB7DQogICAgICAgICAgICAgIGZ1bGxzY3JlZW5CdXR0b24uc3R5bGUuZGlzcGxheSA9ICIiOw0KICAgICAgICAgICAgfQ0KICAgICAgICAgICAgZnVsbHNjcmVlbkJ1dHRvbi5vbmNsaWNrID0gKCkgPT4gew0KICAgICAgICAgICAgICB1bml0eUluc3RhbmNlLlNldEZ1bGxzY3JlZW4oMSk7DQogICAgICAgICAgICB9Ow0KICAgICAgICAgIH0NCiAgICAgICAgfSkuY2F0Y2goKG1lc3NhZ2UpID0+IHsNCiAgICAgICAgICBhbGVydChtZXNzYWdlKTsNCiAgICAgICAgfSk7DQogICAgICB9Ow0KICAgICAgICAgICBkb2N1bWVudC5ib2R5LmFwcGVuZENoaWxkKHNjcmlwdCk7DQogICAgPC9zY3JpcHQ+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9zdDM5L3Nka0BtYWluL2FwaS5qcyI+PC9zY3JpcHQ+DQogIDwvYm9keT4NCjwvaHRtbD4NCg0KXV0+PC9Db250ZW50Pg0KPC9Nb2R1bGU+DQo=";
+        const faviconUrl = "https://ssl.gstatic.com/classroom/favicon.png";
+        const pageTitle = "classroom.google.com";
+        const playPrimaryInlineBtn = document.getElementById('playPrimaryInline');
+        const playPrimaryFullscreenBtn = document.getElementById('playPrimaryFullscreen');
+        playPrimaryInlineBtn.addEventListener('click', () => {
+            gameContainer.innerHTML = '';
+            const iframe = document.createElement('iframe');
+            iframe.src = googleScriptUrl;
+            gameContainer.appendChild(iframe);
+        });
+        playPrimaryFullscreenBtn.addEventListener('click', () => {
+            const newWindow = window.open('', '_blank');
+            if (!newWindow) return alert("Please allow pop-ups.");
+            newWindow.document.write(`<!DOCTYPE html><html><head><title>${pageTitle}</title><link rel="icon" href="${faviconUrl}"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${googleScriptUrl}" allowfullscreen></iframe></body></html>`);
+            newWindow.document.close();
+        });
+        const playAltInlineBtn = document.getElementById('playAltInline');
+        const playAltFullscreenBtn = document.getElementById('playAltFullscreen');
+        let readyHtmlContent = null;
+        async function prepareGameContent() {
+            try {
+                const resp = await fetch(gameXmlUrl);
+                if (!resp.ok) throw new Error(`Failed to load XML: ${resp.status} ${resp.statusText}`);
+                const xmlText = await resp.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                const contentNode = xmlDoc.querySelector("Content");
+                if (!contentNode) throw new Error("<Content> not found in XML");
+                const htmlContent = contentNode.textContent;
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+                if (!doc.head) {
+                    const headEl = doc.createElement('head');
+                    doc.documentElement.insertBefore(headEl, doc.documentElement.firstChild);
+                }
+                let titleTag = doc.querySelector('title');
+                if (!titleTag) {
+                    titleTag = doc.createElement('title');
+                    doc.head.appendChild(titleTag);
+                }
+                titleTag.textContent = pageTitle;
+                const faviconLink = doc.createElement('link');
+                faviconLink.rel = 'icon';
+                faviconLink.href = faviconUrl;
+                doc.head.appendChild(faviconLink);
+                const xmlBase = gameXmlUrl.substring(0, gameXmlUrl.lastIndexOf('/') + 1);
+                let discoveredBuildUrl = null;
+                try {
+                    const bMatch = htmlContent.match(/(?:const|var|let)\s+buildUrl\s*=\s*['"]([^'"]+)['"]/i);
+                    if (bMatch) discoveredBuildUrl = bMatch[1];
+                    if (!discoveredBuildUrl) {
+                        const loaderMatch = htmlContent.match(/(?:const|var|let)\s+loaderUrl\s*=\s*['"]([^'"]+)['"]/i);
+                        if (loaderMatch) {
+                            const lu = loaderMatch[1];
+                            discoveredBuildUrl = lu.substring(0, lu.lastIndexOf('/'));
+                        }
+                    }
+                } catch (e) {}
+                const effectiveBase = discoveredBuildUrl || xmlBase;
+                const injectedHost = JSON.stringify(window.location.hostname);
+                const injectedHref = JSON.stringify(window.location.href);
+                const shimCode = `
+(function(){
+  const SHIM_DEBUG = false;
+  const injectedDomain = ${injectedHost};
+  const injectedHref = ${injectedHref};
+  const BASE_FOR_REL = ${JSON.stringify(effectiveBase)};
+  function dbg(){ if(SHIM_DEBUG && console && console.log) console.log('[SHIM]', ...arguments); }
+  const AD_HOSTS = ['api.gamemonetize.com','gamemonetize.com','gamedistribution.com','ads.gamedistribution.com'];
+  function isAdHost(url){ try { return AD_HOSTS.some(h => url.indexOf(h) !== -1); } catch(e) { return false; } }
+  function absolutize(url){ try { new URL(url); return url; } catch(e){ try { return new URL(url, BASE_FOR_REL).href; } catch(e2){ return url; } } }
+  function patchDomainParamToUrl(u){ try { if (!(u instanceof URL)) u = new URL(u, location.href); const cur = u.searchParams.get('domain'); if(!cur || cur.trim()==='' || cur.toLowerCase().startsWith('blob')) { u.searchParams.set('domain', injectedDomain); dbg('patched domain ->', injectedDomain, 'for', u.toString()); } return u.toString(); } catch(e){ return u.toString ? u.toString() : u; } }
+  const _fetch = window.fetch;
+  window.fetch = function(input, init){ try { let urlStr = null; if (typeof input === 'string') urlStr = input; else if (input instanceof Request) urlStr = input.url; if (urlStr) { try { new URL(urlStr); } catch(e){ urlStr = absolutize(urlStr); } if (isAdHost(urlStr)) { const patched = patchDomainParamToUrl(new URL(urlStr, location.href)); input = (typeof input === 'string') ? patched : new Request(patched, input); } else { input = (typeof input === 'string') ? urlStr : new Request(urlStr, input); } } } catch(e){ dbg('fetch shim err', e); } return _fetch.call(this, input, init); };
+  try { const _open = XMLHttpRequest.prototype.open; XMLHttpRequest.prototype.open = function(method, url, async, user, pass){ try { let finalUrl = url; try { new URL(finalUrl); } catch(e){ finalUrl = absolutize(finalUrl); } if (isAdHost(finalUrl)) finalUrl = patchDomainParamToUrl(new URL(finalUrl, location.href)); return _open.call(this, method, finalUrl, async !== false, user, pass); } catch(e){ return _open.apply(this, arguments); } }; } catch(e){ dbg('xhr override failed', e); }
+  try { const imgDesc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src') || {}; if (imgDesc && typeof imgDesc.set === 'function') { Object.defineProperty(HTMLImageElement.prototype, 'src', { set: function(v){ try { if (v) { try { new URL(v); } catch(e){ v = absolutize(v); } if (isAdHost(v)) v = patchDomainParamToUrl(new URL(v, location.href)); } } catch(e){ dbg('img.src shim err', e); } return imgDesc.set.call(this, v); }, get: function(){ return imgDesc.get.call(this); }, configurable:true, enumerable:true }); } } catch(e){ dbg('img.src override failed', e); }
+  try { const scrDesc = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src') || {}; if (scrDesc && typeof scrDesc.set === 'function') { Object.defineProperty(HTMLScriptElement.prototype, 'src', { set: function(v){ try { if (v) { try { new URL(v); } catch(e){ v = absolutize(v); } if (isAdHost(v)) v = patchDomainParamToUrl(new URL(v, location.href)); } } catch(e){ dbg('script.src shim err', e); } return scrDesc.set.call(this, v); }, get: function(){ return scrDesc.get.call(this); }, configurable:true, enumerable:true }); } } catch(e){ dbg('script.src override failed', e); }
+  try { if (navigator && typeof navigator.sendBeacon === 'function') { const _sb = navigator.sendBeacon; navigator.sendBeacon = function(url, data){ try { if (typeof url === 'string') { try { new URL(url); } catch(e){ url = absolutize(url); } if (isAdHost(url)) url = patchDomainParamToUrl(new URL(url, location.href)); } } catch(e){ dbg('sendBeacon shim err', e); } return _sb.call(this, url, data); }; } } catch(e){ dbg('sendBeacon override failed', e); }
+  try { Object.defineProperty(document, 'referrer', { get: function(){ return injectedHref; }, configurable:true }); } catch(e){ try { document.referrer = injectedHref; } catch(e){ dbg('referrer assign failed'); } }
+  (async function(){ const blobCache = new Map(); async function fetchArrayBuffer(url) { const r = await fetch(url, { credentials: 'same-origin' }); if (!r.ok) throw new Error('fetch failed ' + r.status); return await r.arrayBuffer(); } async function toBlobUrl(url) { if (blobCache.has(url)) return blobCache.get(url); try { const ab = await fetchArrayBuffer(url); const mime = /\\.wasm$|\\.unityweb$/.test(url) ? 'application/wasm' : 'application/octet-stream'; const b = URL.createObjectURL(new Blob([ab], { type: mime })); blobCache.set(url, b); return b; } catch(e){ dbg('toBlobUrl failed', e); return url; } } function makeAbsoluteIfNeeded(u) { try { new URL(u); return u; } catch(e){ try { return new URL(u, BASE_FOR_REL).href; } catch(e2){ return u; } } } async function mapUnityConfig(configOrUrl){ let cfg = null; if (typeof configOrUrl === 'string') { const abs = makeAbsoluteIfNeeded(configOrUrl); const r = await fetch(abs, { credentials: 'same-origin' }); cfg = await r.json(); } else { cfg = Object.assign({}, configOrUrl); } try { if (cfg.streamingAssetsUrl) { if (cfg.streamingAssetsUrl === "StreamingAssets" || cfg.streamingAssetsUrl === "StreamingAssets/") { cfg.streamingAssetsUrl = new URL('StreamingAssets/', BASE_FOR_REL).toString(); } else { cfg.streamingAssetsUrl = makeAbsoluteIfNeeded(cfg.streamingAssetsUrl); } } } catch(e){ dbg('streamingAssets fix fail', e); } const keys = ['dataUrl','frameworkUrl','codeUrl','memoryUrl','symbolsUrl','wasmCodeUrl','wasmFrameworkUrl']; for (const k of keys) { if (cfg[k] && typeof cfg[k] === 'string') { const abs = makeAbsoluteIfNeeded(cfg[k]); if (/\\.wasm$|\\.unityweb$|\\.data$|\\.mem$|\\.symbols$/.test(abs)) { try { cfg[k] = await toBlobUrl(abs); } catch(e){ cfg[k] = abs; } } else { cfg[k] = abs; } } } return cfg; } let originalCreate = null; try { Object.defineProperty(window, 'createUnityInstance', { configurable: true, enumerable: true, get: function(){ return async function(container, config, onProgress){ const start = Date.now(); while (!originalCreate && Date.now() - start < 8000) { await new Promise(r => setTimeout(r,25)); } let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ dbg('mapUnityConfig error', e); mapped = config; } if (originalCreate) return originalCreate(container, mapped || config, onProgress); if (typeof window.__createUnityInstance_orig === 'function') return window.__createUnityInstance_orig(container, mapped || config, onProgress); throw new Error('createUnityInstance not found'); }; }, set: function(fn){ if (typeof fn === 'function') { originalCreate = fn; window.__createUnityInstance_orig = fn; dbg('captured createUnityInstance'); } } }); } catch(e){ dbg('defineProperty(createUnityInstance) failed', e); (function poll(){ const cur = window.createUnityInstance; setTimeout(() => { if (window.createUnityInstance !== cur && typeof window.createUnityInstance === 'function') { originalCreate = window.createUnityInstance; window.__createUnityInstance_orig = originalCreate; window.createUnityInstance = async function(container, config, onProgress){ let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ mapped = config; } return originalCreate(container, mapped || config, onProgress); }; dbg('captured createUnityInstance via poll'); } else poll(); }, 50); })(); try { window.createUnityInstance = async function(container, config, onProgress){ let mapped = null; try { mapped = await mapUnityConfig(config); } catch(e){ mapped = config; } if (typeof window.__createUnityInstance_orig === 'function') return window.__createUnityInstance_orig(container, mapped || config, onProgress); throw new Error('createUnityInstance not ready'); }; } catch(e){} } dbg('Unity interceptor ready'); })();
+  dbg('shim injected');
+})();`;
+                const shimScriptTag = doc.createElement('script');
+                shimScriptTag.textContent = shimCode;
+                doc.head.prepend(shimScriptTag);
+                const baseTag = doc.createElement('base');
+                baseTag.href = effectiveBase;
+                doc.head.prepend(baseTag);
+                readyHtmlContent = doc.documentElement.outerHTML;
+            } catch (err) {
+                gameContainer.innerHTML = `<div style="color:red;padding:20px;">Error: ${err.message}</div>`;
+                playAltInlineBtn.disabled = true;
+                playAltFullscreenBtn.disabled = true;
+            }
+        }
+        prepareGameContent();
+        function launchAltGame(isInline) {
+            if (!readyHtmlContent) return alert('Game is not ready yet. Please wait.');
+            const blob = new Blob([readyHtmlContent], { type: 'text/html' });
+            const gameUrl = URL.createObjectURL(blob);
+            if (isInline) {
+                gameContainer.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.src = gameUrl;
+                gameContainer.appendChild(iframe);
+            } else {
+                const newWin = window.open(gameUrl, '_blank');
+                if (!newWin) alert('Please allow popups for this site.');
+            }
+        }
+        playAltInlineBtn.addEventListener('click', () => launchAltGame(true));
+        playAltFullscreenBtn.addEventListener('click', () => launchAltGame(false));
+    </script>
+</body>
+</html>

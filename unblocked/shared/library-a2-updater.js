@@ -269,7 +269,7 @@ class LibraryA2Updater {
         console.log('Verifying games from known list...');
         for (const gameName of knownGames) {
             try {
-                const testUrl = `${this.baseUrl}/${gameName}/index.html`;
+                const testUrl = `${this.baseUrl}/${gameName}/embed.html`;
                 const response = await fetch(testUrl, { method: 'HEAD' });
                 if (response.ok) {
                     discoveredGames.push(gameName);

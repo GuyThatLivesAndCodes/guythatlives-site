@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>      html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Gill Sans",sans-serif;background:transparent}
+        .game-embed-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#274e13;border-radius:10px;overflow:hidden;position:relative;box-sizing:border-box;color:#fff;text-align:center}
+        .button-wrapper{display:flex;flex-direction:column;align-items:center;gap:25px;padding:20px;width:100%;max-width:550px;box-sizing:border-box}
+        .logo-text{font-family:"Gill Sans",sans-serif;font-size:2.5rem;font-weight:bold;color:#fff;text-shadow:2px 2px 5px rgba(0,0,0,.6);padding-bottom:10px}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;width:100%}
+        @media (max-width:480px){.button-grid{grid-template-columns:1fr}.logo-text{font-size:2rem}}
+        .c-button{min-height:50px;appearance:none;border:2px solid rgba(0,0,0,.2);border-radius:8px;color:#fff;padding:10px 15px;font-size:18px;cursor:pointer;transition:all .2s ease-in-out;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:bold}
+        .btn-primary{background:#6aa84f}
+        .btn-primary:hover{background:#8fbc8f;border-color:#a2d1a2;transform:translateY(-2px)}
+        .btn-alt{background:#073763}
+        .btn-alt:hover{background:#3d85c6;border-color:#6f9ac4;transform:translateY(-2px)}
+        .c-button:focus{outline:none;box-shadow:0 0 0 4px #cbd6ee}
+        .c-button:disabled{background:#555;cursor:not-allowed}
+        .game-embed-container iframe{width:100%;height:100%;border:none}
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-embed-container">
+        <div id="buttonWrapper" class="button-wrapper">
+            <div class="logo-text">GUYTHATLIVES UNBLOCKED</div>
+            <div class="button-grid">
+                <button id="playPrimaryInline" class="c-button btn-primary">PLAY HERE</button>
+                <button id="playPrimaryFullscreen" class="c-button btn-primary">FULLSCREEN</button>
+                <button id="playAltInline" class="c-button btn-alt">PLAY HERE (Alt)</button>
+                <button id="playAltFullscreen" class="c-button btn-alt">FULLSCREEN (Alt)</button>
+            </div>
+        </div>
+    </div>
+    <script>
+const gameContainer=document.getElementById("gameContainer"),buttonWrapper=document.getElementById("buttonWrapper"),googleScriptUrl="https://script.google.com/macros/s/AKfycbzslmKyXIbcAa1UmApxvSWveDc_NuRfuNYy-oo5-3yCML4N8_-2JoRilqhc92FqrsP0lg/exec",gameXmlUrl="data:@file/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8TW9kdWxlPg0KPE1vZHVsZVByZWZzIHRpdGxlPSIiIC8+DQo8Q29udGVudCB0eXBlPSJodG1sIj48IVtDREFUQVsNCg0KPCFET0NUWVBFIGh0bWw+DQo8aHRtbCBsYW5nPSJlbi11cyI+DQogIDxoZWFkPg0KICAgIDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4NCiAgICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDsgY2hhcnNldD11dGYtOCI+DQogICAgPHRpdGxlPlVuaXR5IFdlYkdMIFBsYXllciB8IFNob2d1blNob3dkb3duPC90aXRsZT4NCiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vcmF3Y2RuLmdpdGhhY2suY29tL1N0aW5rYWxpc3RpYy9qdW5rLzg5Y2ZhNzZhOWRhZjZhYzJhZTgzYWZjZTA3ZjgzYzY5YjgyOTBhMTIvU2hvZ3VuU2hvd2Rvd24vVGVtcGxhdGVEYXRhL3N0eWxlLmNzcyI+DQogICAgPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9zdDM5L3Nka0BtYWluL2FwaS5qcyI+PC9zY3JpcHQ+DQogICAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPg0KPHN0eWxlPmJvZHksaHRtbHttYXJnaW46MDtwYWRkaW5nOjA7aGVpZ2h0OjEwMCU7YmFja2dyb3VuZDojMjMxZjIwfSN1bml0eS1jb250YWluZXJ7ZGlzcGxheTpmbGV4O2p1c3RpZnktY29udGVudDpjZW50ZXI7YWxpZ24taXRlbXM6Y2VudGVyO3dpZHRoOjEwMCU7aGVpZ2h0OjEwMCV9I3VuaXR5LWNhbnZhc3ttYXgtd2lkdGg6MTAwJTttYXgtaGVpZ2h0OjEwMCV9I3VuaXR5LWxvYWRpbmctYmFye3Bvc2l0aW9uOmFic29sdXRlO2xlZnQ6NTAlO3RvcDo1MCU7dHJhbnNmb3JtOnRyYW5zbGF0ZSgtNTAlLC01MCUpfSN1bml0eS13YXJuaW5ne3Bvc2l0aW9uOmFic29sdXRlO3RvcDoxMHB4O2xlZnQ6NTAlO3RyYW5zZm9ybTp0cmFuc2xhdGVYKC01MCUpfTwvc3R5bGU+DQogIDwvaGVhZD4NCiAgPGJvZHk+DQogICAgPGRpdiBpZD0idW5pdHktY29udGFpbmVyIj4NCiAgICAgIDxjYW52YXMgaWQ9InVuaXR5LWNhbnZhcyIgd2lkdGg9OTYwIGhlaWdodD01NDA+PC9jYW52YXM+DQogICAgICA8ZGl2IGlkPSJ1bml0eS1sb2FkaW5nLWJhciI+DQogICAgICAgIDxkaXYgaWQ9InVuaXR5LWxvZ28iPjwvZGl2Pg0KICAgICAgICA8ZGl2IGlkPSJ1bml0eS1wcm9ncmVzcy1iYXItZW1wdHkiPg0KICAgICAgICAgIDxkaXYgaWQ9InVuaXR5LXByb2dyZXNzLWJhci1mdWxsIj48L2Rpdj4NCiAgICAgICAgPC9kaXY+DQogICAgICA8L2Rpdj4NCiAgICAgIDxkaXYgaWQ9InVuaXR5LXdhcm5pbmciPjwvZGl2Pg0KICAgIDwvZGl2Pg0KICAgIDxzY3JpcHQ+DQogICAgICB2YXIgY29udGFpbmVyID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI3VuaXR5LWNvbnRhaW5lciIpOw0KICAgICAgdmFyIGNhbnZhcyA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoIiN1bml0eS1jYW52YXMiKTsNCiAgICAgIHZhciBsb2FkaW5nQmFyID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI3VuaXR5LWxvYWRpbmctYmFyIik7DQogICAgICB2YXIgcHJvZ3Jlc3NCYXJGdWxsID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiI3VuaXR5LXByb2dyZXNzLWJhci1mdWxsIik7DQogICAgICB2YXIgd2FybmluZ0Jhbm5lciA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoIiN1bml0eS13YXJuaW5nIik7DQoNCiAgICAgIGZ1bmN0aW9uIHVuaXR5U2hvd0Jhbm5lcihtc2csIHR5cGUpIHsNCiAgICAgICAgaWYgKG1zZyAmJiBtc2cuaW5jbHVkZXMoJ0NvbnRlbnQtVHlwZScpKSByZXR1cm47DQogICAgICAgIGZ1bmN0aW9uIHVwZGF0ZUJhbm5lclZpc2liaWxpdHkoKSB7DQogICAgICAgICAgd2FybmluZ0Jhbm5lci5zdHlsZS5kaXNwbGF5ID0gd2FybmluZ0Jhbm5lci5jaGlsZHJlbi5sZW5ndGggPyAnYmxvY2snIDogJ25vbmUnOw0KICAgICAgICB9DQogICAgICAgIHZhciBkaXYgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCdkaXYnKTsNCiAgICAgICAgZGl2LmlubmVySFRNTCA9IG1zZzsNCiAgICAgICAgd2FybmluZ0Jhbm5lci5hcHBlbmRDaGlsZChkaXYpOw0KICAgICAgICBpZiAodHlwZSA9PSAnZXJyb3InKSBkaXYuc3R5bGUgPSAnYmFja2dyb3VuZDogcmVkOyBwYWRkaW5nOiAxMHB4Oyc7DQogICAgICAgIGVsc2Ugew0KICAgICAgICAgIGlmICh0eXBlID09ICd3YXJuaW5nJykgZGl2LnN0eWxlID0gJ2JhY2tncm91bmQ6IHllbGxvdzsgcGFkZGluZzogMTBweDsnOw0KICAgICAgICAgIHNldFRpbWVvdXQoZnVuY3Rpb24oKSB7DQogICAgICAgICAgICB3YXJuaW5nQmFubmVyLnJlbW92ZUNoaWxkKGRpdik7DQogICAgICAgICAgICB1cGRhdGVCYW5uZXJWaXNpYmlsaXR5KCk7DQogICAgICAgICAgfSwgNTAwMCk7DQogICAgICAgIH0NCiAgICAgICAgdXBkYXRlQmFubmVyVmlzaWJpbGl0eSgpOw0KICAgICAgfQ0KDQogICAgICB2YXIgYnVpbGRVcmwgPSAiaHR0cHM6Ly9yYXdjZG4uZ2l0aGFjay5jb20vU3RpbmthbGlzdGljL2p1bmsvODljZmE3NmE5ZGFmNmFjMmFlODNhZmNlMDdmODNjNjliODI5MGExMi9TaG9ndW5TaG93ZG93bi9CdWlsZCI7DQogICAgICB2YXIgbG9hZGVyVXJsID0gYnVpbGRVcmwgKyAiL1Nob2d1blNob3dkb3duX1dlYkdMLmxvYWRlci5qcyI7DQogICAgICB2YXIgY29uZmlnID0gew0KICAgICAgICBkYXRhVXJsOiBidWlsZFVybCArICIvU2hvZ3VuU2hvd2Rvd25fV2ViR0wuZGF0YS5neiIsDQogICAgICAgIGZyYW1ld29ya1VybDogYnVpbGRVcmwgKyAiL1Nob2d1blNob3dkb3duX1dlYkdMLmZyYW1ld29yay5qcyIsDQogICAgICAgIGNvZGVVcmw6IGJ1aWxkVXJsICsgIi9TaG9ndW5TaG93ZG93bl9XZWJHTC53YXNtLmd6IiwNCiAgICAgICAgc3RyZWFtaW5nQXNzZXRzVXJsOiAiaHR0cHM6Ly9yYXdjZG4uZ2l0aGFjay5jb20vIiwNCiAgICAgICAgY29tcGFueU5hbWU6ICJSb2JvYXRpbm8iLA0KICAgICAgICBwcm9kdWN0TmFtZTogIlNob2d1blNob3dkb3duIiwNCiAgICAgICAgcHJvZHVjdFZlcnNpb246ICIwLjIuMSIsDQogICAgICAgIHNob3dCYW5uZXI6IHVuaXR5U2hvd0Jhbm5lciwNCiAgICAgIH07DQoNCiAgICAgIGZ1bmN0aW9uIHJlc2l6ZUNhbnZhcygpIHsNCiAgICAgICAgdmFyIGFzcGVjdCA9IDk2MC81NDA7DQogICAgICAgIHZhciB3ID0gd2luZG93LmlubmVyV2lkdGg7DQogICAgICAgIHZhciBoID0gd2luZG93LmlubmVySGVpZ2h0Ow0KICAgICAgICB2YXIgbmV3VyA9IHc7DQogICAgICAgIHZhciBuZXdIID0gTWF0aC5yb3VuZChuZXdXIC8gYXNwZWN0KTsNCiAgICAgICAgaWYgKG5ld0ggPiBoKSB7DQogICAgICAgICAgbmV3SCA9IGg7DQogICAgICAgICAgbmV3VyA9IE1hdGgucm91bmQobmV3SCAqIGFzcGVjdCk7DQogICAgICAgIH0NCiAgICAgICAgY2FudmFzLnN0eWxlLndpZHRoID0gbmV3VyArICJweCI7DQogICAgICAgIGNhbnZhcy5zdHlsZS5oZWlnaHQgPSBuZXdIICsgInB4IjsNCiAgICAgIH0NCg0KICAgICAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoJ3Jlc2l6ZScsIHJlc2l6ZUNhbnZhcyk7DQogICAgICByZXNpemVDYW52YXMoKTsNCg0KICAgICAgbG9hZGluZ0Jhci5zdHlsZS5kaXNwbGF5ID0gImJsb2NrIjsNCiAgICAgIHZhciBzY3JpcHQgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJzY3JpcHQiKTsNCiAgICAgIHNjcmlwdC5zcmMgPSBsb2FkZXJVcmw7DQogICAgICBzY3JpcHQub25sb2FkID0gKCkgPT4gew0KICAgICAgICBjcmVhdGVVbml0eUluc3RhbmNlKGNhbnZhcywgY29uZmlnLCAocHJvZ3Jlc3MpID0+IHsNCiAgICAgICAgICBwcm9ncmVzc0JhckZ1bGwuc3R5bGUud2lkdGggPSAxMDAgKiBwcm9ncmVzcyArICIlIjsNCiAgICAgICAgfSkudGhlbigodW5pdHlJbnN0YW5jZSkgPT4gew0KICAgICAgICAgIGxvYWRpbmdCYXIuc3R5bGUuZGlzcGxheSA9ICJub25lIjsNCiAgICAgICAgfSkuY2F0Y2goKG1lc3NhZ2UpID0+IHsNCiAgICAgICAgICBhbGVydChtZXNzYWdlKTsNCiAgICAgICAgfSk7DQogICAgICB9Ow0KICAgICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChzY3JpcHQpOw0KICAgIDwvc2NyaXB0Pg0KICA8L2JvZHk+DQo8L2h0bWw+DQoNCl1dPjwvQ29udGVudD4NCjwvTW9kdWxlPg0K",faviconUrl="https://ssl.gstatic.com/classroom/favicon.png",pageTitle="classroom.google.com",playPrimaryInlineBtn=document.getElementById("playPrimaryInline"),playPrimaryFullscreenBtn=document.getElementById("playPrimaryFullscreen");playPrimaryInlineBtn.addEventListener("click",()=>{gameContainer.innerHTML="";const e=document.createElement("iframe");e.src=googleScriptUrl,gameContainer.appendChild(e)}),playPrimaryFullscreenBtn.addEventListener("click",()=>{const e=window.open("","_blank");e&&e.document.write(`<!DOCTYPE html><html><head><title>${pageTitle}</title><link rel="icon" href="${faviconUrl}"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${googleScriptUrl}" allowfullscreen></iframe></body></html>`)});const playAltInlineBtn=document.getElementById("playAltInline"),playAltFullscreenBtn=document.getElementById("playAltFullscreen");let readyHtmlContent=null;		
+async function prepareGameContent() {
+    try {
+        const e = await fetch(gameXmlUrl);
+        if (!e.ok) throw new Error(`Failed to load XML: ${e.status} ${e.statusText}`);
+        const t = await e.text(),
+            n = new DOMParser,
+            o = n.parseFromString(t, "application/xml"),
+            r = o.querySelector("Content");
+        if (!r) throw new Error("<Content> not found in XML");
+        const a = r.textContent,
+            d = n.parseFromString(a, "text/html");
+        if (!d.head) {
+            const c = d.createElement("head");
+            d.documentElement.insertBefore(c, d.documentElement.firstChild)
+        }
+        let i = d.querySelector("title");
+        i || (i = d.createElement("title"), d.head.appendChild(i)), i.textContent = pageTitle;
+        const l = d.createElement("link");
+        l.rel = "icon", l.href = faviconUrl, d.head.appendChild(l);
+        const styleReset = d.createElement("style");
+        styleReset.textContent = "html,body,#container{margin:0;padding:0;width:100%!important;height:100%!important;overflow:hidden!important}", d.head.appendChild(styleReset);
+        let s;
+        s = "data:" === gameXmlUrl.substring(0, 5) ? window.location.href : gameXmlUrl.substring(0, gameXmlUrl.lastIndexOf("/") + 1);
+        const u = d.createElement("base");
+        u.href = s, d.head.prepend(u);
+        const p = JSON.stringify(window.location.hostname),
+            g = JSON.stringify(window.location.href);
+        const manualSiteUrl = "https://sites.google.com"; 
+        const refJson = JSON.stringify(manualSiteUrl);
+        const m = d.createElement("script");
+        var scriptLines = [];
+        scriptLines.push("(function(){");
+        scriptLines.push("  const injectedHref = " + g + ";"); 
+        scriptLines.push("  const siteUrl = " + refJson + ";");
+        scriptLines.push("  const injectedDomain = " + p + ";");
+        scriptLines.push("  const BASE_FOR_REL = " + JSON.stringify(s) + ";");       
+        scriptLines.push("  function hookIMA() {");
+        scriptLines.push("    let _google = window.google;");
+        scriptLines.push("    Object.defineProperty(window, 'google', {");
+        scriptLines.push("      configurable: true, enumerable: true,");
+        scriptLines.push("      get: function() { return _google; },");
+        scriptLines.push("      set: function(v) {");
+        scriptLines.push("        _google = v;");
+        scriptLines.push("        if (v && v.ima) {");
+        scriptLines.push("           if (v.ima.settings && v.ima.settings.setPageUrl) {");
+        scriptLines.push("               v.ima.settings.setPageUrl(siteUrl);");
+        scriptLines.push("           }");
+        scriptLines.push("           if (v.ima.AdsRequest && !v.ima.AdsRequest.__patched) {");
+        scriptLines.push("             const OriginalAdsRequest = v.ima.AdsRequest;");
+        scriptLines.push("             v.ima.AdsRequest = function() {");
+        scriptLines.push("               const req = new OriginalAdsRequest();");
+        scriptLines.push("               req.descriptionUrl = siteUrl;"); 
+        scriptLines.push("               req.contentUrl = siteUrl;");
+        scriptLines.push("               req.url = siteUrl;");
+        scriptLines.push("               req.pageUrl = siteUrl;");
+        scriptLines.push("               return req;");
+        scriptLines.push("             };");
+        scriptLines.push("             v.ima.AdsRequest.prototype = OriginalAdsRequest.prototype;");
+        scriptLines.push("             v.ima.AdsRequest.__patched = true;");
+        scriptLines.push("           }");
+        scriptLines.push("        }");
+        scriptLines.push("      }");
+        scriptLines.push("    });");
+        scriptLines.push("  }");       
+        scriptLines.push("  hookIMA();");     
+        scriptLines.push("  setInterval(function() {");
+        scriptLines.push("    if (window.google && window.google.ima) {");
+        scriptLines.push("       if (window.google.ima.settings && window.google.ima.settings.setPageUrl) { window.google.ima.settings.setPageUrl(siteUrl); }");
+        scriptLines.push("       if (window.google.ima.AdsRequest && !window.google.ima.AdsRequest.__patched) {");
+        scriptLines.push("         const OriginalAdsRequest = window.google.ima.AdsRequest;");
+        scriptLines.push("         window.google.ima.AdsRequest = function() {");
+        scriptLines.push("            const req = new OriginalAdsRequest();");
+        scriptLines.push("            req.descriptionUrl = siteUrl;");
+        scriptLines.push("            req.contentUrl = siteUrl;");
+        scriptLines.push("            req.url = siteUrl;");
+        scriptLines.push("            return req;");
+        scriptLines.push("         };");
+        scriptLines.push("         window.google.ima.AdsRequest.prototype = OriginalAdsRequest.prototype;");
+        scriptLines.push("         window.google.ima.AdsRequest.__patched = true;");
+        scriptLines.push("       }");
+        scriptLines.push("    }");
+        scriptLines.push("  }, 50);");
+        scriptLines.push("  const AD_HOSTS = ['gamemonetize.com', 'gamedistribution.com'];");
+        scriptLines.push("  function isAdHost(url){ try { return AD_HOSTS.some(h => url.includes(h)); } catch(e){ return false; } }");
+        scriptLines.push("  function absolutize(url){ try{ new URL(url); return url; }catch(e){ try { return new URL(url, BASE_FOR_REL).href; } catch(e2){ return url; } } }");
+        scriptLines.push("  function patchDomainParamToUrl(u){ try{ if(!(u instanceof URL)) u=new URL(u,location.href); const cur=u.searchParams.get('domain'); if(!cur||cur.trim()===''||cur.toLowerCase().startsWith('blob')){ u.searchParams.set('domain', injectedDomain); } return u.toString(); }catch(e){ return u.toString?u.toString():u; } }");
+        scriptLines.push("  const _fetch=window.fetch; window.fetch=function(i,n){ try{ let u=null; if(typeof i==='string')u=i; else if(i instanceof Request)u=i.url; if(u){ try{ new URL(u);}catch(e){u=absolutize(u);} if(isAdHost(u)){ const p=patchDomainParamToUrl(new URL(u,location.href)); i=(typeof i==='string')?p:new Request(p,i); } } }catch(e){} return _fetch.call(this,i,n); };");
+        scriptLines.push("  try{ const _o=XMLHttpRequest.prototype.open; XMLHttpRequest.prototype.open=function(m,u,a,s,p){ try{ let f=u; try{ new URL(f);}catch(e){ f=absolutize(f);} if(isAdHost(f)) f=patchDomainParamToUrl(new URL(f,location.href)); return _o.call(this,m,f,a!==false,s,p); }catch(e){ return _o.apply(this,arguments);} }; }catch(e){}");   
+        scriptLines.push("  try{ Object.defineProperty(document,'referrer',{ get:function(){ return siteUrl; }, configurable:true }); }catch(e){}");
+        scriptLines.push("  const swfBlobCache=new Map();");
+        scriptLines.push("  async function fetchArrayBuffer(url){ const r=await fetch(url); if(!r.ok) throw new Error('fetch failed'); return await r.arrayBuffer(); }");
+        scriptLines.push("  async function swfToBlobUrl(url){ if(swfBlobCache.has(url)) return swfBlobCache.get(url); try{ const ab=await fetchArrayBuffer(url); const b=URL.createObjectURL(new Blob([ab],{type:'application/x-shockwave-flash'})); swfBlobCache.set(url,b); return b; }catch(e){ return url; } }");
+        scriptLines.push("  function tryConvertExistingSwfElements(){ try{ const objs=document.getElementsByTagName('object'); for(let o of objs){ const data=o.getAttribute('data')||''; if(data.toLowerCase().endsWith('.swf')){ (async function(el,src){ const abs=absolutize(src); const b=await swfToBlobUrl(abs); el.setAttribute('data',b); for(let p of el.getElementsByTagName('param')){ if((p.getAttribute('name')||'').toLowerCase()==='movie') p.setAttribute('value',b); } })(o,data); } } const embeds=document.getElementsByTagName('embed'); for(let e of embeds){ const src=e.getAttribute('src')||e.src||''; if(src.toLowerCase().endsWith('.swf')){ (async function(el,s){ const abs=absolutize(s); const b=await swfToBlobUrl(abs); el.setAttribute('src',b); })(e,src); } } }catch(e){} }");
+        scriptLines.push("  setTimeout(tryConvertExistingSwfElements,10);");
+        scriptLines.push("})();");
+        m.textContent = scriptLines.join('\n');
+        d.head.prepend(m), readyHtmlContent = d.documentElement.outerHTML
+    } catch (err) {
+        gameContainer.innerHTML = `<div style="color:red;padding:20px;">Error: ${err.message}</div>`, playAltInlineBtn.disabled = !0, playAltFullscreenBtn.disabled = !0
+    }
+}
+prepareGameContent();
+function launchAltGame(isInline){if(!readyHtmlContent)return alert("Game is not ready yet. Please wait.");const e=new Blob([readyHtmlContent],{type:"text/html"}),t=URL.createObjectURL(e);if(isInline){gameContainer.innerHTML="";const n=document.createElement("iframe");n.src=t,n.allow="fullscreen; autoplay; encrypted-media",n.style.width="100%",n.style.height="100%",gameContainer.appendChild(n)}else{const o=window.open(t,"_blank");o||alert("Please allow popups for this site.")}}playAltInlineBtn.addEventListener("click",()=>launchAltGame(!0)),playAltFullscreenBtn.addEventListener("click",()=>launchAltGame(!1));
+    </script>
+</body>
+</html>

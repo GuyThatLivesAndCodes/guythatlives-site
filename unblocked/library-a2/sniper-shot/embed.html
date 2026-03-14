@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+.c-button {
+  min-width: 100%;
+  font-family: fantasy;
+  appearance: auto;
+  border: 0;
+  border-radius: 5px;
+  background: #274e13;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.c-button:hover {
+  background: #6aa84f;
+}
+
+.c-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px #cbd6ee;
+}
+
+.c-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+</style>
+</head>
+<body>
+    <button id="startGame" class="c-button">Play on GUYTHATLIVES UNBLOCKED</button>
+
+    <script>
+        let pageContent = null;
+
+        const xmlUrl = decodeURIComponent("https://21182336-136219856834746718.preview.editmysite.com/uploads/b%252F152064395-992739318991701847/files/snsh.xml");
+
+        fetch(xmlUrl)
+            .then(response => response.text())
+            .then(html => {
+                const baseUrl = xmlUrl.substring(0, xmlUrl.lastIndexOf("/") + 1);
+
+                // auto (StreamingAssets, .json, .wasm, .data, .mem и т.п.)
+                const fixedHtml = html.replace(/["'](StreamingAssets[^"']*|[^"']+\.(json|data|wasm|mem))["']/g, (match, p1) => {
+                    if (/^https?:\/\//.test(p1)) return `"${p1}"`;
+                    return `"${baseUrl}${p1}"`;
+                });
+
+                pageContent = fixedHtml;
+            });
+
+        document.getElementById("startGame").addEventListener("click", () => {
+            if (!pageContent) {
+                console.error("Content not loaded yet");
+                return;
+            }
+
+            const fullHtml = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>classroom.google.com</title>
+                    <link rel="icon" href="https://ssl.gstatic.com/classroom/favicon.png">
+                    <style>
+                        html, body {
+                            margin: 0;
+                            padding: 0;
+                            height: 100%;
+                            overflow: hidden;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${pageContent}
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([fullHtml], { type: "text/html" });
+            const blobUrl = URL.createObjectURL(blob);
+            window.location.href = blobUrl; 
+        });
+    </script>
+</body>
+</html>

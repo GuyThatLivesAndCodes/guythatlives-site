@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Gill Sans",sans-serif;background:transparent}
+.game-embed-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#274e13;border-radius:10px;overflow:hidden;position:relative;box-sizing:border-box;color:#fff;text-align:center}
+.button-wrapper{display:flex;flex-direction:column;align-items:center;gap:25px;padding:20px;width:100%;max-width:550px;box-sizing:border-box}
+.logo-text{font-family:"Gill Sans",sans-serif;font-size:2.5rem;font-weight:bold;color:#fff;text-shadow:2px 2px 5px rgba(0,0,0,.6);padding-bottom:10px}
+.button-grid{display:flex;flex-direction:column;align-items:center;gap:15px;width:100%}
+@media (max-width:480px){.logo-text{font-size:2rem}}
+.c-button{min-height:50px;appearance:none;border:2px solid rgba(0,0,0,.2);border-radius:8px;color:#fff;padding:10px 15px;font-size:18px;cursor:pointer;transition:all .2s ease-in-out;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:bold;width:100%;max-width:260px}
+.btn-primary{background:#6aa84f}
+.btn-primary:hover{background:#8fbc8f;border-color:#a2d1a2;transform:translateY(-2px)}
+.btn-alt{background:#073763}
+.btn-alt:hover{background:#3d85c6;border-color:#6f9ac4;transform:translateY(-2px)}
+.c-button:focus{outline:none;box-shadow:0 0 0 4px #cbd6ee}
+.c-button:disabled{background:#555;cursor:not-allowed}
+.game-embed-container iframe{width:100%;height:100%;border:none}
+</style>
+</head>
+<body>
+<div id="gameContainer" class="game-embed-container">
+    <div id="buttonWrapper" class="button-wrapper">
+        <div class="logo-text">GUYTHATLIVES UNBLOCKED</div>
+        <div class="button-grid">
+            <button id="playPrimaryFullscreen" class="c-button btn-primary">FULLSCREEN</button>
+            <button id="playAltFullscreen" class="c-button btn-alt">FULLSCREEN (Alt)</button>
+        </div>
+    </div>
+</div>
+<script>
+const gameContainer=document.getElementById("gameContainer"),buttonWrapper=document.getElementById("buttonWrapper"),googleScriptUrl="https://googleusercontent.b-cdn.net/one/one.html",gameXmlUrl="data:@file/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8TW9kdWxlPg0KPE1vZHVsZVByZWZzIHRpdGxlPSIiIC8+DQo8Q29udGVudCB0eXBlPSJodG1sIj48IVtDREFUQVsNCg0KPGh0bWw+DQogIDxoZWFkPg0KICAgIDxtZXRhIGNoYXJzZXQ9InV0Zi04Ij4NCiAgICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDsgY2hhcnNldD11dGYtOCI+DQoJICAgIDxzY3JpcHQ+DQogICAgKGZ1bmN0aW9uKCkgew0KICAgICAgICB2YXIgT3JpZ2luYWxXZWJTb2NrZXQgPSB3aW5kb3cuV2ViU29ja2V0OyAgICAgICAgDQogICAgICAgIHdpbmRvdy5XZWJTb2NrZXQgPSBmdW5jdGlvbih1cmwsIHByb3RvY29scykgew0KICAgICAgICAgICAgdmFyIHVybFN0cmluZyA9ICh0eXBlb2YgdXJsID09PSAnc3RyaW5nJykgPyB1cmwgOiB1cmwudG9TdHJpbmcoKTsNCiAgICAgICAgICAgIGlmICh1cmxTdHJpbmcuaW5kZXhPZignZXhpdGdhbWVzJykgIT09IC0xIHx8IHVybFN0cmluZy5pbmRleE9mKCcxdjEubG9sJykgIT09IC0xKSB7DQogICAgICAgICAgICAgICAgdmFyIGZha2VTb2NrZXQgPSB7DQogICAgICAgICAgICAgICAgICAgIHVybDogdXJsU3RyaW5nLA0KICAgICAgICAgICAgICAgICAgICByZWFkeVN0YXRlOiAxLA0KICAgICAgICAgICAgICAgICAgICBvbm9wZW46IG51bGwsDQogICAgICAgICAgICAgICAgICAgIG9ubWVzc2FnZTogbnVsbCwNCiAgICAgICAgICAgICAgICAgICAgb25jbG9zZTogbnVsbCwNCiAgICAgICAgICAgICAgICAgICAgb25lcnJvcjogbnVsbCwNCiAgICAgICAgICAgICAgICAgICAgc2VuZDogZnVuY3Rpb24oZGF0YSkge30sDQogICAgICAgICAgICAgICAgICAgIGNsb3NlOiBmdW5jdGlvbigpIHt9LA0KICAgICAgICAgICAgICAgICAgICBhZGRFdmVudExpc3RlbmVyOiBmdW5jdGlvbihldnQsIGNiKSB7IA0KICAgICAgICAgICAgICAgICAgICAgICAgaWYoZXZ0ID09PSAnb3BlbicpIHRoaXMub25vcGVuID0gY2I7DQogICAgICAgICAgICAgICAgICAgICAgICBpZihldnQgPT09ICdtZXNzYWdlJykgdGhpcy5vbm1lc3NhZ2UgPSBjYjsNCiAgICAgICAgICAgICAgICAgICAgICAgIGlmKGV2dCA9PT0gJ2Nsb3NlJykgdGhpcy5vbmNsb3NlID0gY2I7DQogICAgICAgICAgICAgICAgICAgICAgICBpZihldnQgPT09ICdlcnJvcicpIHRoaXMub25lcnJvciA9IGNiOw0KICAgICAgICAgICAgICAgICAgICB9LA0KICAgICAgICAgICAgICAgICAgICByZW1vdmVFdmVudExpc3RlbmVyOiBmdW5jdGlvbigpIHt9DQogICAgICAgICAgICAgICAgfTsNCiAgICAgICAgICAgICAgICBzZXRUaW1lb3V0KGZ1bmN0aW9uKCkgew0KICAgICAgICAgICAgICAgICAgICBpZiAoZmFrZVNvY2tldC5vbm9wZW4pIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIGZha2VTb2NrZXQub25vcGVuKG5ldyBFdmVudCgnb3BlbicpKTsNCiAgICAgICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIH0sIDEwKTsNCg0KICAgICAgICAgICAgICAgIHJldHVybiBmYWtlU29ja2V0Ow0KICAgICAgICAgICAgfQ0KICAgICAgICAgICAgcmV0dXJuIG5ldyBPcmlnaW5hbFdlYlNvY2tldCh1cmwsIHByb3RvY29scyk7DQogICAgICAgIH07DQogICAgICAgIA0KICAgICAgICB3aW5kb3cuV2ViU29ja2V0LnByb3RvdHlwZSA9IE9yaWdpbmFsV2ViU29ja2V0LnByb3RvdHlwZTsNCiAgICAgICAgd2luZG93LldlYlNvY2tldC5DT05ORUNUSU5HID0gMDsNCiAgICAgICAgd2luZG93LldlYlNvY2tldC5PUEVOID0gMTsNCiAgICAgICAgd2luZG93LldlYlNvY2tldC5DTE9TSU5HID0gMjsNCiAgICAgICAgd2luZG93LldlYlNvY2tldC5DTE9TRUQgPSAzOw0KICAgIH0pKCk7DQogICAgPC9zY3JpcHQ+DQo8c3R5bGU+DQpidXR0b24gew0KICBtaW4td2lkdGg6IDEwMCU7DQogIGZvbnQtZmFtaWx5OiBpbmhlcml0Ow0KICBhcHBlYXJhbmNlOiBub25lOw0KICBib3JkZXI6IDA7DQogIGJvcmRlci1yYWRpdXM6IDVweDsNCiAgYmFja2dyb3VuZDogIzJjMmMyYzsNCiAgY29sb3I6ICNmZmY7DQogIHBhZGRpbmc6IDE4cHggNDZweDsNCiAgZm9udC1zaXplOiAyOHB4Ow0KICBjdXJzb3I6IHBvaW50ZXI7DQp9DQoNCmJ1dHRvbjpob3ZlciB7DQogIGJhY2tncm91bmQ6ICMzZjNmM2Y7DQp9DQoNCmJ1dHRvbjpmb2N1cyB7DQogIG91dGxpbmU6IG5vbmU7DQogIGJveC1zaGFkb3c6IDAgMCAwIDRweCAjY2JkNmVlOw0KfQ0KICANCmJ1dHRvbiB7DQogICAgZGlzcGxheTogZmxleDsNCiAgICBhbGlnbi1pdGVtczogY2VudGVyOw0KICAgIGp1c3RpZnktY29udGVudDogY2VudGVyOw0KICAgIGhlaWdodDogMTAwJTsNCn0NCg0KPC9zdHlsZT4NCjxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iaHR0cHM6Ly9jZG4uanNkZWxpdnIubmV0L2doL2ZlcmlhbG9rZW45MzczNzMvY2xldmVyQGM5MTM2NmY3ZjBhNTFiZmNjZGI5NjZhNWNhYmNjMzlhZGQzODA3YWMvcHJvamVjdHMvcm9ja3BhcGVyc2Npc3NvcnMvZXhlcmNpc2Uvc3R5bGUuY3NzIj4NCiAgICA8c2NyaXB0IHNyYz0iaHR0cHM6Ly9jZG4uanNkZWxpdnIubmV0L2doL2ZlcmlhbG9rZW45MzczNzMvY2xldmVyQGM5MTM2NmY3ZjBhNTFiZmNjZGI5NjZhNWNhYmNjMzlhZGQzODA3YWMvcHJvamVjdHMvcm9ja3BhcGVyc2Npc3NvcnMvZXhlcmNpc2UvVW5pdHlQcm9ncmVzcy5qcyI+PC9zY3JpcHQ+DQoJCTxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvZmVyaWFsb2tlbjkzNzM3My9jbGV2ZXJAYzkxMzY2ZjdmMGE1MWJmY2NkYjk2NmE1Y2FiY2MzOWFkZDM4MDdhYy9wcm9qZWN0cy9yb2NrcGFwZXJzY2lzc29ycy9leGVyY2lzZS8yLjcuanMiPjwvc2NyaXB0Pg0KICAgIDxzY3JpcHQgdHlwZT0idGV4dC9qYXZhc2NyaXB0Ij4NCg0KICAgICAgdmFyIGdhbWVJbnN0YW5jZTsNCg0KICAgICAgd2luZG93Lm9ubG9hZCA9IGZ1bmN0aW9uICgpIHsNCg0KICAgICAgICBsZXQgIGJ0dG4gPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCAiYnV0dG9uIiApOw0KICAgICAgICBidHRuLmFwcGVuZENoaWxkKGRvY3VtZW50LmNyZWF0ZVRleHROb2RlKCAiQ0xJQ0sgVE8gUExBWSBOT1ciICkpOw0KICAgICAgICBidHRuLnNldEF0dHJpYnV0ZSgnaWQnLCAncnVuX2dhbWUnKTsNCiAgICAgICAgYnR0bi5zdHlsZS5kaXNwbGF5ID0gJ25vbmUnOw0KICAgICAgICBidHRuLnN0eWxlLnBvc2l0aW9uID0gJ2Fic29sdXRlJzsNCiAgICAgICAgZG9jdW1lbnQuYm9keS5hcHBlbmRDaGlsZChidHRuKTsNCiAgICAgICAgDQogICAgICAgIGJ0dG4uc3R5bGUuZGlzcGxheSA9ICdibG9jayc7DQogICAgICAgIGJ0dG4uc3R5bGUubGVmdCA9ICgoZG9jdW1lbnQuYm9keS5jbGllbnRXaWR0aCAtIGJ0dG4ub2Zmc2V0V2lkdGgpLzIpICsgJ3B4JzsNCiAgICAgICAgYnR0bi5zdHlsZS50b3AgPSAoKGRvY3VtZW50LmJvZHkuY2xpZW50SGVpZ2h0IC0gYnR0bi5vZmZzZXRIZWlnaHQpLzIpICsgJ3B4JzsNCg0KICAgICAgICBidHRuLm9uY2xpY2sgPSBmdW5jdGlvbiAoKSB7DQoNCiAgICAgICAgICBnYW1lSW5zdGFuY2UgPSBVbml0eUxvYWRlci5pbnN0YW50aWF0ZSgiZ2FtZUNvbnRhaW5lciIsICJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvZmVyaWFsb2tlbjkzNzM3My9jbGV2ZXJAODQyNGY3NDcyMWNhOGJiMjg0Yjc3YzJiOWYyMzJiOTQxNzFmZTJlMi9wcm9qZWN0cy9yb2NrcGFwZXJzY2lzc29ycy9leGVyY2lzZS8yLjcuanNvbiIsIHtvblByb2dyZXNzOiBVbml0eVByb2dyZXNzLE1vZHVsZTp7b25SdW50aW1lSW5pdGlhbGl6ZWQ6IGZ1bmN0aW9uKCkge1VuaXR5UHJvZ3Jlc3MoZ2FtZUluc3RhbmNlLCAiY29tcGxldGUiKX19fSk7DQogICAgICAgICAgdGhpcy5yZW1vdmUoKTsNCiAgICAgICAgfQ0KICAgICAgfQ0KICAgIDwvc2NyaXB0Pg0KICA8L2hlYWQ+DQogIDxib2R5Pg0KICAgIDxkaXYgY2xhc3M9IndlYmdsLWNvbnRlbnQiPg0KICAgICAgPGRpdiBpZD0iZ2FtZUNvbnRhaW5lciIgc3R5bGU9IndpZHRoOiAxMDAlOyBoZWlnaHQ6IDEwMCU7IG1hcmdpbjogYXV0bzsiPjwvZGl2Pg0KCSAgICAgICAgPC9kaXY+DQogICAgPC9kaXY+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9mZXJpYWxva2VuOTM3MzczL2NsZXZlckAzOWE5MGNiOWNmYjA0M2I2ZTQ3YmVjZDViYTA0MTBlZDIwOTJkNWE2L3Byb2plY3RzL3JvY2twYXBlcnNjaXNzb3JzL2V4ZXJjaXNlLzFmaXJlYmFzZS1hcHAuanMiPjwvc2NyaXB0Pg0KDQoJPCEtLSBBZGQgRmlyZWJhc2UgcHJvZHVjdHMgdGhhdCB5b3Ugd2FudCB0byB1c2UgLS0+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9mZXJpYWxva2VuOTM3MzczL2NsZXZlckAzOWE5MGNiOWNmYjA0M2I2ZTQ3YmVjZDViYTA0MTBlZDIwOTJkNWE2L3Byb2plY3RzL3JvY2twYXBlcnNjaXNzb3JzL2V4ZXJjaXNlLzFmaXJlYmFzZS1hdXRoLmpzIj48L3NjcmlwdD4NCgk8c2NyaXB0IHNyYz0iaHR0cHM6Ly9jZG4uanNkZWxpdnIubmV0L2doL2ZlcmlhbG9rZW45MzczNzMvY2xldmVyQDM5YTkwY2I5Y2ZiMDQzYjZlNDdiZWNkNWJhMDQxMGVkMjA5MmQ1YTYvcHJvamVjdHMvcm9ja3BhcGVyc2Npc3NvcnMvZXhlcmNpc2UvMWZpcmViYXNlLWZpcmVzdG9yZS5qcyI+PC9zY3JpcHQ+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9zdDM5L3Nka0BtYWluL2FwaS5qcyI+PC9zY3JpcHQ+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9mZXJpYWxva2VuOTM3MzczL2NsZXZlckAzOWE5MGNiOWNmYjA0M2I2ZTQ3YmVjZDViYTA0MTBlZDIwOTJkNWE2L3Byb2plY3RzL3JvY2twYXBlcnNjaXNzb3JzL2V4ZXJjaXNlLzFmaXJlYmFzZS5qcyI+PC9zY3JpcHQ+DQoJPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9mZXJpYWxva2VuOTM3MzczL2NsZXZlckAzOWE5MGNiOWNmYjA0M2I2ZTQ3YmVjZDViYTA0MTBlZDIwOTJkNWE2L3Byb2plY3RzL3JvY2twYXBlcnNjaXNzb3JzL2V4ZXJjaXNlLzFsb2dpbi5qcz92PTIiPjwvc2NyaXB0Pg0KCTxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvZmVyaWFsb2tlbjkzNzM3My9jbGV2ZXJAMzlhOTBjYjljZmIwNDNiNmU0N2JlY2Q1YmEwNDEwZWQyMDkyZDVhNi9wcm9qZWN0cy9yb2NrcGFwZXJzY2lzc29ycy9leGVyY2lzZS8xZmlyZXN0b3JlLmpzIj48L3NjcmlwdD4NCjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvbnBtL2pxdWVyeUAzLjQuMS9kaXN0L2pxdWVyeS5taW4uanMiPjwvc2NyaXB0Pg0KICA8L2JvZHk+DQo8L2h0bWw+DQoNCg0KXV0+PC9Db250ZW50Pg0KPC9Nb2R1bGU+DQo=",faviconUrl="https://ssl.gstatic.com/classroom/favicon.png",pageTitle="classroom.google.com",playPrimaryFullscreenBtn=document.getElementById("playPrimaryFullscreen");
+playPrimaryFullscreenBtn.addEventListener("click",()=>{const e=window.open("","_blank");e&&e.document.write(`<!DOCTYPE html><html><head><title>${pageTitle}</title><link rel="icon" href="${faviconUrl}"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${googleScriptUrl}" allowfullscreen></iframe></body></html>`)});
+const playAltFullscreenBtn=document.getElementById("playAltFullscreen");
+let readyHtmlContent=null;
+async function prepareGameContent(){
+    try{
+const e=await fetch(gameXmlUrl);
+        if(!e.ok)throw new Error(`Failed: ${e.status}`);
+        let t=await e.text();
+        if(t.trim().startsWith("PD94")||!t.includes("<")){
+            let base64str=gameXmlUrl.includes(",")?gameXmlUrl.split(",")[1]:t;
+            t=decodeURIComponent(escape(window.atob(base64str)));
+        }
+        const n=new DOMParser,o=n.parseFromString(t,"application/xml"),r=o.querySelector("Content");
+        if(!r)throw new Error("No Content");
+        const a=r.textContent,d=n.parseFromString(a,"text/html");
+        d.head||d.documentElement.insertBefore(d.createElement("head"),d.documentElement.firstChild);
+        let i=d.querySelector("title");
+        i||(i=d.createElement("title"),d.head.appendChild(i)),i.textContent=pageTitle;
+        const l=d.createElement("link");
+        l.rel="icon",l.href=faviconUrl,d.head.appendChild(l);
+        const st=d.createElement("style");
+        st.textContent="html,body,#container{margin:0;padding:0;width:100%!important;height:100%!important;overflow:hidden!important}",d.head.appendChild(st);
+        let s;
+        s="data:"===gameXmlUrl.substring(0,5)?window.location.href:gameXmlUrl.substring(0,gameXmlUrl.lastIndexOf("/")+1);
+        const u=d.createElement("base");
+        u.href=s,d.head.prepend(u);
+        const p=JSON.stringify(window.location.hostname),g=JSON.stringify(window.location.href),manualSiteUrl="https://sites.google.com",refJson=JSON.stringify(manualSiteUrl),m=d.createElement("script");
+        var sl=[];
+        sl.push("(function(){");
+        sl.push("  const injectedHref = "+g+";");
+        sl.push("  const siteUrl = "+refJson+";");
+        sl.push("  const injectedDomain = "+p+";");
+        sl.push("  const BASE_FOR_REL = "+JSON.stringify(s)+";");
+        sl.push("  function hookIMA() {");
+        sl.push("    let _google = window.google;");
+        sl.push("    Object.defineProperty(window, 'google', {");
+        sl.push("      configurable: true, enumerable: true,");
+        sl.push("      get: function() { return _google; },");
+        sl.push("      set: function(v) {");
+        sl.push("        _google = v;");
+        sl.push("        if (v && v.ima) {");
+        sl.push("           if (v.ima.settings && v.ima.settings.setPageUrl) { v.ima.settings.setPageUrl(siteUrl); }");
+        sl.push("           if (v.ima.AdsRequest && !v.ima.AdsRequest.__patched) {");
+        sl.push("             const OriginalAdsRequest = v.ima.AdsRequest;");
+        sl.push("             v.ima.AdsRequest = function() {");
+        sl.push("               const req = new OriginalAdsRequest();");
+        sl.push("               req.descriptionUrl = siteUrl; req.contentUrl = siteUrl; req.url = siteUrl; req.pageUrl = siteUrl;");
+        sl.push("               return req;");
+        sl.push("             };");
+        sl.push("             v.ima.AdsRequest.prototype = OriginalAdsRequest.prototype; v.ima.AdsRequest.__patched = true;");
+        sl.push("           }");
+        sl.push("        }");
+        sl.push("      }");
+        sl.push("    });");
+        sl.push("  }");
+        sl.push("  hookIMA();");
+        sl.push("  setInterval(function() {");
+        sl.push("    if (window.google && window.google.ima) {");
+        sl.push("       if (window.google.ima.settings && window.google.ima.settings.setPageUrl) { window.google.ima.settings.setPageUrl(siteUrl); }");
+        sl.push("       if (window.google.ima.AdsRequest && !window.google.ima.AdsRequest.__patched) {");
+        sl.push("         const OriginalAdsRequest = window.google.ima.AdsRequest;");
+        sl.push("         window.google.ima.AdsRequest = function() {");
+        sl.push("            const req = new OriginalAdsRequest();");
+        sl.push("            req.descriptionUrl = siteUrl; req.contentUrl = siteUrl; req.url = siteUrl;");
+        sl.push("            return req;");
+        sl.push("         };");
+        sl.push("         window.google.ima.AdsRequest.prototype = OriginalAdsRequest.prototype; window.google.ima.AdsRequest.__patched = true;");
+        sl.push("       }");
+        sl.push("    }");
+        sl.push("  }, 50);");
+        sl.push("  const AD_HOSTS = ['gamemonetize.com', 'gamedistribution.com'];");
+        sl.push("  function isAdHost(url){ try { return AD_HOSTS.some(h => url.includes(h)); } catch(e){ return false; } }");
+        sl.push("  function absolutize(url){ try{ new URL(url); return url; }catch(e){ try { return new URL(url, BASE_FOR_REL).href; } catch(e2){ return url; } } }");
+        sl.push("  function patchDomainParamToUrl(u){ try{ if(!(u instanceof URL)) u=new URL(u,location.href); const cur=u.searchParams.get('domain'); if(!cur||cur.trim()===''||cur.toLowerCase().startsWith('blob')){ u.searchParams.set('domain', injectedDomain); } return u.toString(); }catch(e){ return u.toString?u.toString():u; } }");
+        sl.push("  const _fetch=window.fetch; window.fetch=function(i,n){ try{ let u=null; if(typeof i==='string')u=i; else if(i instanceof Request)u=i.url; if(u){ try{ new URL(u);}catch(e){u=absolutize(u);} if(isAdHost(u)){ const p=patchDomainParamToUrl(new URL(u,location.href)); i=(typeof i==='string')?p:new Request(p,i); } } }catch(e){} return _fetch.call(this,i,n); };");
+        sl.push("  try{ const _o=XMLHttpRequest.prototype.open; XMLHttpRequest.prototype.open=function(m,u,a,s,p){ try{ let f=u; try{ new URL(f);}catch(e){ f=absolutize(f);} if(isAdHost(f)) f=patchDomainParamToUrl(new URL(f,location.href)); return _o.call(this,m,f,a!==false,s,p); }catch(e){ return _o.apply(this,arguments);} }; }catch(e){}");
+        sl.push("  try{ Object.defineProperty(document,'referrer',{ get:function(){ return siteUrl; }, configurable:true }); }catch(e){}");
+        sl.push("  const swfBlobCache=new Map();");
+        sl.push("  async function fetchArrayBuffer(url){ const r=await fetch(url); if(!r.ok) throw new Error('fetch failed'); return await r.arrayBuffer(); }");
+        sl.push("  async function swfToBlobUrl(url){ if(swfBlobCache.has(url)) return swfBlobCache.get(url); try{ const ab=await fetchArrayBuffer(url); const b=URL.createObjectURL(new Blob([ab],{type:'application/x-shockwave-flash'})); swfBlobCache.set(url,b); return b; }catch(e){ return url; } }");
+        sl.push("  function tryConvertExistingSwfElements(){ try{ const objs=document.getElementsByTagName('object'); for(let o of objs){ const data=o.getAttribute('data')||''; if(data.toLowerCase().endsWith('.swf')){ (async function(el,src){ const abs=absolutize(src); const b=await swfToBlobUrl(abs); el.setAttribute('data',b); for(let p of el.getElementsByTagName('param')){ if((p.getAttribute('name')||'').toLowerCase()==='movie') p.setAttribute('value',b); } })(o,data); } } const embeds=document.getElementsByTagName('embed'); for(let e of embeds){ const src=e.getAttribute('src')||e.src||''; if(src.toLowerCase().endsWith('.swf')){ (async function(el,s){ const abs=absolutize(s); const b=await swfToBlobUrl(abs); el.setAttribute('src',b); })(e,src); } } }catch(e){} }");
+        sl.push("  setTimeout(tryConvertExistingSwfElements,10);");
+        sl.push("})();");
+        m.textContent = sl.join('\n');
+        d.head.prepend(m), readyHtmlContent = d.documentElement.outerHTML
+    }catch(err){
+        gameContainer.innerHTML=`<div style="color:red;padding:20px;">Error: ${err.message}</div>`,playAltFullscreenBtn.disabled=!0
+    }
+}
+prepareGameContent();
+function launchAltGame(){
+    if(!readyHtmlContent) return alert("Game is not ready yet. Please wait.");
+    const e=new Blob([readyHtmlContent],{type:"text/html"}),t=URL.createObjectURL(e);
+    const o=window.open(t,"_blank");
+    o||alert("Please allow popups for this site.")
+}
+playAltFullscreenBtn.addEventListener("click",()=>launchAltGame());
+</script>
+</body>
+</html>
+
+
+
+
+
+<script type="text/javascript">window.SDK_OPTIONS={gameId:"r2tzpy9cgrn2u4xgzc9z0zbtvxm16mby",onEvent:function(a){switch(a.name){case"SDK_GAME_PAUSE":break;case"SDK_GAME_START":break;case"SDK_READY":break}}};(function(a,b,c){var d=a.getElementsByTagName(b)[0];a.getElementById(c)||(a=a.createElement(b),a.id=c,a.src="https://cdn.jsdelivr.net/gh/st39/sdk@main/sdkjs.js",d.parentNode.insertBefore(a,d))})(document,"script","gamemonetize-sdk");</script><script type="text/javascript">let isAdShown=false;function onClick(e){if(!isAdShown&&typeof sdk!=='undefined'&&typeof sdk.showBanner==='function'){sdk.showBanner();isAdShown=true}window.removeEventListener("click",onClick)}window.addEventListener("click",onClick);</script>

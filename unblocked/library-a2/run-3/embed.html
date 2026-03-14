@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>      
+        html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Gill Sans",sans-serif;background:transparent}
+        .game-embed-container{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background-color:#274e13;border-radius:10px;overflow:hidden;position:relative;box-sizing:border-box;color:#fff;text-align:center}
+        .button-wrapper{display:flex;flex-direction:column;align-items:center;gap:25px;padding:20px;width:100%;max-width:550px;box-sizing:border-box}
+        .logo-text{font-family:"Gill Sans",sans-serif;font-size:2.5rem;font-weight:bold;color:#fff;text-shadow:2px 2px 5px rgba(0,0,0,.6);padding-bottom:10px}
+        .button-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;width:100%}
+        @media (max-width:480px){.button-grid{grid-template-columns:1fr}.logo-text{font-size:2rem}}
+        .c-button{min-height:50px;appearance:none;border:2px solid rgba(0,0,0,.2);border-radius:8px;color:#fff;padding:10px 15px;font-size:18px;cursor:pointer;transition:all .2s ease-in-out;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:bold}
+        .btn-primary{background:#6aa84f}
+        .btn-primary:hover{background:#8fbc8f;border-color:#a2d1a2;transform:translateY(-2px)}
+        .btn-alt{background:#073763}
+        .btn-alt:hover{background:#3d85c6;border-color:#6f9ac4;transform:translateY(-2px)}
+        .c-button:focus{outline:none;box-shadow:0 0 0 4px #cbd6ee}
+        .c-button:disabled{background:#555;cursor:not-allowed}
+        .game-embed-container iframe{width:100%;height:100%;border:none}
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-embed-container">
+        <div id="buttonWrapper" class="button-wrapper">
+            <div class="logo-text">GUYTHATLIVES UNBLOCKED</div>
+            <div class="button-grid">
+                <button id="playPrimaryInline" class="c-button btn-primary">PLAY HERE</button>
+                <button id="playPrimaryFullscreen" class="c-button btn-primary">FULLSCREEN</button>
+                <button id="playAltInline" class="c-button btn-alt">PLAY HERE (Alt)</button>
+                <button id="playAltFullscreen" class="c-button btn-alt">FULLSCREEN (Alt)</button>
+                <button id="playPrimaryInline2" class="c-button btn-primary">PLAY HERE (New)</button>
+                <button id="playPrimaryFullscreen2" class="c-button btn-primary">FULLSCREEN (New)</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const gameContainer = document.getElementById("gameContainer"),
+            googleScriptUrl = "https://lekug.github.io/tn6pS9dCf37xAhkJv/",
+            newGoogleScriptUrl = "https://script.google.com/macros/s/AKfycbzH19beOtthmgHOAyQwTzkPrGUquWfIq91ElX_xLebPeMZTByPCWbHpMX2ANYTjcTjs/exec",
+            playPrimaryInlineBtn = document.getElementById("playPrimaryInline"),
+            playPrimaryFullscreenBtn = document.getElementById("playPrimaryFullscreen"),
+            playAltInlineBtn = document.getElementById("playAltInline"),
+            playAltFullscreenBtn = document.getElementById("playAltFullscreen"),
+            playPrimaryInlineBtn2 = document.getElementById("playPrimaryInline2"),
+            playPrimaryFullscreenBtn2 = document.getElementById("playPrimaryFullscreen2");
+
+        playPrimaryInlineBtn.addEventListener("click", () => {
+            gameContainer.innerHTML = "";
+            const iframe = document.createElement("iframe");
+            iframe.src = googleScriptUrl;
+            gameContainer.appendChild(iframe);
+        });
+
+        playPrimaryFullscreenBtn.addEventListener("click", () => {
+            const e = window.open("", "_blank");
+            e && e.document.write(`<!DOCTYPE html><html><head><title>classroom.google.com</title><link rel="icon" href="https://ssl.gstatic.com/classroom/favicon.png"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${googleScriptUrl}" allowfullscreen></iframe></body></html>`);
+        });
+
+        playPrimaryInlineBtn2.addEventListener("click", () => {
+            gameContainer.innerHTML = "";
+            const iframe = document.createElement("iframe");
+            iframe.src = newGoogleScriptUrl;
+            gameContainer.appendChild(iframe);
+        });
+
+        playPrimaryFullscreenBtn2.addEventListener("click", () => {
+            const e = window.open("", "_blank");
+            e && e.document.write(`<!DOCTYPE html><html><head><title>classroom.google.com</title><link rel="icon" href="https://ssl.gstatic.com/classroom/favicon.png"><style>body,html{margin:0;padding:0;height:100%;width:100%;overflow:hidden;}iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}</style></head><body><iframe src="${newGoogleScriptUrl}" allowfullscreen></iframe></body></html>`);
+        });
+
+        playAltInlineBtn.addEventListener("click", () => launchAltGame(true));
+        playAltFullscreenBtn.addEventListener("click", () => launchAltGame(false));
+
+        let readyHtmlContent = null;
+
+        async function prepareGameContent() {
+            try {
+                const response = await fetch("data:@file/xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiID8+DQo8TW9kdWxlPg0KPE1vZHVsZVByZWZzIHRpdGxlPSIiIC8+DQo8Q29udGVudCB0eXBlPSJodG1sIj48IVtDREFUQVsNCg0KPHN0eWxlPg0KICBodG1sLCBib2R5IHsNCiAgICBtYXJnaW46IDA7DQogICAgcGFkZGluZzogMDsNCiAgICBvdmVyZmxvdzogaGlkZGVuOw0KICAgIHdpZHRoOiAxMDAlOw0KICAgIGhlaWdodDogMTAwJTsNCiAgfQ0KDQogICNjb250YWluZXIgew0KICAgIG1hcmdpbjogMDsNCiAgICBwYWRkaW5nOiAwOw0KICAgIHdpZHRoOiAxMDB2dzsNCiAgICBoZWlnaHQ6IDEwMHZoOw0KICAgIGRpc3BsYXk6IGZsZXg7DQogICAganVzdGlmeS1jb250ZW50OiBjZW50ZXI7DQogICAgYWxpZ24taXRlbXM6IGNlbnRlcjsNCiAgfQ0KDQogIGNhbnZhcyB7DQogICAgZGlzcGxheTogYmxvY2s7DQogIH0NCjwvc3R5bGU+DQo8c2NyaXB0IHNyYz0iaHR0cHM6Ly9jZG4uanNkZWxpdnIubmV0L2doL3N0Mzkvc2RrQG1haW4vYXBpLmpzIj48L3NjcmlwdD4NCjxzY3JpcHQgc3JjPSJodHRwczovL3VucGtnLmNvbS9AcnVmZmxlLXJzL3J1ZmZsZSI+PC9zY3JpcHQ+DQo8c2NyaXB0Pg0Kd2luZG93LlJ1ZmZsZVBsYXllciA9IHdpbmRvdy5SdWZmbGVQbGF5ZXIgfHwge307DQp3aW5kb3cuUnVmZmxlUGxheWVyLmNvbmZpZyA9IHsNCiJhdXRvcGxheSI6ICJvZmYiLA0KInBvbHlmaWxscyI6IHRydWUsDQoibGV0dGVyYm94IjogIm9uIiwNCiJiYWNrZ3JvdW5kQ29sb3IiOiBudWxsLA0KInNjYWxlIjogInNob3dBbGwiLA0KImFsbG93RnVsbHNjcmVlbiI6IHRydWUsDQoiZm9yY2VTY2FsZSI6IHRydWUsDQoiZm9yY2VBbGlnbiI6IHRydWUsDQoic3BsYXNoU2NyZWVuIjogdHJ1ZSwNCiJ3bW9kZSI6ICJXaW5kb3ciLA0KInVubXV0ZU92ZXJsYXkiOiAiaGlkZGVuIiwNCiJxdWFsaXR5IjogImhpZ2giIH07DQp3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigibG9hZCIsIChldmVudCkgPT4gew0KY29uc3QgcnVmZmxlID0gd2luZG93LlJ1ZmZsZVBsYXllci5uZXdlc3QoKTsNCmNvbnN0IHBsYXllciA9IHJ1ZmZsZS5jcmVhdGVQbGF5ZXIoKTsNCmNvbnN0IGNvbnRhaW5lciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJjb250YWluZXIiKTsNCmNvbnRhaW5lci5hcHBlbmRDaGlsZChwbGF5ZXIpOw0KcGxheWVyLmxvYWQoImh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9naC9PY3RvTGlua1lUL3RvdGFsbHljbGFzc3dvcmtAMmM4NTdmMzc5Mjg4MmFkMTllNmYxOTJlZjRhMDk2NmNiNzAyOTY1OC9nbWVzL3J1bjMvcnVuMy5zd2YiKTsNCnBsYXllci5zdHlsZS53aWR0aCA9ICIxMDAlIjsNCnBsYXllci5zdHlsZS5oZWlnaHQgPSAiMTAwJSI7DQp9KTsNCjwvc2NyaXB0Pg0KPGRpdiBpZD0iY29udGFpbmVyIj4NCjwvZGl2Pg0KDQoNCjxzY3JpcHQgdHlwZT0idGV4dC9qYXZhc2NyaXB0Ij53aW5kb3cuU0RLX09QVElPTlM9e2dhbWVJZDoicjJ0enB5OWNncm4ydTR4Z3pjOXowemJ0dnhtMTZtYnkiLG9uRXZlbnQ6ZnVuY3Rpb24oYSl7c3dpdGNoKGEubmFtZSl7Y2FzZSJTREtfR0FNRV9QQVVTRSI6YnJlYWs7Y2FzZSJTREtfR0FNRV9TVEFSVCI6YnJlYWs7Y2FzZSJTREtfUkVBRFkiOmJyZWFrfX19OyhmdW5jdGlvbihhLGIsYyl7dmFyIGQ9YS5nZXRFbGVtZW50c0J5VGFnTmFtZShiKVswXTthLmdldEVsZW1lbnRCeUlkKGMpfHwoYT1hLmNyZWF0ZUVsZW1lbnQoYiksYS5pZD1jLGEuc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvc3QzOS9zZGtAbWFpbi9zZGtqcy5qcyIsZC5wYXJlbnROb2RlLmluc2VydEJlZm9yZShhLGQpKX0pKGRvY3VtZW50LCJzY3JpcHQiLCJnYW1lbW9uZXRpemUtc2RrIik7PC9zY3JpcHQ+PHNjcmlwdCB0eXBlPSJ0ZXh0L2phdmFzY3JpcHQiPmxldCBpc0FkU2hvd249ZmFsc2U7ZnVuY3Rpb24gb25DbGljayhlKXtpZighaXNBZFNob3duJiZ0eXBlb2Ygc2RrIT09J3VuZGVmaW5lZCcmJnR5cGVvZiBzZGsuc2hvd0Jhbm5lcj09PSdmdW5jdGlvbicpe3Nkay5zaG93QmFubmVyKCk7aXNBZFNob3duPXRydWV9d2luZG93LnJlbW92ZUV2ZW50TGlzdGVuZXIoImNsaWNrIixvbkNsaWNrKX13aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLG9uQ2xpY2spOzwvc2NyaXB0Pg0KDQpdXT48L0NvbnRlbnQ+DQo8L01vZHVsZT4NCg==");
+                if (!response.ok) throw new Error(`Failed to load XML: ${response.status} ${response.statusText}`);
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+                const contentElement = xmlDoc.querySelector("Content");
+                if (!contentElement) throw new Error("<Content> not found in XML");
+                const htmlContent = parser.parseFromString(contentElement.textContent, "text/html");
+                readyHtmlContent = htmlContent.documentElement.outerHTML;
+            } catch (err) {
+                gameContainer.innerHTML = `<div style="color:red;padding:20px;">Error: ${err.message}</div>`;
+                playAltInlineBtn.disabled = true;
+                playAltFullscreenBtn.disabled = true;
+            }
+        }
+
+        function launchAltGame(isInline) {
+            if (!readyHtmlContent) return alert("Game is not ready yet. Please wait.");
+            const blob = new Blob([readyHtmlContent], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            if (isInline) {
+                gameContainer.innerHTML = "";
+                const iframe = document.createElement("iframe");
+                iframe.src = url;
+                iframe.style.width = "100%";
+                iframe.style.height = "100%";
+                gameContainer.appendChild(iframe);
+            } else {
+                const popup = window.open(url, "_blank");
+                if (!popup) alert("Please allow popups for this site.");
+            }
+        }
+
+        prepareGameContent();
+    </script>
+</body>
+</html>

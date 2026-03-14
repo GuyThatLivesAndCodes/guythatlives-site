@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #6aa84f; 
+    }
+
+    #buttonContainer {
+      text-align: center;
+      display: none;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px; 
+    }
+
+    .c-button {
+      width: 200px;
+      height: 30px;
+      font-family: sans-serif;
+      appearance: none;
+      border: 0;
+      border-color: #fff;
+      border-radius: 5px;
+      background: #274e13;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 10px; 
+      transition: background 0.3s; 
+    }
+
+    .c-button:hover {
+      background: #468c55; 
+    }
+
+    .c-button:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px #cbd6ee;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="buttonContainer">
+    <div class="button-row">
+      <button class="c-button">WAFLASH VERSION</button>
+      <button class="c-button">PLAY FULLSCREEN</button>
+    </div>
+    <div class="button-row">
+      <button class="c-button">RUFFLE VERSION</button>
+      <button class="c-button">PLAY FULLSCREEN</button>
+    </div>
+  </div>
+
+  <script>
+    var gameUrls = [
+      "https://script.google.com/macros/s/AKfycbx1-ahIchbUqDQdqB5GJ2-ZxlbPLz1lz7ohzlqUZ41JUrAnGTIPjgLaASGqqV1ToAuZ/exec", 
+      "https://script.google.com/macros/s/AKfycbx1-ahIchbUqDQdqB5GJ2-ZxlbPLz1lz7ohzlqUZ41JUrAnGTIPjgLaASGqqV1ToAuZ/exec", 
+      "https://script.google.com/macros/s/AKfycbzszaqnOOQIbZdFgKWgCpXwc9P6D-Vkm4IdMAs_taPJ8RTIM5TrNPwX68MKjhQfOnz7og/exec", 
+      "https://script.google.com/macros/s/AKfycbzszaqnOOQIbZdFgKWgCpXwc9P6D-Vkm4IdMAs_taPJ8RTIM5TrNPwX68MKjhQfOnz7og/exec"
+    ];
+
+    function openGameWindow(gameNumber) {
+      return function() {
+        var win;
+        if (gameNumber === 1 || gameNumber === 3) { 
+          window.location.href = gameUrls[gameNumber - 1];
+        } else { 
+          if (win) {
+            win.focus();
+          } else {
+            win = window.open();
+            win.document.body.style.margin = '0';
+            win.document.body.style.height = '100vh';
+            var iframe = win.document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.margin = '0';
+            iframe.src = gameUrls[gameNumber - 1];
+            win.document.body.appendChild(iframe);
+
+            var interval = setInterval(function() {
+              if (win.closed) {
+                clearInterval(interval);
+                win = undefined;
+              }
+            }, 500);
+          }
+        }
+      };
+    }
+
+    setTimeout(function() {
+      document.getElementById("buttonContainer").style.display = "block";
+    }, 1000);
+
+    document.querySelectorAll('.c-button').forEach(function(button, index) {
+      button.onclick = openGameWindow(index + 1);
+    });
+  </script>
+</body>
+</html>
