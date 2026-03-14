@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Oyun Başlatıcı</title>
+  <style>
+    .play-button {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+    }
+    
+    .play-button:hover {
+      background-color: #4a148c !important;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    
+    .fullscreen-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002;
+    }
+    
+    .fullscreen-button:hover {
+      background-color: #4a148c !important;
+      transform: scale(1.05);
+    }
+    
+    .content-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+      z-index: 1000;
+      background-color: #000;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <a id="playButton" class="play-button">CLICK TO PLAY</a>
+  <a id="fullscreenButton" class="fullscreen-button">FULLSCREEN</a>
+  <div id="contentContainer" class="content-container"></div>
+
+  <script>
+    // Oyun HTML'si
+    const gameHTML = `
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/AndreajnRcm4/b398dl2h74v@9a23fbb2373d743a564873251cbb57736ebc1f73/style.css" type="text/css" />
+    
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/gh/ru6frtr/ru@main/ruffle.js"><\/script>
+
+<object width="100%" height="100%">
+    <param name="movie" value="https://cdn.jsdelivr.net/gh/adsenxes/loo@main/fmx-teamNDcx.swf">
+    <embed src="https://cdn.jsdelivr.net/gh/adsenxes/loo@main/fmx-teamNDcx.swf" width="100%" height="100%">
+</body>
+</html>
+    `.trim();
+
+    // IndexedDB setup
+    const dbPromise = indexedDB.open('GameCacheDB', 1);
+    let db;
+
+    dbPromise.onupgradeneeded = (event) => {
+      db = event.target.result;
+      const store = db.createObjectStore('staticCache', { keyPath: 'id' });
+      store.createIndex('type', 'type', { unique: false });
+    };
+
+    dbPromise.onsuccess = (event) => {
+      db = event.target.result;
+      cacheStaticContent();
+    };
+
+    dbPromise.onerror = (event) => {
+      console.error('Database error:', event.target.errorCode);
+    };
+
+    // Statik içeriği önbelleğe alma
+    function cacheStaticContent() {
+      const staticHTML = document.documentElement.outerHTML;
+      const tx = db.transaction('staticCache', 'readwrite');
+      const store = tx.objectStore('staticCache');
+      
+      store.put({
+        id: 'pageContent',
+        type: 'html',
+        content: staticHTML,
+        timestamp: Date.now()
+      });
+
+      tx.oncomplete = () => {
+        console.log('Static content cached');
+      };
+    }
+
+    // Cache'den yükleme ve kontrol
+    async function loadFromCacheOrRender(container) {
+      const tx = db.transaction('staticCache', 'readonly');
+      const store = tx.objectStore('staticCache');
+      const cachedData = await store.get('pageContent');
+
+      return new Promise((resolve) => {
+        tx.oncomplete = () => {
+          const blob = new Blob([gameHTML], { type: 'text/html' }); // gameHTML cache'e alınmıyor
+          const blobUrl = URL.createObjectURL(blob);
+
+          while (container.firstChild) {
+            container.removeChild(container.firstChild);
+          }
+
+          const iframe = document.createElement('iframe');
+          iframe.src = blobUrl;
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.border = 'none';
+          iframe.style.margin = '0';
+          iframe.style.padding = '0';
+
+          container.appendChild(iframe);
+
+          iframe.onload = () => {
+            console.log('Oyun yüklendi');
+            resolve();
+          };
+          iframe.onerror = (e) => {
+            console.error('Oyun yüklenirken hata:', e);
+            resolve();
+          };
+        };
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const playButton = document.getElementById('playButton');
+      const fullscreenButton = document.getElementById('fullscreenButton');
+      
+      if (playButton) {
+        playButton.addEventListener('click', showContent);
+      } else {
+        console.error('Play butonu bulunamadı.');
+      }
+      
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', openFullscreen);
+      } else {
+        console.error('Fullscreen butonu bulunamadı.');
+      }
+    });
+
+    async function showContent() {
+      try {
+        document.getElementById('playButton').style.display = 'none';
+        const container = document.getElementById('contentContainer');
+        container.style.display = 'block';
+
+        if (db) {
+          await loadFromCacheOrRender(container);
+        } else {
+          dbPromise.onsuccess = async (event) => {
+            db = event.target.result;
+            await loadFromCacheOrRender(container);
+          };
+        }
+      } catch (error) {
+        console.error('Hata oluştu:', error);
+        alert('Oyun yüklenemedi. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+
+    function openFullscreen() {
+      try {
+        const newWin = window.open("about:blank", "_blank");
+        if (newWin) {
+          newWin.document.open();
+          newWin.document.write(gameHTML);
+          newWin.document.close();
+
+          setTimeout(() => {
+            if (newWin.document.documentElement.requestFullscreen) {
+              newWin.document.documentElement.requestFullscreen();
+            } else if (newWin.document.documentElement.mozRequestFullScreen) {
+              newWin.document.documentElement.mozRequestFullScreen();
+            } else if (newWin.document.documentElement.webkitRequestFullscreen) {
+              newWin.document.documentElement.webkitRequestFullscreen();
+            } else if (newWin.document.documentElement.msRequestFullscreen) {
+              newWin.document.documentElement.msRequestFullscreen();
+            }
+          }, 500);
+        } else {
+          alert("Yeni sekme açma engellendi. Lütfen tarayıcı ayarlarını kontrol edin.");
+        }
+      } catch (error) {
+        console.error('Fullscreen hata:', error);
+        alert('Tam ekran modu çalışmadı. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+  </script>
+</body>
+</html>

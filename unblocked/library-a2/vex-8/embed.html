@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun Başlatıcı</title>
+  <style>
+    .play-button {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001; /* Butonun oyun üzerinde olmasını sağla */
+    }
+    
+    .play-button:hover {
+      background-color: #4a148c !important;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    
+    .fullscreen-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002; /* Fullscreen butonu her zaman en üstte */
+    }
+    
+    .fullscreen-button:hover {
+      background-color: #4a148c !important;
+      transform: scale(1.05);
+    }
+    
+    .content-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+      z-index: 1000; /* Oyun iframe'i fullscreen butonunun altında */
+      background-color: #000;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <a id="playButton" class="play-button">CLICK TO PLAY</a>
+  <a id="fullscreenButton" class="fullscreen-button">FULLSCREEN</a>
+  <div id="contentContainer" class="content-container"></div>
+
+  <script>
+    // Butona olay dinleyicisi ekle
+    document.addEventListener('DOMContentLoaded', function() {
+      const playButton = document.getElementById('playButton');
+      const fullscreenButton = document.getElementById('fullscreenButton');
+      
+      if (playButton) {
+        playButton.addEventListener('click', showContent);
+      } else {
+        console.error('Play butonu bulunamadı.');
+      }
+      
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', openFullscreen);
+      } else {
+        console.error('Fullscreen butonu bulunamadı.');
+      }
+    });
+
+    function showContent() {
+      try {
+        // Sadece play butonunu gizle
+        document.getElementById('playButton').style.display = 'none';
+        
+        // İçerik konteynırını göster
+        const container = document.getElementById('contentContainer');
+        container.style.display = 'block';
+
+        // Oyun HTML'si
+        const gameHTML = `
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, shrink-to-fit=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+
+    <title>Vex 8 Unblocked - ubg235 GameDistribution</title>
+
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/icon.png">
+    <!-- For apple devices -->
+    <link rel="apple-touch-icon" type="image/png" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/icon.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/css/app.css" type="text/css" />
+
+
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/patch/js/azerion-libs-m.js" defer><\/script>
+
+</head>
+
+<body style="overflow:hidden;">
+    <div id="content"> </div>
+    <div id="loader">Loading...</div>
+    <div id="orientation"></div>
+
+    <script type="text/javascript">
+        var gameName = "https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/vex8.min.js";
+
+
+        var azAdWrapper, _azFeedback;
+
+
+
+
+
+        //This all here is for cache busting;
+        function addScript(src, buster, callback) {
+            var s = document.createElement('script');
+            s.setAttribute('src', src + '?v=' + buster);
+            if (typeof callback === 'function') {
+                s.onload = callback;
+            }
+            document.body.appendChild(s);
+        }
+
+
+
+        addScript('https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/version.js', Date.now(), function() {
+
+            addScript(gameName, Date.now(), function() {
+                new Game();
+            });
+
+        });
+    <\/script>
+  <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/js/analytics_ubg_v1_4.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/js/ubg235_client_v1_1.js"><\/script>
+</body>
+
+</html>
+        `.trim();
+
+        // Blob oluştur
+        const blob = new Blob([gameHTML], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Mevcut iframe varsa temizle
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
+        // Yeni iframe oluştur
+        const iframe = document.createElement('iframe');
+        iframe.src = blobUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+
+        // Iframe'i ekle
+        container.appendChild(iframe);
+
+        // Hata ayıklama
+        iframe.onload = () => console.log('Oyun yüklendi');
+        iframe.onerror = (e) => console.error('Oyun yüklenirken hata:', e);
+      } catch (error) {
+        console.error('Hata oluştu:', error);
+        alert('Oyun yüklenemedi. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+
+    function openFullscreen() {
+      try {
+        // Yeni sekme aç
+        const newWin = window.open("about:blank", "_blank");
+        if (newWin) {
+          newWin.document.open();
+          newWin.document.write(gameHTML);
+          newWin.document.close();
+
+          // Tam ekran modunu ayarla (isteğe bağlı, tarayıcıya bağlı olarak çalışmayabilir)
+          setTimeout(() => {
+            if (newWin.document.documentElement.requestFullscreen) {
+              newWin.document.documentElement.requestFullscreen();
+            } else if (newWin.document.documentElement.mozRequestFullScreen) {
+              newWin.document.documentElement.mozRequestFullScreen();
+            } else if (newWin.document.documentElement.webkitRequestFullscreen) {
+              newWin.document.documentElement.webkitRequestFullscreen();
+            } else if (newWin.document.documentElement.msRequestFullscreen) {
+              newWin.document.documentElement.msRequestFullscreen();
+            }
+          }, 500);
+        } else {
+          alert("Yeni sekme açma engellendi. Lütfen tarayıcı ayarlarını kontrol edin.");
+        }
+      } catch (error) {
+        console.error('Fullscreen hata:', error);
+        alert('Tam ekran modu çalışmadı. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+
+    // gameHTML'i global scope'a tanımla
+    const gameHTML = `
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui, shrink-to-fit=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+
+    <title>Vex 8 Unblocked - ubg235 GameDistribution</title>
+
+    <link rel="icon" type="image/png" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/icon.png">
+    <!-- For apple devices -->
+    <link rel="apple-touch-icon" type="image/png" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/icon.png" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/assets/css/app.css" type="text/css" />
+
+
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/patch/js/azerion-libs-m.js" defer><\/script>
+
+</head>
+
+<body style="overflow:hidden;">
+    <div id="content"> </div>
+    <div id="loader">Loading...</div>
+    <div id="orientation"></div>
+
+    <script type="text/javascript">
+        var gameName = "https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/vex8.min.js";
+
+
+        var azAdWrapper, _azFeedback;
+
+
+
+
+
+        //This all here is for cache busting;
+        function addScript(src, buster, callback) {
+            var s = document.createElement('script');
+            s.setAttribute('src', src + '?v=' + buster);
+            if (typeof callback === 'function') {
+                s.onload = callback;
+            }
+            document.body.appendChild(s);
+        }
+
+
+
+        addScript('https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/version.js', Date.now(), function() {
+
+            addScript(gameName, Date.now(), function() {
+                new Game();
+            });
+
+        });
+    <\/script>
+  <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/js/analytics_ubg_v1_4.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/gh/organig-schools6/xvex@main/js/ubg235_client_v1_1.js"><\/script>
+</body>
+
+</html>
+    `.trim();
+  </script>
+</body>
+</html>

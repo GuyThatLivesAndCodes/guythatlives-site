@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oyun Başlatıcı</title>
+  <style>
+    .play-button {
+      display: inline-block;
+      padding: 20px 40px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001; /* Butonun oyun üzerinde olmasını sağla */
+    }
+    
+    .play-button:hover {
+      background-color: #4a148c !important;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
+    
+    .fullscreen-button {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #000000;
+      color: #ffffff !important;
+      border: 2px solid #4a148c;
+      border-radius: 5px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none !important;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002; /* Fullscreen butonu her zaman en üstte */
+    }
+    
+    .fullscreen-button:hover {
+      background-color: #4a148c !important;
+      transform: scale(1.05);
+    }
+    
+    .content-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      border: none;
+      overflow: hidden;
+      z-index: 1000; /* Oyun iframe'i fullscreen butonunun altında */
+      background-color: #000;
+    }
+    
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <a id="playButton" class="play-button">CLICK TO PLAY</a>
+  <a id="fullscreenButton" class="fullscreen-button">FULLSCREEN</a>
+  <div id="contentContainer" class="content-container"></div>
+
+  <script>
+    // Oyun HTML'si
+    const gameHTML = `
+
+
+<!DOCTYPE html>
+
+<html lang="en-us">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>google.com</title>
+<link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/ahmethamdrt567/google1@main/TemplateData/favicon.ico"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ahmethamdrt567/google1@main/TemplateData/style.css"/>
+</head>
+<body>
+<div id="unity-container" style="position: absolute; width: 100%; height: 100%; left: 0%; top: 0%;">
+<canvas id="unity-canvas" style="position: absolute; width: 100%; height: 100%;"></canvas>
+<div id="unity-loading-bar">
+<div id="unity-logo"></div>
+<div id="unity-progress-bar-empty">
+<div id="unity-progress-bar-full"></div>
+</div>
+</div>
+<div id="unity-warning"> </div>
+</div>
+<script>    
+        var ysdkInitialized = 0;
+        var player;
+        var playerLogin = 0;
+        var leaderboard;
+        YaGames
+            .init()
+            .then(ysdk => 
+            {
+                console.log('Yandex SDK initialized');
+                window.ysdk = ysdk;             
+                ysdkInitialized = 1;
+                ysdk.adv.showFullscreenAdv({ callbacks: {} });
+                
+                ysdk.getPlayer({ scopes: false }).then(_player => 
+                { 
+                    player = _player;
+                    if (_player.getMode() === 'lite') 
+                    {
+                        // игрок не авторизован             
+                    }
+                    else 
+                    {
+                        playerLogin = 1;                        
+                    }                   
+                }).catch(err => 
+                {                   
+                });
+                
+                ysdk.getLeaderboards().then(_lb => leaderboard = _lb);
+            });         
+    <\/script>
+<script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "https://cdn.jsdelivr.net/gh/ahmethamdrt567/google1@main/Build/";
+      var loaderUrl = buildUrl + "/ddf37a755980b4d9328356e5761796c5.js";
+      var config = {
+        dataUrl: buildUrl + "/eddf30b5fd12bd430bb2db56690fa442.data.unityweb",
+        frameworkUrl: buildUrl + "/576ba3c51b6b716a818ca823863d6332.js.unityweb",
+        codeUrl: buildUrl + "/d32618b421afcf167b2f96c777d84196.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "OrangeB",
+        productName: "Crusher",
+        productVersion: "1.7",
+        showBanner: unityShowBanner,
+      };
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        //config.devicePixelRatio = 1;
+
+        //canvas.style.width = window.innerWidth + 'px';
+        //canvas.style.height = window.innerHeight + 'px';
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+      }
+
+      canvas.style.background = "url('https://cdn.jsdelivr.net/gh/ahmethamdrt567/google1@main/background.jpg') center / cover";
+      loadingBar.style.display = "block";
+
+      var myGameInstance = null;
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+            myGameInstance = unityInstance;
+            loadingBar.style.display = "none";
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+    <\/script>
+</body>
+</html>
+
+
+
+    `.trim();
+
+    // Butona olay dinleyicisi ekle
+    document.addEventListener('DOMContentLoaded', function() {
+      const playButton = document.getElementById('playButton');
+      const fullscreenButton = document.getElementById('fullscreenButton');
+      
+      if (playButton) {
+        playButton.addEventListener('click', showContent);
+      } else {
+        console.error('Play butonu bulunamadı.');
+      }
+      
+      if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', openFullscreen);
+      } else {
+        console.error('Fullscreen butonu bulunamadı.');
+      }
+    });
+
+    function showContent() {
+      try {
+        // Sadece play butonunu gizle
+        document.getElementById('playButton').style.display = 'none';
+        
+        // İçerik konteynırını göster
+        const container = document.getElementById('contentContainer');
+        container.style.display = 'block';
+
+        // Blob oluştur
+        const blob = new Blob([gameHTML], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Mevcut iframe varsa temizle
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
+        // Yeni iframe oluştur
+        const iframe = document.createElement('iframe');
+        iframe.src = blobUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+
+        // Iframe'i ekle
+        container.appendChild(iframe);
+
+        // Hata ayıklama
+        iframe.onload = () => console.log('Oyun yüklendi');
+        iframe.onerror = (e) => console.error('Oyun yüklenirken hata:', e);
+      } catch (error) {
+        console.error('Hata oluştu:', error);
+        alert('Oyun yüklenemedi. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+
+    function openFullscreen() {
+      try {
+        // Yeni sekme aç
+        const newWin = window.open("about:blank", "_blank");
+        if (newWin) {
+          newWin.document.open();
+          newWin.document.write(gameHTML);
+          newWin.document.close();
+
+          // Tam ekran modunu ayarla (isteğe bağlı, tarayıcıya bağlı olarak çalışmayabilir)
+          setTimeout(() => {
+            if (newWin.document.documentElement.requestFullscreen) {
+              newWin.document.documentElement.requestFullscreen();
+            } else if (newWin.document.documentElement.mozRequestFullScreen) {
+              newWin.document.documentElement.mozRequestFullScreen();
+            } else if (newWin.document.documentElement.webkitRequestFullscreen) {
+              newWin.document.documentElement.webkitRequestFullscreen();
+            } else if (newWin.document.documentElement.msRequestFullscreen) {
+              newWin.document.documentElement.msRequestFullscreen();
+            }
+          }, 500);
+        } else {
+          alert("Yeni sekme açma engellendi. Lütfen tarayıcı ayarlarını kontrol edin.");
+        }
+      } catch (error) {
+        console.error('Fullscreen hata:', error);
+        alert('Tam ekran modu çalışmadı. Tarayıcı konsolunu kontrol edin.');
+      }
+    }
+  </script>
+</body>
+</html>
