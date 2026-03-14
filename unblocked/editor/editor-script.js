@@ -169,6 +169,53 @@ function setupEventListeners() {
             }
         }
     });
+
+    // Library A2 Update button
+    document.getElementById('update-library-a2-btn')?.addEventListener('click', () => {
+        showLibraryA2Modal();
+    });
+
+    // Library A2 modal close button
+    document.querySelector('#library-a2-modal .modal-close')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to close? Update may still be in progress.')) {
+            if (window.libraryA2Updater) {
+                window.libraryA2Updater.cancel();
+            }
+            document.getElementById('library-a2-modal').style.display = 'none';
+        }
+    });
+
+    // Start Library A2 update button
+    document.getElementById('start-library-a2-btn')?.addEventListener('click', () => {
+        handleStartLibraryA2Update();
+    });
+
+    // Cancel Library A2 update button
+    document.getElementById('cancel-library-a2-btn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel the update?')) {
+            if (window.libraryA2Updater) {
+                window.libraryA2Updater.cancel();
+            }
+        }
+    });
+
+    // Close Library A2 button
+    document.getElementById('close-library-a2-btn')?.addEventListener('click', () => {
+        document.getElementById('library-a2-modal').style.display = 'none';
+        resetLibraryA2Modal();
+    });
+
+    // Close Library A2 modal on backdrop click
+    document.getElementById('library-a2-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'library-a2-modal') {
+            if (confirm('Are you sure you want to close? Update may still be in progress.')) {
+                if (window.libraryA2Updater) {
+                    window.libraryA2Updater.cancel();
+                }
+                document.getElementById('library-a2-modal').style.display = 'none';
+            }
+        }
+    });
 }
 
 // Switch tabs
@@ -885,6 +932,129 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ====================================
+// Library A2 Auto-Updater Functions
+// ====================================
+
+/**
+ * Show Library A2 update modal
+ */
+function showLibraryA2Modal() {
+    const modal = document.getElementById('library-a2-modal');
+    resetLibraryA2Modal();
+    modal.style.display = 'flex';
+}
+
+/**
+ * Reset Library A2 modal to initial state
+ */
+function resetLibraryA2Modal() {
+    document.getElementById('library-a2-status').style.display = 'block';
+    document.getElementById('library-a2-results').style.display = 'none';
+    document.getElementById('library-a2-message').textContent = 'Preparing to scan library-a2 folder...';
+    document.getElementById('library-a2-progress-fill').style.width = '0%';
+    document.getElementById('library-a2-current').textContent = '0';
+    document.getElementById('library-a2-total').textContent = '0';
+    document.getElementById('library-a2-error').style.display = 'none';
+
+    document.getElementById('start-library-a2-btn').style.display = 'inline-block';
+    document.getElementById('cancel-library-a2-btn').style.display = 'none';
+    document.getElementById('close-library-a2-btn').style.display = 'none';
+}
+
+/**
+ * Handle start Library A2 update
+ */
+async function handleStartLibraryA2Update() {
+    const startBtn = document.getElementById('start-library-a2-btn');
+    const cancelBtn = document.getElementById('cancel-library-a2-btn');
+    const errorEl = document.getElementById('library-a2-error');
+
+    startBtn.style.display = 'none';
+    cancelBtn.style.display = 'inline-block';
+    errorEl.style.display = 'none';
+
+    try {
+        const user = window.gamesAuth.getCurrentUser();
+
+        // Initialize updater
+        if (!window.libraryA2Updater) {
+            window.libraryA2Updater = new LibraryA2Updater(window.gameManager);
+        }
+
+        // Start update with progress callback
+        await window.libraryA2Updater.updateAllGames(user.uid, (progress) => {
+            updateLibraryA2Progress(progress);
+        });
+
+    } catch (error) {
+        console.error('Library A2 update failed:', error);
+        errorEl.textContent = 'Update failed: ' + error.message;
+        errorEl.style.display = 'block';
+
+        startBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Update Library A2 progress UI
+ */
+function updateLibraryA2Progress(progress) {
+    const messageEl = document.getElementById('library-a2-message');
+    const progressFill = document.getElementById('library-a2-progress-fill');
+    const currentEl = document.getElementById('library-a2-current');
+    const totalEl = document.getElementById('library-a2-total');
+    const statusDiv = document.getElementById('library-a2-status');
+    const resultsDiv = document.getElementById('library-a2-results');
+    const cancelBtn = document.getElementById('cancel-library-a2-btn');
+    const closeBtn = document.getElementById('close-library-a2-btn');
+
+    switch (progress.stage) {
+        case 'scanning':
+            messageEl.textContent = progress.message;
+            break;
+
+        case 'ready':
+            messageEl.textContent = progress.message;
+            totalEl.textContent = progress.total;
+            break;
+
+        case 'processing':
+            messageEl.textContent = progress.message;
+            currentEl.textContent = progress.current;
+            totalEl.textContent = progress.total;
+            const percent = (progress.current / progress.total) * 100;
+            progressFill.style.width = percent + '%';
+            break;
+
+        case 'complete':
+            statusDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            cancelBtn.style.display = 'none';
+            closeBtn.style.display = 'inline-block';
+
+            // Update result stats
+            document.getElementById('library-a2-added-count').textContent = progress.results.added.length;
+            document.getElementById('library-a2-updated-count').textContent = progress.results.updated.length;
+            document.getElementById('library-a2-fail-count').textContent = progress.results.failed.length;
+
+            // Show errors if any
+            if (progress.results.failed.length > 0) {
+                const errorList = document.getElementById('library-a2-error-list');
+                errorList.innerHTML = progress.results.failed.map(fail =>
+                    `<li>${fail.name}: ${fail.reason}</li>`
+                ).join('');
+                document.getElementById('library-a2-errors').style.display = 'block';
+            }
+
+            // Reload games list
+            loadAllGames();
+            updateStats();
+            break;
+    }
+}
 
 // ====================================
 // Announcement Management

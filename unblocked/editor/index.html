@@ -421,6 +421,7 @@
                 <div class="editor-actions">
                     <button class="btn btn-primary" id="add-game-btn">+ Add New Game</button>
                     <button class="btn btn-secondary" id="import-games-btn">📥 Import Games</button>
+                    <button class="btn btn-secondary" id="update-library-a2-btn">🔄 Update All Games for Library A2</button>
                     <button class="btn btn-secondary" id="manage-categories-btn">Manage Categories</button>
                 </div>
             </div>
@@ -697,6 +698,59 @@
         </div>
     </div>
 
+    <!-- Library A2 Update Modal -->
+    <div id="library-a2-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close">&times;</button>
+            <h2 class="modal-title">Update All Games for Library A2</h2>
+
+            <div id="library-a2-status" class="import-status">
+                <p id="library-a2-message">Preparing to scan library-a2 folder...</p>
+                <div class="import-progress">
+                    <div class="progress-bar">
+                        <div id="library-a2-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">
+                        <span id="library-a2-current">0</span> / <span id="library-a2-total">0</span> games processed
+                    </p>
+                </div>
+            </div>
+
+            <div id="library-a2-results" style="display: none;">
+                <div class="import-summary">
+                    <h3>Update Complete</h3>
+                    <div class="stats-row">
+                        <div class="stat">
+                            <span class="stat-number" id="library-a2-added-count">0</span>
+                            <span class="stat-label">Added</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="library-a2-updated-count">0</span>
+                            <span class="stat-label">Updated</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="library-a2-fail-count">0</span>
+                            <span class="stat-label">Failed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="library-a2-errors" style="display: none;">
+                    <h4>Errors:</h4>
+                    <ul id="library-a2-error-list"></ul>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn btn-primary" id="start-library-a2-btn">Start Update</button>
+                <button class="btn btn-danger" id="cancel-library-a2-btn" style="display: none;">Cancel</button>
+                <button class="btn btn-secondary" id="close-library-a2-btn" style="display: none;">Close</button>
+            </div>
+
+            <div class="error-message" id="library-a2-error"></div>
+        </div>
+    </div>
+
     <!-- Import Games Modal -->
     <div id="import-modal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
@@ -761,6 +815,7 @@
     <script src="../shared/game-manager.js"></script>
     <script src="../shared/announcement-manager.js"></script>
     <script src="../shared/game-importer.js"></script>
+    <script src="../shared/library-a2-updater.js"></script>
     <script src="../shared/disguise.js"></script>
 
     <!-- Editor Script -->
