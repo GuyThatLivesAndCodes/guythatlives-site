@@ -175,6 +175,11 @@ function setupEventListeners() {
         showLibraryA2Modal();
     });
 
+    // Clean Up Copies button
+    document.getElementById('cleanup-copies-btn')?.addEventListener('click', () => {
+        showCleanupModal();
+    });
+
     // Library A2 modal close button
     document.querySelector('#library-a2-modal .modal-close')?.addEventListener('click', () => {
         if (confirm('Are you sure you want to close? Update may still be in progress.')) {
@@ -213,6 +218,48 @@ function setupEventListeners() {
                     window.libraryA2Updater.cancel();
                 }
                 document.getElementById('library-a2-modal').style.display = 'none';
+            }
+        }
+    });
+
+    // Cleanup modal close button
+    document.querySelector('#cleanup-modal .modal-close')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to close? Cleanup may still be in progress.')) {
+            if (window.gameCleanup) {
+                window.gameCleanup.cancel();
+            }
+            document.getElementById('cleanup-modal').style.display = 'none';
+        }
+    });
+
+    // Start cleanup button
+    document.getElementById('start-cleanup-btn')?.addEventListener('click', () => {
+        handleStartCleanup();
+    });
+
+    // Cancel cleanup button
+    document.getElementById('cancel-cleanup-btn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel the cleanup?')) {
+            if (window.gameCleanup) {
+                window.gameCleanup.cancel();
+            }
+        }
+    });
+
+    // Close cleanup button
+    document.getElementById('close-cleanup-btn')?.addEventListener('click', () => {
+        document.getElementById('cleanup-modal').style.display = 'none';
+        resetCleanupModal();
+    });
+
+    // Close cleanup modal on backdrop click
+    document.getElementById('cleanup-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'cleanup-modal') {
+            if (confirm('Are you sure you want to close? Cleanup may still be in progress.')) {
+                if (window.gameCleanup) {
+                    window.gameCleanup.cancel();
+                }
+                document.getElementById('cleanup-modal').style.display = 'none';
             }
         }
     });
@@ -1047,6 +1094,137 @@ function updateLibraryA2Progress(progress) {
                     `<li>${fail.name}: ${fail.reason}</li>`
                 ).join('');
                 document.getElementById('library-a2-errors').style.display = 'block';
+            }
+
+            // Reload games list
+            loadAllGames();
+            updateStats();
+            break;
+    }
+}
+
+// ====================================
+// Game Cleanup Functions
+// ====================================
+
+/**
+ * Show cleanup modal
+ */
+function showCleanupModal() {
+    const modal = document.getElementById('cleanup-modal');
+    resetCleanupModal();
+    modal.style.display = 'flex';
+}
+
+/**
+ * Reset cleanup modal to initial state
+ */
+function resetCleanupModal() {
+    document.getElementById('cleanup-status').style.display = 'block';
+    document.getElementById('cleanup-results').style.display = 'none';
+    document.getElementById('cleanup-message').textContent = 'Preparing to scan for duplicate games...';
+    document.getElementById('cleanup-progress-fill').style.width = '0%';
+    document.getElementById('cleanup-current').textContent = '0';
+    document.getElementById('cleanup-total').textContent = '0';
+    document.getElementById('cleanup-error').style.display = 'none';
+
+    document.getElementById('start-cleanup-btn').style.display = 'inline-block';
+    document.getElementById('cancel-cleanup-btn').style.display = 'none';
+    document.getElementById('close-cleanup-btn').style.display = 'none';
+}
+
+/**
+ * Handle start cleanup
+ */
+async function handleStartCleanup() {
+    const startBtn = document.getElementById('start-cleanup-btn');
+    const cancelBtn = document.getElementById('cancel-cleanup-btn');
+    const errorEl = document.getElementById('cleanup-error');
+
+    // Confirm before starting
+    if (!confirm('This will permanently delete duplicate games, keeping only the newest version of each. Continue?')) {
+        return;
+    }
+
+    startBtn.style.display = 'none';
+    cancelBtn.style.display = 'inline-block';
+    errorEl.style.display = 'none';
+
+    try {
+        const user = window.gamesAuth.getCurrentUser();
+
+        // Initialize cleanup utility
+        if (!window.gameCleanup) {
+            window.gameCleanup = new GameCleanup(window.gameManager);
+        }
+
+        // Start cleanup with progress callback
+        await window.gameCleanup.cleanupDuplicates(user.uid, (progress) => {
+            updateCleanupProgress(progress);
+        });
+
+    } catch (error) {
+        console.error('Cleanup failed:', error);
+        errorEl.textContent = 'Cleanup failed: ' + error.message;
+        errorEl.style.display = 'block';
+
+        startBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'none';
+    }
+}
+
+/**
+ * Update cleanup progress UI
+ */
+function updateCleanupProgress(progress) {
+    const messageEl = document.getElementById('cleanup-message');
+    const progressFill = document.getElementById('cleanup-progress-fill');
+    const currentEl = document.getElementById('cleanup-current');
+    const totalEl = document.getElementById('cleanup-total');
+    const statusDiv = document.getElementById('cleanup-status');
+    const resultsDiv = document.getElementById('cleanup-results');
+    const cancelBtn = document.getElementById('cancel-cleanup-btn');
+    const closeBtn = document.getElementById('close-cleanup-btn');
+
+    switch (progress.stage) {
+        case 'scanning':
+            messageEl.textContent = progress.message;
+            break;
+
+        case 'ready':
+            messageEl.textContent = progress.message;
+            totalEl.textContent = progress.total;
+            break;
+
+        case 'processing':
+            messageEl.textContent = progress.message;
+            currentEl.textContent = progress.current;
+            totalEl.textContent = progress.total;
+            const percent = (progress.current / progress.total) * 100;
+            progressFill.style.width = percent + '%';
+            break;
+
+        case 'complete':
+            statusDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            cancelBtn.style.display = 'none';
+            closeBtn.style.display = 'inline-block';
+
+            // Update result stats
+            document.getElementById('cleanup-deleted-count').textContent = progress.results.deleted.length;
+            document.getElementById('cleanup-kept-count').textContent = progress.results.kept.length;
+            document.getElementById('cleanup-groups-count').textContent = progress.results.duplicateGroups;
+
+            // Show deleted games list if any
+            if (progress.results.deleted.length > 0) {
+                const detailsList = document.getElementById('cleanup-details-list');
+                detailsList.innerHTML = progress.results.deleted.map(item =>
+                    `<li style="padding: 0.25rem 0; border-bottom: 1px solid var(--border-color);">
+                        <strong>${item.title}</strong><br>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">${item.reason}</span>
+                    </li>`
+                ).join('');
+                document.getElementById('cleanup-details').style.display = 'block';
             }
 
             // Reload games list

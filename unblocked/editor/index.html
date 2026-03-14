@@ -422,6 +422,7 @@
                     <button class="btn btn-primary" id="add-game-btn">+ Add New Game</button>
                     <button class="btn btn-secondary" id="import-games-btn">📥 Import Games</button>
                     <button class="btn btn-secondary" id="update-library-a2-btn">🔄 Update All Games for Library A2</button>
+                    <button class="btn btn-secondary" id="cleanup-copies-btn">🧹 Clean Up Copies</button>
                     <button class="btn btn-secondary" id="manage-categories-btn">Manage Categories</button>
                 </div>
             </div>
@@ -698,6 +699,59 @@
         </div>
     </div>
 
+    <!-- Clean Up Copies Modal -->
+    <div id="cleanup-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close">&times;</button>
+            <h2 class="modal-title">🧹 Clean Up Duplicate Games</h2>
+
+            <div id="cleanup-status" class="import-status">
+                <p id="cleanup-message">Preparing to scan for duplicate games...</p>
+                <div class="import-progress">
+                    <div class="progress-bar">
+                        <div id="cleanup-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text">
+                        <span id="cleanup-current">0</span> / <span id="cleanup-total">0</span> games scanned
+                    </p>
+                </div>
+            </div>
+
+            <div id="cleanup-results" style="display: none;">
+                <div class="import-summary">
+                    <h3>Cleanup Complete</h3>
+                    <div class="stats-row">
+                        <div class="stat">
+                            <span class="stat-number" id="cleanup-deleted-count">0</span>
+                            <span class="stat-label">Deleted</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="cleanup-kept-count">0</span>
+                            <span class="stat-label">Kept</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="cleanup-groups-count">0</span>
+                            <span class="stat-label">Duplicate Groups</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cleanup-details" style="display: none; max-height: 300px; overflow-y: auto; background: var(--bg-tertiary); padding: 1rem; border-radius: var(--border-radius-sm); margin-top: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">Deleted Games:</h4>
+                    <ul id="cleanup-details-list" style="font-size: 0.8rem; color: var(--text-secondary); list-style: none; padding: 0;"></ul>
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn btn-primary" id="start-cleanup-btn">Start Cleanup</button>
+                <button class="btn btn-danger" id="cancel-cleanup-btn" style="display: none;">Cancel</button>
+                <button class="btn btn-secondary" id="close-cleanup-btn" style="display: none;">Close</button>
+            </div>
+
+            <div class="error-message" id="cleanup-error"></div>
+        </div>
+    </div>
+
     <!-- Library A2 Update Modal -->
     <div id="library-a2-modal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
@@ -816,6 +870,7 @@
     <script src="../shared/announcement-manager.js"></script>
     <script src="../shared/game-importer.js"></script>
     <script src="../shared/library-a2-updater.js"></script>
+    <script src="../shared/game-cleanup.js"></script>
     <script src="../shared/disguise.js"></script>
 
     <!-- Editor Script -->
