@@ -47,10 +47,24 @@ export default {
         stream: false
       });
 
+      // Extract text from AI response
+      let responseText = '';
+      if (typeof response === 'string') {
+        responseText = response;
+      } else if (response.response) {
+        responseText = response.response;
+      } else if (response.text) {
+        responseText = response.text;
+      } else if (response.generated_text) {
+        responseText = response.generated_text;
+      } else {
+        responseText = JSON.stringify(response);
+      }
+
       // Return the AI response
       return new Response(JSON.stringify({
         success: true,
-        response: response.response || response.text || response,
+        response: String(responseText),
         model: selectedModel
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

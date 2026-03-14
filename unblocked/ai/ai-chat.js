@@ -327,13 +327,19 @@ async function sendMessage() {
             throw new Error(data.error || 'Failed to get AI response');
         }
 
+        // Ensure response is a string
+        let responseText = data.response;
+        if (typeof responseText !== 'string') {
+            responseText = JSON.stringify(responseText);
+        }
+
         // Simulate streaming effect for better UX
-        await streamResponse(data.response);
+        await streamResponse(responseText);
 
         // Create AI message
         const aiMessage = {
             role: 'assistant',
-            content: data.response,
+            content: responseText,
             model: data.model,
             timestamp: Date.now()
         };
@@ -829,13 +835,19 @@ async function regenerateMessage(nodeId) {
             throw new Error(data.error || 'Failed to get AI response');
         }
 
+        // Ensure response is a string
+        let responseText = data.response;
+        if (typeof responseText !== 'string') {
+            responseText = JSON.stringify(responseText);
+        }
+
         // Simulate streaming
-        await streamResponse(data.response);
+        await streamResponse(responseText);
 
         // Create AI message
         const aiMessage = {
             role: 'assistant',
-            content: data.response,
+            content: responseText,
             model: data.model,
             timestamp: Date.now(),
             regenerated: true
