@@ -61,7 +61,7 @@ class LibraryA2Updater {
                 });
 
                 try {
-                    const gameUrl = `${this.baseUrl}/${folder.name}/`;
+                    const gameUrl = `${this.baseUrl}/${folder.name}/embed.html`;
                     const existingGame = gamesByUrl.get(gameUrl);
 
                     if (existingGame) {
