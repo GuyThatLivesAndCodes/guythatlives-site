@@ -1,0 +1,17 @@
+# Wrangler
+node_modules/
+.wrangler/
+dist/
+worker/
+
+# Environment files (if you add any)
+.env
+.dev.vars
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude - AI Chat - GuyThatLives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #b0ffbe;
+            --text-secondary: #cde1cb;
+            --text-muted: #95b894;
+            --primary-color: #3ff148;
+            --border-color: #505050;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .ai-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .ai-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border-radius: 0.5rem;
+        }
+
+        .back-button:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .ai-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .ai-icon {
+            font-size: 2rem;
+        }
+
+        .ai-info {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .ai-frame-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid var(--bg-secondary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .ai-header {
+                padding: 0.75rem 1rem;
+            }
+
+            .ai-title {
+                font-size: 1.25rem;
+            }
+
+            .ai-icon {
+                font-size: 1.5rem;
+            }
+
+            .ai-info {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-container">
+        <!-- Header -->
+        <div class="ai-header">
+            <div class="header-left">
+                <button class="back-button" onclick="window.location.href='/unblocked/'">
+                    ← Back
+                </button>
+                <h1 class="ai-title">
+                    <span class="ai-icon">🧠</span>
+                    Claude
+                </h1>
+            </div>
+            <div class="ai-info">
+                Powered by Anthropic
+            </div>
+        </div>
+
+        <!-- AI Frame -->
+        <div class="ai-frame-container">
+            <iframe
+                id="ai-frame"
+                class="ai-frame"
+                src="https://claude.ai"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock"
+                allowfullscreen>
+            </iframe>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" id="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Loading Claude...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('ai-frame');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        iframe.addEventListener('load', () => {
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+            }, 1000);
+        });
+
+        // Hide loading after 5 seconds as fallback
+        setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+        }, 5000);
+    </script>
+</body>
+</html>

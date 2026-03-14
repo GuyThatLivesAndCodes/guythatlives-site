@@ -1,0 +1,14 @@
+{
+  "name": "ai-chat-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for AI Chat using Workers AI",
+  "main": "ai-chat-worker.js",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
+  },
+  "keywords": ["cloudflare", "workers", "ai", "chat"],
+  "author": "GuyThatLives",
+  "license": "MIT"
+}
