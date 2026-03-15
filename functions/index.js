@@ -927,3 +927,266 @@ exports.removeStaffRole = functions.https.onCall(async (data, context) => {
     await db.collection('staffRoles').doc(targetUid).delete();
     return { success: true };
 });
+
+/* ========= Remote Play Functions ========= */
+/*
+ * NOTE: These functions are deployed to the guythatlives-unblocked project
+ * To deploy:
+ *   firebase use unblocked
+ *   firebase deploy --only functions:createRemoteSession,functions:endRemoteSession,functions:cleanupRemoteSessions
+ */
+
+/**
+ * Create Hyperbeam session - Keeps API key secure on backend
+ *
+ * To set up:
+ *   1. firebase use unblocked
+ *   2. firebase functions:config:set hyperbeam.api_key="YOUR_HYPERBEAM_API_KEY"
+ */
+exports.createRemoteSession = functions.https.onCall(async (data, context) => {
+    const { gameId } = data;
+
+    if (!gameId) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Missing gameId parameter'
+        );
+    }
+
+    // Get API key from environment (secure!)
+    const apiKey = functions.config().hyperbeam?.api_key;
+
+    if (!apiKey) {
+        throw new functions.https.HttpsError(
+            'failed-precondition',
+            'Hyperbeam API key is not configured. Contact administrator.'
+        );
+    }
+
+    const db = admin.firestore();
+
+    try {
+        // Check concurrent session limit
+        const activeSessions = await db.collection('remoteSessions')
+            .where('gameId', '==', gameId)
+            .where('status', '==', 'active')
+            .where('lastHeartbeat', '>', Date.now() - 60000) // Active in last 60s
+            .get();
+
+        const MAX_CONCURRENT = 1; // Single concurrent session
+
+        if (activeSessions.size >= MAX_CONCURRENT) {
+            // Queue is full, return queue position
+            const queuedSessions = await db.collection('remoteSessions')
+                .where('gameId', '==', gameId)
+                .where('status', '==', 'queued')
+                .orderBy('queuedAt', 'asc')
+                .get();
+
+            return {
+                status: 'queued',
+                queuePosition: queuedSessions.size + 1,
+                activeSessions: activeSessions.size
+            };
+        }
+
+        // Create Hyperbeam session
+        const requestBody = JSON.stringify({
+            // Optional: Configure VM settings
+            timeout: {
+                absolute: 3600, // 1 hour max
+                inactive: 300   // 5 min inactivity
+            }
+        });
+
+        const hyperbeamResponse = await new Promise((resolve, reject) => {
+            const options = {
+                hostname: 'engine.hyperbeam.com',
+                path: '/v0/vm',
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(requestBody)
+                }
+            };
+
+            const req = https.request(options, (res) => {
+                let responseData = '';
+
+                res.on('data', (chunk) => {
+                    responseData += chunk;
+                });
+
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(responseData);
+
+                        if (res.statusCode === 200) {
+                            resolve(parsed);
+                        } else {
+                            console.error('Hyperbeam API error:', parsed);
+                            reject(new Error(`Hyperbeam API error: ${parsed.message || 'Unknown'}`));
+                        }
+                    } catch (error) {
+                        console.error('Failed to parse Hyperbeam response:', error);
+                        reject(new Error('Failed to parse Hyperbeam response'));
+                    }
+                });
+            });
+
+            req.on('error', (error) => {
+                console.error('Hyperbeam request error:', error);
+                reject(error);
+            });
+
+            req.write(requestBody);
+            req.end();
+        });
+
+        // Create session record in Firestore
+        const sessionId = hyperbeamResponse.session_id || uuidv4();
+        const userId = context.auth?.uid || `anon_${uuidv4()}`;
+
+        await db.collection('remoteSessions').doc(sessionId).set({
+            gameId,
+            userId,
+            status: 'active',
+            hyperbeamSessionId: hyperbeamResponse.session_id,
+            embedUrl: hyperbeamResponse.embed_url,
+            adminToken: hyperbeamResponse.admin_token,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastHeartbeat: Date.now(),
+            userAgent: data.userAgent || 'unknown'
+        });
+
+        return {
+            status: 'active',
+            sessionId,
+            embedUrl: hyperbeamResponse.embed_url,
+            adminToken: hyperbeamResponse.admin_token
+        };
+
+    } catch (error) {
+        console.error('Error creating remote session:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            `Failed to create session: ${error.message}`
+        );
+    }
+});
+
+/**
+ * End a remote play session
+ */
+exports.endRemoteSession = functions.https.onCall(async (data, context) => {
+    const { sessionId } = data;
+
+    if (!sessionId) {
+        throw new functions.https.HttpsError(
+            'invalid-argument',
+            'Missing sessionId'
+        );
+    }
+
+    const db = admin.firestore();
+
+    try {
+        const sessionRef = db.collection('remoteSessions').doc(sessionId);
+        const sessionDoc = await sessionRef.get();
+
+        if (!sessionDoc.exists) {
+            return { success: true }; // Already ended
+        }
+
+        const sessionData = sessionDoc.data();
+
+        // Update session status
+        await sessionRef.update({
+            status: 'ended',
+            endedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Promote next queued session
+        const queuedSessions = await db.collection('remoteSessions')
+            .where('gameId', '==', sessionData.gameId)
+            .where('status', '==', 'queued')
+            .orderBy('queuedAt', 'asc')
+            .limit(1)
+            .get();
+
+        if (!queuedSessions.empty) {
+            const nextSession = queuedSessions.docs[0];
+            await nextSession.ref.update({
+                status: 'ready', // Ready to be activated by client
+                activatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        return { success: true };
+
+    } catch (error) {
+        console.error('Error ending session:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            'Failed to end session'
+        );
+    }
+});
+
+/**
+ * Cleanup stale remote sessions
+ * Runs every 5 minutes
+ */
+exports.cleanupRemoteSessions = functions.pubsub
+    .schedule('every 5 minutes')
+    .onRun(async (context) => {
+        const db = admin.firestore();
+        const staleTime = Date.now() - 120000; // 2 minutes
+
+        try {
+            const staleSessions = await db.collection('remoteSessions')
+                .where('status', '==', 'active')
+                .where('lastHeartbeat', '<', staleTime)
+                .get();
+
+            const batch = db.batch();
+            let cleanedCount = 0;
+
+            for (const doc of staleSessions.docs) {
+                const sessionData = doc.data();
+
+                batch.update(doc.ref, {
+                    status: 'timeout',
+                    endedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Promote next queued session
+                const queuedSessions = await db.collection('remoteSessions')
+                    .where('gameId', '==', sessionData.gameId)
+                    .where('status', '==', 'queued')
+                    .orderBy('queuedAt', 'asc')
+                    .limit(1)
+                    .get();
+
+                if (!queuedSessions.empty) {
+                    batch.update(queuedSessions.docs[0].ref, {
+                        status: 'ready',
+                        activatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                cleanedCount++;
+            }
+
+            if (cleanedCount > 0) {
+                await batch.commit();
+                console.log(`Cleaned up ${cleanedCount} stale remote sessions`);
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Remote session cleanup error:', error);
+            return null;
+        }
+    });

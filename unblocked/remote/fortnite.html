@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remote Play - Fortnite | GuyThatLives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #b0ffbe;
+            --text-secondary: #cde1cb;
+            --text-muted: #95b894;
+            --primary-color: #3ff148;
+            --primary-light: #71d487;
+            --border-color: #505050;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .back-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+        }
+
+        .game-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.active {
+            background: var(--primary-color);
+            box-shadow: 0 0 8px var(--primary-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.waiting {
+            background: var(--warning-color);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Hyperbeam container */
+        #hyperbeam-container {
+            flex: 1;
+            background: #000;
+            position: relative;
+        }
+
+        /* Loading/Welcome screen */
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .overlay-screen.hidden {
+            display: none;
+        }
+
+        .overlay-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        .overlay-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .overlay-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .overlay-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .start-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color), #3bbe56);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(63, 241, 72, 0.4);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: rgba(63, 241, 72, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .info-box strong {
+            color: var(--primary-light);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top bar -->
+    <div class="top-bar">
+        <a href="/unblocked/" class="back-btn">
+            ← Back to Games
+        </a>
+        <div class="game-title">
+            🎮 Fortnite - Remote Play
+        </div>
+        <div class="status-indicator">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Idle</span>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Hyperbeam embed container -->
+        <div id="hyperbeam-container"></div>
+
+        <!-- Welcome screen -->
+        <div class="overlay-screen" id="welcome-screen">
+            <div class="overlay-content">
+                <div class="overlay-icon">🎮</div>
+                <h1 class="overlay-title">Remote Play: Fortnite</h1>
+                <p class="overlay-description">
+                    Stream Fortnite directly in your browser! This uses cloud gaming technology to let you play without downloading anything.
+                </p>
+                <button class="start-btn" id="start-btn">Start Playing</button>
+
+                <div class="info-box">
+                    <strong>Note:</strong> Only one user can play at a time. Sessions are limited and may have a queue during peak hours.
+                </div>
+
+                <div class="error-message" id="error-message" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Loading screen -->
+        <div class="overlay-screen hidden" id="loading-screen">
+            <div class="overlay-content">
+                <div class="loading-spinner"></div>
+                <h2 class="overlay-title">Connecting...</h2>
+                <p class="overlay-description">Setting up your gaming session. This may take a moment.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Firebase needed - using Cloudflare Workers! -->
+
+    <!-- Hyperbeam SDK -->
+    <script type="module">
+        // Configuration
+        const GAME_ID = 'fortnite';
+        const WORKER_URL = 'hyperbeam-proxy.zorbyteofficial.workers.dev'; // Replace with your Cloudflare Worker URL
+
+        let hyperbeamClient = null;
+        let currentSessionId = null;
+
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const startBtn = document.getElementById('start-btn');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const errorMessage = document.getElementById('error-message');
+        const hyperbeamContainer = document.getElementById('hyperbeam-container');
+
+        // Update status indicator
+        function updateStatus(status, text) {
+            statusDot.className = 'status-dot';
+            if (status === 'active') {
+                statusDot.classList.add('active');
+            } else if (status === 'waiting') {
+                statusDot.classList.add('waiting');
+            }
+            statusText.textContent = text;
+        }
+
+        // Show error
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            loadingScreen.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+            updateStatus('idle', 'Error');
+        }
+
+        // Start Hyperbeam session via Cloudflare Worker
+        async function startSession() {
+            try {
+                startBtn.disabled = true;
+                welcomeScreen.classList.add('hidden');
+                loadingScreen.classList.remove('hidden');
+                updateStatus('waiting', 'Creating session...');
+
+                // Call Cloudflare Worker to create session
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        gameId: GAME_ID,
+                        action: 'create'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Worker error: ${response.status}`);
+                }
+
+                const sessionData = await response.json();
+
+                if (!sessionData.success) {
+                    throw new Error(sessionData.error || 'Failed to create session');
+                }
+
+                // Session created, connect to Hyperbeam
+                updateStatus('waiting', 'Connecting to game...');
+                currentSessionId = sessionData.sessionId;
+
+                // Import Hyperbeam SDK
+                const Hyperbeam = await import('https://unpkg.com/@hyperbeam/web@latest/dist/index.js');
+
+                // Initialize Hyperbeam client
+                hyperbeamClient = await Hyperbeam.default(hyperbeamContainer, sessionData.embedUrl, {
+                    adminToken: sessionData.adminToken,
+                    delegateKeyboard: true,
+                    videoPaused: false
+                });
+
+                // Hide loading screen
+                loadingScreen.classList.add('hidden');
+                updateStatus('active', 'Connected');
+
+                // Listen for session end
+                hyperbeamClient.addEventListener('close', () => {
+                    endSession();
+                });
+
+            } catch (error) {
+                console.error('Hyperbeam session error:', error);
+                showError(`Failed to start session: ${error.message}`);
+                startBtn.disabled = false;
+            }
+        }
+
+        // End session
+        async function endSession() {
+            if (currentSessionId) {
+                try {
+                    // Notify worker (optional - sessions auto-expire)
+                    await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'end',
+                            sessionId: currentSessionId
+                        })
+                    });
+                } catch (error) {
+                    console.error('Error ending session:', error);
+                }
+                currentSessionId = null;
+            }
+
+            if (hyperbeamClient) {
+                hyperbeamClient.destroy();
+                hyperbeamClient = null;
+            }
+
+            updateStatus('idle', 'Session Ended');
+            showWelcomeScreen();
+        }
+
+        // Show welcome screen
+        function showWelcomeScreen() {
+            welcomeScreen.classList.remove('hidden');
+            loadingScreen.classList.add('hidden');
+            startBtn.disabled = false;
+            errorMessage.style.display = 'none';
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startSession);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            endSession();
+        });
+
+        // Initialize
+        updateStatus('idle', 'Ready');
+    </script>
+</body>
+</html>
