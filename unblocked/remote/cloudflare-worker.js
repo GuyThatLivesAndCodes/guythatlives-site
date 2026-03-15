@@ -175,19 +175,54 @@ async function createSession(gameId, env, corsHeaders) {
 }
 
 /**
- * End a Hyperbeam session (optional - sessions auto-expire)
+ * End a Hyperbeam session
  */
 async function endSession(sessionId, env, corsHeaders) {
-  // For now, just acknowledge the request
-  // Hyperbeam sessions will auto-timeout based on inactivity
-  return new Response(JSON.stringify({
-    success: true,
-    message: 'Session will expire automatically'
-  }), {
-    status: 200,
-    headers: {
-      ...corsHeaders,
-      'Content-Type': 'application/json'
-    }
-  });
+  if (!sessionId) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Missing sessionId'
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  try {
+    // Actually terminate the Hyperbeam session
+    const response = await fetch(`https://engine.hyperbeam.com/v0/vm/${sessionId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${env.HYPERBEAM_API_KEY}`
+      }
+    });
+
+    // Even if DELETE fails, return success (session might already be gone)
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Session terminated'
+    }), {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error terminating session:', error);
+    return new Response(JSON.stringify({
+      success: true, // Still return success - sessions auto-expire anyway
+      message: 'Session will expire automatically'
+    }), {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 }

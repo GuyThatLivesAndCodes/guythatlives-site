@@ -426,6 +426,21 @@
             endSession();
         });
 
+        // Cleanup when tab is hidden/closed
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && currentSessionId) {
+                // Tab hidden - end session to free up quota
+                endSession();
+            }
+        });
+
+        // Cleanup on page close (more reliable)
+        window.addEventListener('pagehide', () => {
+            if (currentSessionId) {
+                endSession();
+            }
+        });
+
         // Initialize
         updateStatus('idle', 'Ready');
     </script>
