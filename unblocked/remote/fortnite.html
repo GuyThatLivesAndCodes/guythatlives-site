@@ -353,7 +353,8 @@
                 const Hyperbeam = await import('https://unpkg.com/@hyperbeam/web@latest/dist/index.js');
 
                 // Initialize Hyperbeam client
-                hyperbeamClient = await Hyperbeam.default(hyperbeamContainer, sessionData.embedUrl, {
+                const HyperbeamClass = Hyperbeam.default || Hyperbeam;
+                hyperbeamClient = await HyperbeamClass(hyperbeamContainer, sessionData.embedUrl, {
                     adminToken: sessionData.adminToken,
                     delegateKeyboard: true,
                     videoPaused: false
@@ -363,10 +364,16 @@
                 loadingScreen.classList.add('hidden');
                 updateStatus('active', 'Connected');
 
-                // Listen for session end
-                hyperbeamClient.addEventListener('close', () => {
-                    endSession();
-                });
+                // Listen for session end (using 'onclose' or 'ondisconnect' instead)
+                if (hyperbeamClient.onclose !== undefined) {
+                    hyperbeamClient.onclose = () => {
+                        endSession();
+                    };
+                } else if (hyperbeamClient.ondisconnect !== undefined) {
+                    hyperbeamClient.ondisconnect = () => {
+                        endSession();
+                    };
+                }
 
             } catch (error) {
                 console.error('Hyperbeam session error:', error);
