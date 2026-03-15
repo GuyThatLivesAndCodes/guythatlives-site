@@ -8,7 +8,8 @@
       "Bash(git push:*)",
       "Bash(dir:*)",
       "WebFetch(domain:docs.hyperbeam.com)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(node -e:*)"
     ]
   }
 }
